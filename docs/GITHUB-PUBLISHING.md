@@ -103,8 +103,9 @@ codex-game-studios-godot
 
 默认行为：
 
-- 生成 staging 发布包；
+- 在系统临时目录生成一次性 staging 发布包，成功后自动清理；
 - 同步到仓库外的 `..\codex-game-studios-godot-public`，保留其中的 `.git`；
+- 桌面/项目同级目录长期只保留 `codex-game-studios-godot-public` 作为发布仓库；
 - 自动创建 GitHub 仓库，如果仓库已存在则复用；
 - 设置 description 和 topics；
 - push `main`；

@@ -194,6 +194,24 @@ function Sync-StagingToReleaseRepo {
     }
 }
 
+function Remove-TemporaryStagingRoot {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Container)) {
+        return
+    }
+
+    $tempRoot = (Get-FullPath ([System.IO.Path]::GetTempPath())).TrimEnd('\', '/')
+    $target = (Get-FullPath $Path).TrimEnd('\', '/')
+    $expectedPrefix = Join-Path $tempRoot 'codex-game-studios-godot-public-staging-'
+
+    if (-not $target.StartsWith($expectedPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Refusing to remove unexpected staging directory: $target"
+    }
+
+    Remove-Item -LiteralPath $target -Recurse -Force
+}
+
 function Get-ReleaseNotes {
     return @'
 First public alpha of Codex Game Studios for Godot.
@@ -218,7 +236,7 @@ It is not affiliated with OpenAI, Anthropic, Claude, Codex, Godot, or the origin
 
 $SourceRoot = Get-FullPath (Join-Path $PSScriptRoot '..')
 $BuildScript = Join-Path $SourceRoot 'scripts\build-public-release.ps1'
-$StagingRoot = Get-FullPath (Join-Path $SourceRoot '..\codex-game-studios-godot-public-staging')
+$StagingRoot = Get-FullPath (Join-Path ([System.IO.Path]::GetTempPath()) ("codex-game-studios-godot-public-staging-" + [guid]::NewGuid().ToString('N')))
 $ReleaseRoot = Get-FullPath (Join-Path $SourceRoot '..\codex-game-studios-godot-public')
 $Gh = Get-GitHubCliPath
 Set-GitHubProxyEnvironment -RequestedProxy $Proxy
@@ -332,3 +350,4 @@ if ($OpenInBrowser) {
 Write-Host ''
 Write-Host "Published: https://github.com/$FullRepo"
 Write-Host "Local release repo: $ReleaseRoot"
+Remove-TemporaryStagingRoot -Path $StagingRoot
