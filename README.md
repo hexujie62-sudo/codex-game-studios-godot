@@ -192,6 +192,13 @@ docs/GITHUB-PUBLISHING.md
 docs/GITHUB-LISTING-COPY.md
 ```
 
+本机常驻上传通道：
+
+```powershell
+pwsh -File scripts/setup-github-auth.ps1
+pwsh -File scripts/publish-to-github.ps1
+```
+
 ## 许可与来源
 
 本项目基于 `Claude Code Game Studios` 修改，原项目采用 MIT License。

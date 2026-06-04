@@ -213,7 +213,9 @@ $Files = @(
     'docs\GITHUB-PUBLISHING.md',
     'docs\WORKFLOW-GUIDE.md',
     'docs\engine-reference\README.md',
-    'scripts\build-public-release.ps1'
+    'scripts\build-public-release.ps1',
+    'scripts\publish-to-github.ps1',
+    'scripts\setup-github-auth.ps1'
 )
 
 foreach ($file in $RootFiles) {

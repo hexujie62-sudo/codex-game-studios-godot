@@ -57,6 +57,75 @@ automation
 docs/GITHUB-LISTING-COPY.md
 ```
 
+## 常驻上传方案
+
+本项目使用 GitHub CLI 作为常驻上传通道。Token 不写进仓库、不写进 remote URL，也不需要每次复制到对话里。
+
+第一次只需要在本机登录一次：
+
+```powershell
+pwsh -File scripts/setup-github-auth.ps1
+```
+
+如果网页登录失败，也可以把 PAT 写入 GitHub CLI 的本机凭据存储：
+
+```powershell
+pwsh -File scripts/setup-github-auth.ps1 -UseToken
+```
+
+这会在终端里用安全输入提示读取 PAT，不会写进仓库，也不会写进 git remote URL。
+
+之后任何窗口或 Agent 都可以调用：
+
+```powershell
+pwsh -File scripts/publish-to-github.ps1
+```
+
+## 本机排障结论
+
+这台机器上 GitHub 发布失败主要不是权限问题，而是两个机制问题：
+
+- `gh auth login --with-token` 必须从标准输入读取 token；如果脚本没有显式写入并关闭 stdin，命令可能一直等待输入。GitHub CLI 官方手册也把 `--with-token` 定义为从 stdin 读取 token。
+- `GH_TOKEN` / `GITHUB_TOKEN` 会优先于已经保存的本机凭据，适合临时自动化，但不能替代常驻 keyring 登录。
+- 本机系统代理是 `127.0.0.1:7890`，PowerShell、Git 和 GitHub CLI 不一定完整继承 GUI 里的系统代理设置；Git 官方文档说明 `http.proxy` 可以覆盖 HTTP 代理，所以发布脚本会自动检测该端口，并给 `git push` 显式加上 `http.proxy` / `https.proxy`。
+
+因此当前脚本的固定策略是：
+
+- 认证脚本用子进程写入 token、关闭 stdin，并设置 60 秒超时；
+- 发布脚本自动检测 `127.0.0.1:7890`，同时设置 `HTTP_PROXY` / `HTTPS_PROXY` / `ALL_PROXY`；
+- 所有 `git` 网络操作额外带 `-c http.proxy=... -c https.proxy=...`，避免只靠环境变量。
+
+默认会发布到：
+
+```text
+codex-game-studios-godot
+```
+
+默认行为：
+
+- 生成 staging 发布包；
+- 同步到仓库外的 `..\codex-game-studios-godot-public`，保留其中的 `.git`；
+- 自动创建 GitHub 仓库，如果仓库已存在则复用；
+- 设置 description 和 topics；
+- push `main`；
+- 创建 `v0.1.0-alpha` release，如果 release 已存在则跳过。
+
+可选参数：
+
+```powershell
+pwsh -File scripts/publish-to-github.ps1 -Owner <github-user-or-org>
+pwsh -File scripts/publish-to-github.ps1 -RepoName codex-game-studios-godot
+pwsh -File scripts/publish-to-github.ps1 -Visibility public
+pwsh -File scripts/publish-to-github.ps1 -SkipRelease
+pwsh -File scripts/publish-to-github.ps1 -OpenInBrowser
+```
+
+如果当前 shell 找不到 `gh`，脚本会自动尝试：
+
+```text
+C:\Program Files\GitHub CLI\gh.exe
+```
+
 ## 发布前检查
 
 发布前不要直接 `git add .`，也不要直接把当前工作仓库推到 GitHub。
@@ -158,6 +227,8 @@ docs/WORKFLOW-GUIDE.md
 docs/GITHUB-PUBLISHING.md
 docs/engine-reference/godot/
 scripts/build-public-release.ps1
+scripts/publish-to-github.ps1
+scripts/setup-github-auth.ps1
 ```
 
 脚本默认阻止复制：

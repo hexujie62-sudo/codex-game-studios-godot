@@ -1,6 +1,6 @@
 # Public Release Manifest
 
-Generated: 2026-06-04 20:31:30 +08:00
+Generated: 2026-06-04 21:33:29 +08:00
 Source: local working tree (path omitted)
 Output: generated public release directory (path omitted)
 
@@ -34,6 +34,8 @@ Included entries:
 - NOTICE.md
 - README.md
 - scripts\build-public-release.ps1
+- scripts\publish-to-github.ps1
+- scripts\setup-github-auth.ps1
 - SECURITY.md
 - UPGRADING.md
 
