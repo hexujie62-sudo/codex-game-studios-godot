@@ -1,0 +1,67 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$ROOT/.codex/hooks/dangerous-command-policy.sh\"'",
+            "commandWindows": "\"C:\\Program Files\\Git\\bin\\bash.exe\" -lc 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$ROOT/.codex/hooks/dangerous-command-policy.sh\"'",
+            "timeout": 5,
+            "statusMessage": "Checking dangerous command policy"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$ROOT/.codex/hooks/skill-change-reminder.sh\"'",
+            "commandWindows": "\"C:\\Program Files\\Git\\bin\\bash.exe\" -lc 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$ROOT/.codex/hooks/skill-change-reminder.sh\"'",
+            "timeout": 5,
+            "statusMessage": "Checking skill change reminders"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$ROOT/.codex/hooks/session-start.sh\"'",
+            "commandWindows": "\"C:\\Program Files\\Git\\bin\\bash.exe\" -lc 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$ROOT/.codex/hooks/session-start.sh\"'",
+            "timeout": 10,
+            "statusMessage": "Loading CCGS session context"
+          },
+          {
+            "type": "command",
+            "command": "bash -lc 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$ROOT/.codex/hooks/detect-gaps-lite.sh\"'",
+            "commandWindows": "\"C:\\Program Files\\Git\\bin\\bash.exe\" -lc 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$ROOT/.codex/hooks/detect-gaps-lite.sh\"'",
+            "timeout": 10,
+            "statusMessage": "Checking obvious workflow gaps"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$ROOT/.codex/hooks/post-compact-restore.sh\"'",
+            "commandWindows": "\"C:\\Program Files\\Git\\bin\\bash.exe\" -lc 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$ROOT/.codex/hooks/post-compact-restore.sh\"'",
+            "timeout": 5,
+            "statusMessage": "Preparing post-compact restore reminder"
+          }
+        ]
+      }
+    ]
+  }
+}

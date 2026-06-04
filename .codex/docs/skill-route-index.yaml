@@ -1,0 +1,593 @@
+schema_version: 1
+purpose: "给 /help 和 /skill-test audit 使用的 Skill 路由索引。它解释哪些 Skill 可以主动推荐，哪些只在证据或用户点名时出现。"
+
+stable_constraints:
+  ecosystem: "Codex-only"
+  engine_family: "Godot"
+  developer_mode: "AI full-chain developer"
+  route_problem: "用户不会手动挑选 76 个命令，所以 AI 推荐必须可解释、可审计。"
+
+mutable_design_fields:
+  rule: "以下字段只能从当前工件读取，不能写成常驻路由前提。工件变化后，推荐也必须跟着变化。"
+  fields:
+    - "2D / 3D / mixed"
+    - "美术风格"
+    - "视角与镜头"
+    - "题材、类型、核心循环"
+    - "输入方式与目标平台"
+    - "当前性能预算与资源规格"
+  sources:
+    - "AGENTS.md"
+    - ".codex/docs/technical-preferences.md"
+    - "design/gdd/game-concept.md"
+    - "design/gdd/systems-index.md"
+    - "design/art/art-bible.md"
+    - "design/ux/*.md"
+
+routing_rules:
+  - "推荐 Skill 时必须说明 why；如果依据来自可变设计字段，输出里标注为“当前工件显示”。"
+  - "Godot 是稳定约束；具体版本、语言、2D/3D、输入方式仍要读取当前项目工件确认。"
+  - "core 可以成为 /help 的主推荐；support 只在当前阶段或具体缺口相关时出现；explicit-only 只在用户点名、Gate/报告明确要求或真实紧急情况时出现。"
+  - "写作、审查、准入、实现、Gate 不因为路由变轻而合并；这些 Skill 是证据链的一部分。"
+  - "Skill 行数不是第一优化指标。当前规则：1000 行以内可接受；优先优化触发、路由、项目适配和审计覆盖。"
+
+visibility_meaning:
+  core: "可以作为 /help 的唯一主推荐。"
+  support: "可以作为辅助建议；不能抢当前 required blocker。"
+  explicit-only: "默认隐藏；只有用户点名、报告证据或阶段条件明确时推荐。"
+
+route_groups:
+  orientation: "定位阶段、解释下一步、接入旧项目。"
+  design: "概念、系统、GDD、美术、UX；读取当前设计事实，不固化题材或风格。"
+  architecture: "Godot 技术蓝图、ADR、控制清单和架构审查。"
+  planning: "Epic、Story、Sprint，把上游工件转成可执行工作。"
+  implementation: "实现故事、审查代码、关闭故事。"
+  qa: "测试计划、冒烟、回归、证据审查、缺陷处理。"
+  polish: "性能、平衡、资源、内容、范围、技术债和试玩反馈。"
+  release: "发布、补丁、变更记录和上线检查。"
+  maintenance: "Skill/Agent 测试、Skill 改进、项目维护。"
+  team: "跨域编排；默认不是轻量推荐。"
+  exception: "热修、首日补丁、安全、本地化等例外流程。"
+
+skill_routes:
+  - name: start
+    stage: support
+    group: orientation
+    visibility: core
+    fit_basis: stable-workflow
+    why: "首次或迷路时建立阶段入口，不依赖具体题材、美术或输入方式。"
+    avoid_when: "已经有明确阶段和当前 blocker 时，优先用 /help。"
+  - name: help
+    stage: support
+    group: orientation
+    visibility: core
+    fit_basis: stable-workflow
+    why: "轻量读取 workflow catalog、route index 和当前工件，给一个可解释的下一步。"
+    avoid_when: "需要完整缺口审计或阶段判定时，改用 /project-stage-detect 或 /gate-check。"
+  - name: project-stage-detect
+    stage: support
+    group: orientation
+    visibility: support
+    fit_basis: stable-workflow
+    why: "当 /help 信息不足时，做完整阶段和工件缺口扫描。"
+    avoid_when: "只需要一句下一步建议时不要默认使用。"
+  - name: adopt
+    stage: support
+    group: orientation
+    visibility: support
+    fit_basis: existing-project
+    why: "旧项目或半成品接入 CCGS 时，检查工件格式是否真的兼容。"
+    avoid_when: "新项目从 /start 开始，或只是问当前下一步。"
+  - name: onboard
+    stage: support
+    group: orientation
+    visibility: explicit-only
+    fit_basis: explicit-request
+    why: "给新人或新代理生成上下文入职材料。"
+    avoid_when: "单人连续开发且上下文没有交接需求。"
+
+  - name: brainstorm
+    stage: concept
+    group: design
+    visibility: core
+    fit_basis: mutable-design
+    why: "生成或修订游戏概念；题材、视角、循环都应从当前讨论和 GDD 读取。"
+    avoid_when: "概念已批准且只是实现或测试问题。"
+  - name: setup-engine
+    stage: concept
+    group: architecture
+    visibility: core
+    fit_basis: stable-godot
+    why: "固定当前 Godot 版本、语言、工具路径和技术偏好；具体版本从项目文件读取。"
+    avoid_when: "引擎信息已明确且没有版本/工具链变化。"
+  - name: art-bible
+    stage: concept
+    group: design
+    visibility: core
+    fit_basis: mutable-design
+    why: "把当前视觉方向写成可生产标准；美术风格是可变工件事实，不是常驻规则。"
+    avoid_when: "视觉方向尚未定，或只是技术实现问题。"
+  - name: map-systems
+    stage: concept
+    group: design
+    visibility: core
+    fit_basis: mutable-design
+    why: "把当前概念拆成系统索引，是后续 GDD、架构和 Story 的入口。"
+    avoid_when: "系统索引已批准且只是修改单个系统。"
+  - name: design-system
+    stage: systems-design
+    group: design
+    visibility: core
+    fit_basis: mutable-design
+    why: "为单个系统写 GDD；必须读取当前系统索引和设计事实。"
+    avoid_when: "只做小调整时优先 /quick-design；审查时用 /design-review。"
+  - name: quick-design
+    stage: systems-design
+    group: design
+    visibility: support
+    fit_basis: mutable-design
+    why: "小改动、调参、局部机制变化不必启动完整 GDD。"
+    avoid_when: "新增核心系统或跨系统规则变化。"
+  - name: design-review
+    stage: systems-design
+    group: design
+    visibility: core
+    fit_basis: quality-gate
+    why: "独立审查单个概念/GDD，不能和写作 Skill 合并。"
+    avoid_when: "文档还没写完，或需要跨 GDD 审查时用 /review-all-gdds。"
+  - name: review-all-gdds
+    stage: systems-design
+    group: design
+    visibility: core
+    fit_basis: quality-gate
+    why: "跨所有 GDD 找矛盾、所有权冲突和设计理论风险。"
+    avoid_when: "只有一个局部文档需要审查。"
+  - name: consistency-check
+    stage: systems-design
+    group: polish
+    visibility: support
+    fit_basis: evidence
+    why: "当 GDD 改动多或实体/公式重复时，用轻量扫描找冲突。"
+    avoid_when: "需要正式跨 GDD 通过/失败判定时用 /review-all-gdds。"
+  - name: propagate-design-change
+    stage: systems-design
+    group: planning
+    visibility: support
+    fit_basis: evidence
+    why: "GDD 修改后追踪 ADR、Story 和测试可能过期的地方。"
+    avoid_when: "只是新写文档，还没有下游工件。"
+
+  - name: create-architecture
+    stage: technical-setup
+    group: architecture
+    visibility: core
+    fit_basis: stable-godot
+    why: "把已批准 GDD 转成 Godot 技术蓝图；不假设 2D/3D，读取当前工件。"
+    avoid_when: "GDD 还没通过审查。"
+  - name: architecture-decision
+    stage: technical-setup
+    group: architecture
+    visibility: core
+    fit_basis: stable-godot
+    why: "记录关键 Godot 技术选择、替代方案和后果。"
+    avoid_when: "只是实现细节，不构成可追溯技术决策。"
+  - name: architecture-review
+    stage: technical-setup
+    group: architecture
+    visibility: core
+    fit_basis: quality-gate
+    why: "验证架构是否覆盖 GDD、ADR 是否冲突、Godot 适配是否成立。"
+    avoid_when: "架构文档或关键 ADR 尚未形成。"
+  - name: create-control-manifest
+    stage: technical-setup
+    group: architecture
+    visibility: core
+    fit_basis: evidence
+    why: "把 ADR 压缩成实现者可执行的规则清单，是 Story/代码的约束入口。"
+    avoid_when: "ADR 未被接受或架构尚未审查。"
+
+  - name: asset-spec
+    stage: pre-production
+    group: design
+    visibility: support
+    fit_basis: mutable-design
+    why: "从当前 GDD/Art Bible 生成资源规格和 AI 生成提示；风格和维度必须来自工件。"
+    avoid_when: "视觉方向未批准，或只是代码任务。"
+  - name: ux-design
+    stage: pre-production
+    group: design
+    visibility: core
+    fit_basis: mutable-design
+    why: "为当前屏幕/流程/HUD 写 UX 规范；输入方式和平台必须动态读取。"
+    avoid_when: "只是视觉资源规格，或 UX 规范已完成需要审查。"
+  - name: ux-review
+    stage: pre-production
+    group: design
+    visibility: core
+    fit_basis: quality-gate
+    why: "审查 UX 是否符合当前 GDD、平台、输入和无障碍要求。"
+    avoid_when: "UX 规范还没有完成。"
+  - name: prototype
+    stage: pre-production
+    group: design
+    visibility: support
+    fit_basis: mutable-design
+    why: "在提交生产前验证当前核心机制是否值得继续。"
+    avoid_when: "设计已被证据验证，或当前任务是正式实现。"
+  - name: vertical-slice
+    stage: pre-production
+    group: planning
+    visibility: support
+    fit_basis: evidence
+    why: "用端到端切片验证完整循环、技术风险和生产质量。"
+    avoid_when: "项目仍在概念/GDD 阶段，或只是一次性原型。"
+  - name: create-epics
+    stage: pre-production
+    group: planning
+    visibility: core
+    fit_basis: evidence
+    why: "把 GDD、ADR 和控制清单转成架构模块级 Epic。"
+    avoid_when: "架构和控制清单还没完成。"
+  - name: create-stories
+    stage: pre-production
+    group: planning
+    visibility: core
+    fit_basis: evidence
+    why: "把 Epic 拆成可实现 Story，并嵌入 TR-ID、ADR 和测试证据路径。"
+    avoid_when: "Epic 未批准，或故事只是临时 TODO。"
+  - name: test-setup
+    stage: pre-production
+    group: qa
+    visibility: support
+    fit_basis: stable-godot
+    why: "为当前 Godot 测试栈建立测试脚手架和 CI；具体语言从技术偏好读取。"
+    avoid_when: "测试框架已存在且没有引擎/语言变化。"
+  - name: test-helpers
+    stage: pre-production
+    group: qa
+    visibility: support
+    fit_basis: stable-godot
+    why: "为 Godot 测试生成项目特定 helper，降低全链路 AI 写测试的样板成本。"
+    avoid_when: "还没有稳定测试模式，或 helper 会过早抽象。"
+
+  - name: sprint-plan
+    stage: production
+    group: planning
+    visibility: core
+    fit_basis: production-context
+    why: "把准备好的 Story 放进当前 Sprint，是生产节奏入口。"
+    avoid_when: "没有 ready Story，或仍在设计/架构阶段。"
+  - name: sprint-status
+    stage: production
+    group: planning
+    visibility: support
+    fit_basis: production-context
+    why: "快速读取当前 Sprint 状态，不做完整审计。"
+    avoid_when: "需要阶段推进判定时用 /gate-check。"
+  - name: story-readiness
+    stage: production
+    group: implementation
+    visibility: core
+    fit_basis: quality-gate
+    why: "开工前验证 Story 是否有 GDD、ADR、验收标准和测试证据。"
+    avoid_when: "Story 还不存在，或已经进入完成审查。"
+  - name: dev-story
+    stage: production
+    group: implementation
+    visibility: core
+    fit_basis: stable-godot
+    why: "读取 Story 上下文并实现；Godot 细节从当前技术偏好和文件类型路由。"
+    avoid_when: "Story 未 ready，或用户只是要设计讨论。"
+  - name: code-review
+    stage: production
+    group: implementation
+    visibility: support
+    fit_basis: quality-gate
+    why: "实现后做架构和质量审查，避免实现者自证正确。"
+    avoid_when: "没有代码改动，或需要 Story 完成验收时用 /story-done。"
+  - name: story-done
+    stage: production
+    group: implementation
+    visibility: core
+    fit_basis: quality-gate
+    why: "根据实现验证验收标准、GDD/ADR 偏差和测试证据。"
+    avoid_when: "实现尚未完成，或还没做必要代码审查。"
+  - name: qa-plan
+    stage: production
+    group: qa
+    visibility: support
+    fit_basis: qa-context
+    why: "为 Sprint、Epic 或功能生成 QA 测试计划。"
+    avoid_when: "需求还未拆成可测试故事。"
+  - name: smoke-check
+    stage: production
+    group: qa
+    visibility: support
+    fit_basis: qa-context
+    why: "QA 前验证关键路径构建是否能跑。"
+    avoid_when: "没有可运行构建或测试框架。"
+  - name: regression-suite
+    stage: production
+    group: qa
+    visibility: support
+    fit_basis: qa-context
+    why: "把回归覆盖映射到关键路径和已修 Bug。"
+    avoid_when: "项目还没有稳定测试历史。"
+  - name: test-evidence-review
+    stage: production
+    group: qa
+    visibility: support
+    fit_basis: qa-context
+    why: "审查测试证据是否真实覆盖验收标准。"
+    avoid_when: "还没有测试证据文件。"
+  - name: test-flakiness
+    stage: polish
+    group: qa
+    visibility: support
+    fit_basis: qa-context
+    why: "CI 或测试历史出现间歇失败时定位不稳定测试。"
+    avoid_when: "没有多次测试运行记录。"
+  - name: bug-report
+    stage: production
+    group: qa
+    visibility: support
+    fit_basis: qa-context
+    why: "把发现的问题转成可复现、可分级的缺陷。"
+    avoid_when: "只是设计分歧或需求变更。"
+  - name: bug-triage
+    stage: production
+    group: qa
+    visibility: support
+    fit_basis: qa-context
+    why: "Bug 堆积后重新评估优先级、严重性和冲刺归属。"
+    avoid_when: "只有一两个新 Bug，先用 /bug-report。"
+  - name: retrospective
+    stage: production
+    group: planning
+    visibility: support
+    fit_basis: production-context
+    why: "冲刺或里程碑结束后总结节奏、阻塞和改进。"
+    avoid_when: "冲刺尚未结束或没有执行数据。"
+
+  - name: playtest-report
+    stage: polish
+    group: polish
+    visibility: core
+    fit_basis: mutable-design
+    why: "把试玩反馈结构化；评价标准应读取当前设计目标。"
+    avoid_when: "没有试玩记录或可玩构建。"
+  - name: perf-profile
+    stage: polish
+    group: polish
+    visibility: support
+    fit_basis: stable-godot
+    why: "Godot 性能瓶颈需要测量时使用；2D/3D 只能从当前工件判断。"
+    avoid_when: "没有性能症状或预算。"
+  - name: balance-check
+    stage: polish
+    group: polish
+    visibility: support
+    fit_basis: mutable-design
+    why: "检查当前数值、经济或进度是否产生主导策略或断层。"
+    avoid_when: "没有平衡数据、公式或玩家反馈。"
+  - name: asset-audit
+    stage: polish
+    group: polish
+    visibility: support
+    fit_basis: mutable-design
+    why: "检查当前资源命名、格式、体积和引用是否符合项目资源标准。"
+    avoid_when: "资源规格还未建立。"
+  - name: content-audit
+    stage: polish
+    group: polish
+    visibility: support
+    fit_basis: evidence
+    why: "比较计划内容和已实现内容，识别缺口。"
+    avoid_when: "还没有足够实现内容。"
+  - name: scope-check
+    stage: production
+    group: polish
+    visibility: support
+    fit_basis: production-context
+    why: "故事或功能膨胀时量化范围蔓延。"
+    avoid_when: "没有原始计划或当前范围对比。"
+  - name: tech-debt
+    stage: production
+    group: polish
+    visibility: support
+    fit_basis: evidence
+    why: "维护技术债登记和偿还优先级。"
+    avoid_when: "当前任务是新增需求且没有债务证据。"
+  - name: estimate
+    stage: support
+    group: polish
+    visibility: support
+    fit_basis: explicit-request
+    why: "需要估算复杂度、风险和工作量时使用。"
+    avoid_when: "已有明确 Sprint 计划且不需要重新估算。"
+  - name: milestone-review
+    stage: support
+    group: planning
+    visibility: support
+    fit_basis: evidence
+    why: "里程碑节点需要完整进度、质量和风险复盘。"
+    avoid_when: "只需要当前 Sprint 快照时用 /sprint-status。"
+
+  - name: gate-check
+    stage: support
+    group: qa
+    visibility: core
+    fit_basis: quality-gate
+    why: "阶段推进前给 PASS/CONCERNS/FAIL 判定，是路线把关点。"
+    avoid_when: "阶段内只想知道下一步，先用 /help。"
+
+  - name: release-checklist
+    stage: release
+    group: release
+    visibility: core
+    fit_basis: release-context
+    why: "发布前验证构建、认证、商店和发布准备。"
+    avoid_when: "项目未进入发布准备。"
+  - name: launch-checklist
+    stage: release
+    group: release
+    visibility: core
+    fit_basis: release-context
+    why: "最终上线前跨部门签署。"
+    avoid_when: "还没有候选版本。"
+  - name: changelog
+    stage: release
+    group: release
+    visibility: support
+    fit_basis: release-context
+    why: "从提交、冲刺和设计变更生成内部变更记录。"
+    avoid_when: "没有发布或版本记录需求。"
+  - name: patch-notes
+    stage: release
+    group: release
+    visibility: support
+    fit_basis: release-context
+    why: "把内部改动转成玩家可读补丁说明。"
+    avoid_when: "不是面向玩家的版本沟通。"
+  - name: hotfix
+    stage: support
+    group: exception
+    visibility: explicit-only
+    fit_basis: emergency
+    why: "绕过正常冲刺的紧急修复流程，需要审计轨迹。"
+    avoid_when: "普通缺陷应走 /bug-report、/bug-triage 和正常 Story。"
+  - name: day-one-patch
+    stage: release
+    group: exception
+    visibility: explicit-only
+    fit_basis: release-context
+    why: "黄金母版后或上线初期处理已知高优先级问题。"
+    avoid_when: "还未接近发布，或不是首日补丁场景。"
+  - name: localize
+    stage: support
+    group: exception
+    visibility: explicit-only
+    fit_basis: product-context
+    why: "当产品目标包含多语言/地区发布时执行完整本地化流程。"
+    avoid_when: "MVP 还没确定本地化目标。"
+  - name: security-audit
+    stage: support
+    group: exception
+    visibility: explicit-only
+    fit_basis: risk-context
+    why: "公开发布、存档/网络/多人/反作弊相关风险出现时审计安全。"
+    avoid_when: "纯离线早期原型且没有安全攻击面。"
+  - name: soak-test
+    stage: polish
+    group: exception
+    visibility: explicit-only
+    fit_basis: qa-context
+    why: "长时间游玩后才暴露的问题需要浸泡测试协议。"
+    avoid_when: "没有稳定构建或长测目标。"
+
+  - name: reverse-document
+    stage: support
+    group: maintenance
+    visibility: support
+    fit_basis: existing-project
+    why: "从现有实现反向生成缺失设计或架构文档。"
+    avoid_when: "上游文档已经完整且当前任务是实现。"
+  - name: skill-test
+    stage: support
+    group: maintenance
+    visibility: support
+    fit_basis: system-maintenance
+    why: "验证 Skill 结构、行为测试和路由覆盖，是新增/修改 Skill 后的审计入口。"
+    avoid_when: "普通游戏开发下一步不应被它抢主推荐。"
+  - name: skill-create-ccgs
+    stage: support
+    group: maintenance
+    visibility: explicit-only
+    fit_basis: system-maintenance
+    why: "创建、接入、登记、测试和治理 CCGS 项目 Skill，并同步 spec、catalog、route index、workflow 和架构文档。"
+    avoid_when: "只是普通游戏开发任务，或已有 Skill 可以直接执行而不需要改体系。"
+  - name: window-start-ccgs
+    stage: support
+    group: maintenance
+    visibility: support
+    fit_basis: context-recovery
+    why: "用短命令启动或恢复 registered/custom lane，避免复制长对话，并让并行任务落到正确窗口。"
+    avoid_when: "当前窗口职责匹配、lane 已注册且不需要切换、恢复或并行拆分。"
+  - name: window-handoff-ccgs
+    stage: support
+    group: maintenance
+    visibility: support
+    fit_basis: context-recovery
+    why: "更新、审计和压缩多窗口 lane，检查 stale、tracking concern 和 Active Files 冲突，确保并行状态落盘。"
+    avoid_when: "当前窗口没有阶段性进展、没有状态变化，也不需要恢复、审计或 file conflict 检查。"
+  - name: skill-improve
+    stage: support
+    group: maintenance
+    visibility: explicit-only
+    fit_basis: system-maintenance
+    why: "用测试-修复-复测循环改进单个 Skill。"
+    avoid_when: "还没通过 /skill-test 找到具体问题。"
+
+  - name: team-ui
+    stage: support
+    group: team
+    visibility: explicit-only
+    fit_basis: cross-domain
+    why: "屏幕/UX/视觉/实现/审查同时发生时编排 UI 团队。"
+    avoid_when: "只需要写 UX 规范或只改一个 UI 文件。"
+  - name: team-qa
+    stage: support
+    group: team
+    visibility: explicit-only
+    fit_basis: cross-domain
+    why: "需要 QA lead 和 tester 共同完成完整测试包时使用。"
+    avoid_when: "只需要一个 QA 计划、冒烟检查或证据审查。"
+  - name: team-combat
+    stage: support
+    group: team
+    visibility: explicit-only
+    fit_basis: cross-domain
+    why: "战斗功能同时涉及设计、实现、AI、音频、特效和 QA 时使用。"
+    avoid_when: "只是单个战斗数值或代码任务。"
+  - name: team-level
+    stage: support
+    group: team
+    visibility: explicit-only
+    fit_basis: cross-domain
+    why: "区域/关卡需要关卡、叙事、美术、系统和 QA 协同时使用。"
+    avoid_when: "没有明确关卡生产任务。"
+  - name: team-narrative
+    stage: support
+    group: team
+    visibility: explicit-only
+    fit_basis: cross-domain
+    why: "故事、世界观、关卡和系统叙事需要协同时使用。"
+    avoid_when: "只是写一个文本片段或修正文案。"
+  - name: team-audio
+    stage: support
+    group: team
+    visibility: explicit-only
+    fit_basis: cross-domain
+    why: "音频方向、音效、技术接入和 QA 需要一起推进时使用。"
+    avoid_when: "只是单个音效资源需求。"
+  - name: team-polish
+    stage: polish
+    group: team
+    visibility: explicit-only
+    fit_basis: cross-domain
+    why: "打磨阶段需要性能、技术美术、音频和 QA 联合通过时使用。"
+    avoid_when: "只是在定位单个性能或资源问题。"
+  - name: team-release
+    stage: release
+    group: team
+    visibility: explicit-only
+    fit_basis: release-context
+    why: "候选版本到部署需要发布经理、QA、DevOps 和制作协同。"
+    avoid_when: "没有候选版本或发布窗口。"
+  - name: team-live-ops
+    stage: support
+    group: team
+    visibility: explicit-only
+    fit_basis: product-context
+    why: "发布后赛季、活动或运营内容规划才需要。"
+    avoid_when: "尚未进入发布后运营。"

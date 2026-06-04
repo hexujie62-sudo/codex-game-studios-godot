@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+# CCGS local pre-push branch protection. Enable with:
+#   git config core.hooksPath .githooks
+
+set +e
+
+BLOCKED=""
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main|refs/heads/master|refs/heads/develop)
+      BLOCKED="$remote_ref"
+      ;;
+  esac
+done
+
+if [ -n "$BLOCKED" ]; then
+  echo "阻止推送到受保护分支: $BLOCKED" >&2
+  echo "请通过 PR/受保护分支流程合并，或在明确需要时临时绕过本地 hook。" >&2
+  exit 1
+fi
+
+exit 0

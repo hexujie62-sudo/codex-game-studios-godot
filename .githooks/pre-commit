@@ -1,0 +1,153 @@
+#!/usr/bin/env sh
+# CCGS local pre-commit checks. Enable with:
+#   git config core.hooksPath .githooks
+
+set +e
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$STAGED" ] && exit 0
+
+WARNINGS=""
+
+find_json_validator() {
+  for cmd in python python3 py; do
+    if command -v "$cmd" >/dev/null 2>&1; then
+      echo "$cmd -m json.tool"
+      return 0
+    fi
+  done
+  if command -v node >/dev/null 2>&1; then
+    echo "node-json"
+    return 0
+  fi
+  return 1
+}
+
+validate_json() {
+  file="$1"
+  validator="$2"
+  if [ "$validator" = "node-json" ]; then
+    node -e "JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8'))" "$file" >/dev/null 2>&1
+  else
+    # shellcheck disable=SC2086
+    $validator "$file" >/dev/null 2>&1
+  fi
+}
+
+JSON_VALIDATOR=$(find_json_validator)
+
+echo "$STAGED" | grep -E '\.json$' | while IFS= read -r file; do
+  [ -f "$file" ] || continue
+  if [ -z "$JSON_VALIDATOR" ]; then
+    echo "警告: 未找到 python/node，跳过 JSON 校验: $file" >&2
+    continue
+  fi
+  if ! validate_json "$file" "$JSON_VALIDATOR"; then
+    echo "阻止提交: $file 不是有效 JSON。" >&2
+    exit 2
+  fi
+done
+JSON_STATUS=$?
+[ "$JSON_STATUS" -ne 0 ] && exit "$JSON_STATUS"
+
+DESIGN_FILES=$(echo "$STAGED" | grep -E '^design/gdd/.*\.md$')
+if [ -n "$DESIGN_FILES" ]; then
+  for file in $DESIGN_FILES; do
+    [ -f "$file" ] || continue
+    for section in "Overview" "Player Fantasy" "Detailed" "Formulas" "Edge Cases" "Dependencies" "Tuning Knobs" "Acceptance Criteria"; do
+      if ! grep -qi "$section" "$file"; then
+        WARNINGS="$WARNINGS\n设计: $file 可能缺少章节: $section"
+      fi
+    done
+  done
+fi
+
+CODE_FILES=$(echo "$STAGED" | grep -E '^src/gameplay/')
+if [ -n "$CODE_FILES" ]; then
+  for file in $CODE_FILES; do
+    [ -f "$file" ] || continue
+    if grep -nE '(damage|health|speed|rate|chance|cost|duration)[[:space:]]*[:=][[:space:]]*[0-9]+' "$file" >/dev/null 2>&1; then
+      WARNINGS="$WARNINGS\n代码: $file 可能包含硬编码游戏数值；优先使用数据文件或配置。"
+    fi
+  done
+fi
+
+SRC_FILES=$(echo "$STAGED" | grep -E '^src/')
+if [ -n "$SRC_FILES" ]; then
+  for file in $SRC_FILES; do
+    [ -f "$file" ] || continue
+    if grep -nE '(TODO|FIXME|HACK)[^(]' "$file" >/dev/null 2>&1; then
+      WARNINGS="$WARNINGS\n风格: $file 中的 TODO/FIXME/HACK 可能缺少负责人标签。建议 TODO(name)。"
+    fi
+  done
+fi
+
+SKILL_FILES=$(echo "$STAGED" | grep -E '^\.agents/skills/[^/]+/SKILL\.md$')
+if [ -n "$SKILL_FILES" ]; then
+  for file in $SKILL_FILES; do
+    skill=$(echo "$file" | sed 's|^\.agents/skills/||; s|/SKILL.md$||')
+    WARNINGS="$WARNINGS\nSkill: $skill 已修改；建议运行 /skill-test static $skill。批量修改后运行 /skill-test audit。"
+  done
+fi
+
+UNTRACKED_LANES=$(git ls-files --others --exclude-standard -- 'production/session-state/windows/*.md')
+if [ -n "$UNTRACKED_LANES" ]; then
+  echo "阻止提交: 发现未纳入 git 的多窗口 lane 状态文件。" >&2
+  echo "$UNTRACKED_LANES" | sed 's/^/  - /' >&2
+  echo "这些文件是项目状态工件。请显式 stage，或如果确定不需要版本管理，再调整 .gitignore 和多窗口协议。" >&2
+  exit 3
+fi
+
+LANE_FILES=$(find production/session-state/windows -maxdepth 1 -type f -name '*.md' 2>/dev/null)
+if [ -n "$LANE_FILES" ]; then
+  CONFLICTS=$(
+    awk '
+      /^## Active Files/ { in_active=1; next }
+      /^## / { in_active=0 }
+      in_active {
+        line=$0
+        while (match(line, /`[^`]+`/)) {
+          path=substr(line, RSTART + 1, RLENGTH - 2)
+          if (path != "") print path "\t" FILENAME
+          line=substr(line, RSTART + RLENGTH)
+        }
+      }
+    ' $LANE_FILES | sort | awk -F '\t' '
+      {
+        if ($1 != prev && prev != "" && count > 1) {
+          print prev
+        }
+        if ($1 != prev) {
+          prev=$1
+          count=0
+        }
+        count++
+      }
+      END {
+        if (prev != "" && count > 1) print prev
+      }
+    '
+  )
+  if [ -n "$CONFLICTS" ]; then
+    echo "阻止提交: 多窗口 lane 的 Active Files 存在重复占用。" >&2
+    echo "$CONFLICTS" | sed 's/^/  - /' >&2
+    echo "请运行 /window-handoff-ccgs audit，并用 handoff/request/split 解决后再提交。" >&2
+    exit 4
+  fi
+fi
+
+ASSET_FILES=$(echo "$STAGED" | grep -E '^assets/')
+if [ -n "$ASSET_FILES" ]; then
+  for file in $ASSET_FILES; do
+    base=$(basename "$file")
+    if echo "$base" | grep -qE '[A-Z[:space:]-]'; then
+      WARNINGS="$WARNINGS\n资源: $file 文件名建议使用小写字母和下划线。"
+    fi
+  done
+fi
+
+if [ -n "$WARNINGS" ]; then
+  printf "=== CCGS pre-commit 提醒 ===%b\n===============================\n" "$WARNINGS" >&2
+fi
+
+exit 0
