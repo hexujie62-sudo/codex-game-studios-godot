@@ -167,7 +167,79 @@ tests/
 
 ---
 
-## Phase 6: Output
+## Phase 6: Production Rejoin
+
+After routine setup and validation, reconnect the user to the production
+workflow instead of ending with a generic command menu.
+
+Read `.codex/docs/workflow-catalog.yaml` and, if present, `production/stage.txt`.
+Use the catalog only for next-step routing; do not duplicate `/help`'s full lane
+and checkpoint report.
+
+Determine the current phase:
+
+1. If `production/stage.txt` exists, map its value to the matching workflow
+   phase.
+2. If no stage file exists, default to `concept` unless project artifacts clearly
+   place the project later.
+
+Within the current phase, scan steps in catalog order:
+
+- A required step with an `artifact.glob` is complete when the glob has at least
+  `min_count` matches and any `pattern` requirement matches at least one file.
+- A required step with only an artifact `note` is `manual/unknown`; name the
+  note instead of pretending it is complete.
+- Optional steps can be listed only as secondary options; they must not displace
+  the first missing required step.
+- Treat the just-completed `engine-setup` / `test-setup` setup work as complete
+  if the corresponding technical preferences, engine reference, or tests
+  foundation was created or verified in this run.
+
+Before choosing the catalog-required next step, check for explicit concept
+prototype intent. Read `design/gdd/game-concept.md` if it exists. If the concept
+document clearly declares a prototype or validation build as the first complete
+scope, contains a `prototypes/...` path, or says the core feel/visual/technical
+risk should be validated before full GDD work, then this project-specific
+prototype is the immediate blocker after engine setup.
+
+Prototype intent is considered unresolved when no matching
+`prototypes/*/README.md` or `prototypes/*/REPORT.md` exists, or when the concept
+names a specific prototype path and that path does not contain a README/REPORT.
+In that case, choose `/brainstorm prototype` as the single primary next step,
+even if later required Concept-stage documents such as the art bible or systems
+index are missing. Explain that the old `/prototype` route is absorbed into
+`/brainstorm`, and that the prototype validates the concept's first complete
+scope before the document chain continues. Do not recommend prototype mode for a
+generic concept that merely mentions future validation as a possible risk.
+
+Choose exactly one primary next step:
+
+- If explicit unresolved prototype intent exists, recommend `/brainstorm prototype`.
+- First missing required step in the current phase.
+- If all required steps in the current phase are complete, recommend
+  `/gate-check [next-phase]` or the first required step of the next phase if a
+  gate is not appropriate yet.
+- If the next step has no command, explain the missing artifact and recommend
+  `/help` only as a fallback navigator.
+
+Special Concept-stage examples:
+
+- Engine setup complete, `design/gdd/game-concept.md` missing → next
+  `/brainstorm`.
+- Engine setup complete, concept explicitly names a first-scope prototype or
+  validation build and no prototype README/REPORT exists → next
+  `/brainstorm prototype`.
+- Engine setup complete, concept exists, `design/art/art-bible.md` missing →
+  next `/art-bible`.
+- Engine setup complete, concept and art bible exist, systems index missing →
+  next `/design-system`.
+
+If `project.godot` is missing, report it as a runtime validation concern, not a
+reason to drop the user out of the design/art/architecture flow.
+
+---
+
+## Phase 7: Output
 
 输出保持短：
 
@@ -179,9 +251,16 @@ Godot setup
 - Technical preferences: updated / unchanged / blocked
 - Engine reference: current / created / needs refresh
 - Test foundation: present / created / concern
-- Next: /brainstorm, /design-system, /create-architecture, or /smoke-check
+- Runtime validation: passed / skipped ([reason]) / failed
+
+Production rejoin
+- Where you are: [workflow phase label]
+- Completed now: Engine Setup / Test Framework Setup
+- Current blocker: [explicit prototype blocker, first missing required step, or "none in this phase"]
+- Next: /[single recommended command]
+- Why: [concept first-scope prototype reason, or catalog step description + artifact gap]
 
 Verdict: COMPLETE / CONCERNS / BLOCKED
 ```
 
-不要推荐旧测试命令或多引擎命令。
+不要推荐旧测试命令或多引擎命令。不要输出一个无上下文的候选命令列表。

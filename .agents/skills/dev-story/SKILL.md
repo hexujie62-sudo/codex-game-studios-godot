@@ -1,6 +1,6 @@
 ---
 name: dev-story
-description: "读取故事文件并实现它。先做 readiness preflight，再加载 GDD/TR、ADR、控制清单和 Godot 上下文，实现代码与测试。"
+description: "Read and implement a story file. Runs readiness preflight, loads GDD/TR, ADRs, control manifests, and Godot context, then implements code and tests."
 argument-hint: "[story-path]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Bash, Task, AskUserQuestion

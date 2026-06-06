@@ -1,7 +1,7 @@
 ---
 name: help
-description: "分析已完成的工作和用户查询，并就下一步提供建议。当用户说接下来该做什么或现在该做什么或遇到困难或不知道该做什么时使用"
-argument-hint: "[可选：你刚完成或卡住的内容，例如 '刚完成 design-review' 或 '卡在 ADRs']"
+description: "Analyze completed work and the user's current question to recommend the next useful step when the user is unsure, blocked, or asks what to do next."
+argument-hint: "[optional: recent work or blocker, e.g. 'finished design-review' or 'blocked on ADRs']"
 user-invocable: true
 allowed-tools: Read, Glob, Grep
 context: |

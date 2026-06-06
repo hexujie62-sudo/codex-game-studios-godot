@@ -1,6 +1,6 @@
 # Public Release Manifest
 
-Generated: 2026-06-06 20:09:01 +08:00
+Generated: 2026-06-07 00:08:24 +08:00
 Source: local working tree (path omitted)
 Output: generated public release directory (path omitted)
 
@@ -32,6 +32,7 @@ Included entries:
 - NOTICE.md
 - OPS-CHANGELOG.md
 - README.md
+- scripts\localize-skill-frontmatter.ps1
 - SECURITY.md
 - UPGRADING.md
 

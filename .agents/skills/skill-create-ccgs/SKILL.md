@@ -1,7 +1,7 @@
 ---
 name: skill-create-ccgs
-description: "CCGS Skill 唯一治理入口。用户只用自然语言提出新增、修改、合并、删除、测试或优化 Skill 的需求；本 Skill 内部完成现有体系审查、动线接入判断、写入方案、复查和必要修复。不要再让用户选择额外测试/修复入口或参数模式。"
-argument-hint: "[自然语言需求]"
+description: "Single governance entrypoint for CCGS Skill creation, modification, merge, deletion, testing, and optimization through natural-language requests."
+argument-hint: "[natural-language skill governance request]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit
 model: sonnet

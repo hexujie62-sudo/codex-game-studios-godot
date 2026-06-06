@@ -1,6 +1,6 @@
 ---
 name: gate-check
-description: "验证在开发阶段之间推进的就绪状态。生成带有具体阻碍和必需工件的通过/关注/失败的判定。当用户说'我们是否准备好进入 X'、'我们可以进入生产阶段吗'、'检查我们是否可以开始下一阶段'、'通过关卡'时使用。"
+description: "Verify readiness to advance between development phases. Produces PASS/CONCERNS/FAIL decisions with concrete blockers and required artifacts."
 argument-hint: "[target-phase: systems-design | technical-setup | pre-production | production | polish | release]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Write, Task, AskUserQuestion
@@ -325,14 +325,14 @@ For items that can't be automatically verified, **ask the user**:
 Spawn all four directors. Phase gates always run here because this is the formal
 stage-transition review.
 
-Before generating the final verdict, spawn all four directors as **parallel subagents** via Task using the parallel gate protocol from `.Codex/docs/director-gates.md`. Issue all four Task calls simultaneously — do not wait for one before starting the next.
+Before generating the final verdict, spawn all four directors as **parallel subagents** via Task using the parallel gate protocol from `.codex/docs/director-gates.md`. Issue all four Task calls simultaneously — do not wait for one before starting the next.
 
 **Spawn in parallel:**
 
-1. **`creative-director`** — gate **CD-PHASE-GATE** (`.Codex/docs/director-gates.md`)
-2. **`technical-director`** — gate **TD-PHASE-GATE** (`.Codex/docs/director-gates.md`)
-3. **`producer`** — gate **PR-PHASE-GATE** (`.Codex/docs/director-gates.md`)
-4. **`art-director`** — gate **AD-PHASE-GATE** (`.Codex/docs/director-gates.md`)
+1. **`creative-director`** — gate **CD-PHASE-GATE** (`.codex/docs/director-gates.md`)
+2. **`technical-director`** — gate **TD-PHASE-GATE** (`.codex/docs/director-gates.md`)
+3. **`producer`** — gate **PR-PHASE-GATE** (`.codex/docs/director-gates.md`)
+4. **`art-director`** — gate **AD-PHASE-GATE** (`.codex/docs/director-gates.md`)
 
 Pass to each: target phase name, list of artifacts present, and the context fields listed in that gate's definition.
 
@@ -514,7 +514,7 @@ Based on the verdict, suggest specific next steps:
 - **No interaction pattern library?** → `/art-bible patterns` to initialize it
 - **GDDs not cross-reviewed?** → `/design-system` (run after all MVP GDDs are individually approved)
 - **Cross-GDD consistency issues?** → fix flagged GDDs, then re-run `/design-system`
-- **No test framework?** → `/smoke-check` to scaffold the framework for your engine
+- **No test framework?** → `/setup-engine` to scaffold or verify the minimal Godot test foundation
 - **No QA plan for current sprint?** → `/smoke-check sprint` to generate one before implementation begins
 - **Missing ADRs?** → `/create-architecture` for individual decisions
 - **No master architecture doc?** → `/create-architecture` for the full blueprint

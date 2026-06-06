@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "fields": [
+    "description",
+    "argument-hint"
+  ],
+  "locales": {
+    "en": {
+      "art-bible": {
+        "description": "Guided, chapter-by-chapter art bible authoring. Creates unified production standards for visual identity, asset specifications, asset checks, and UX specs. Run after /brainstorm approval.",
+        "argument-hint": "[visuals | assets | ux | audit]"
+      },
+      "brainstorm": {
+        "description": "Guided game concept and landing package: use deep co-design interviews, professional design frameworks, and structured exploration to turn an idea or draft into a complete concept package, first complete scope, tool/resource plan, implementation plan, and acceptance criteria.",
+        "argument-hint": "[genre/theme hint or open]"
+      },
+      "bug-report": {
+        "description": "Create a structured bug report from a description, or analyze code for likely bugs. Ensures reproduction steps, severity, and context are complete.",
+        "argument-hint": "[description] | analyze [path-to-file]"
+      },
+      "code-review": {
+        "description": "Review specified files or folders for architecture and code quality, covering standards, patterns, SOLID principles, testability, and performance risks.",
+        "argument-hint": "[path-to-file-or-directory]"
+      },
+      "create-architecture": {
+        "description": "Godot architecture entrypoint for architecture blueprints, ADRs, architecture coverage review, TR registry, and implementation control manifests.",
+        "argument-hint": "[natural-language goal: blueprint | ADR | review | control manifest]"
+      },
+      "design-system": {
+        "description": "Godot systems design and GDD entrypoint for system indexes, full GDDs, lightweight design patches, design review, consistency, balance, and change impact.",
+        "argument-hint": "[system name | review/retrofit/current change]"
+      },
+      "dev-story": {
+        "description": "Read and implement a story file. Runs readiness preflight, loads GDD/TR, ADRs, control manifests, and Godot context, then implements code and tests.",
+        "argument-hint": "[story-path]"
+      },
+      "gate-check": {
+        "description": "Verify readiness to advance between development phases. Produces PASS/CONCERNS/FAIL decisions with concrete blockers and required artifacts.",
+        "argument-hint": "[target-phase: systems-design | technical-setup | pre-production | production | polish | release]"
+      },
+      "help": {
+        "description": "Analyze completed work and the user's current question to recommend the next useful step when the user is unsure, blocked, or asks what to do next.",
+        "argument-hint": "[optional: recent work or blocker, e.g. 'finished design-review' or 'blocked on ADRs']"
+      },
+      "release-checklist": {
+        "description": "Generate a comprehensive pre-release validation checklist covering build validation, certification requirements, store metadata, and release readiness.",
+        "argument-hint": "[platform: pc|console|mobile|all]"
+      },
+      "setup-engine": {
+        "description": "Godot-only technical setup entrypoint. Pin Godot version, GDScript, tool paths, engine reference, and minimal test foundation without low-value setup confirmations.",
+        "argument-hint": "[godot-version | refresh | upgrade]"
+      },
+      "skill-create-ccgs": {
+        "description": "Single governance entrypoint for CCGS Skill creation, modification, merge, deletion, testing, and optimization through natural-language requests.",
+        "argument-hint": "[natural-language skill governance request]"
+      },
+      "smoke-check": {
+        "description": "Run critical-path smoke checks before QA handoff. Executes automated tests, verifies core functionality, and writes a pass/fail report.",
+        "argument-hint": "[sprint | quick | --platform pc|console|mobile|all]"
+      },
+      "sprint-plan": {
+        "description": "Create or update sprint plans from the current milestone, completed work, and available capacity, pulling context from production docs and design backlog.",
+        "argument-hint": "[natural-language goal: epics | stories | sprint | status | scope | estimate | retro]"
+      },
+      "start": {
+        "description": "First-session onboarding: confirm Codex production coverage and project state, then route into the full package workflow.",
+        "argument-hint": "[no arguments]"
+      },
+      "story-done": {
+        "description": "Review story completion against acceptance criteria, implementation, GDD/ADR deviations, code-review prompt, story status, and next ready story.",
+        "argument-hint": "[story-file-path]"
+      },
+      "window-ccgs": {
+        "description": "Single CCGS multi-window entrypoint for starting, restoring, creating, registering lane state, auditing, compacting, checkpoint suggestions, and research worktree create/merge flows.",
+        "argument-hint": "[lane-id|audit|compact lane-id|checkpoint lane-id|research lane-id slug|merge lane-id] [optional summary/objective]"
+      }
+    },
+    "zh-CN": {
+      "art-bible": {
+        "description": "引导式、逐章节的美术圣经编写。创建视觉识别、资源规格、资产检查和 UX 规格的统一生产标准。在 /brainstorm 获批后运行。",
+        "argument-hint": "[视觉 | 资源 | UX | 审计]"
+      },
+      "brainstorm": {
+        "description": "引导式游戏概念和落地方案：通过深度共创访谈、专业设计框架和结构化探索，把想法或草案发展成完整概念包、首个完整范围、工具/资源计划、实施计划和验收标准。",
+        "argument-hint": "[类型/主题提示或 open]"
+      },
+      "bug-report": {
+        "description": "根据描述创建结构化错误报告，或分析代码以识别潜在错误。确保每个错误报告都有完整的复现步骤、严重性评估和上下文。",
+        "argument-hint": "[问题描述] | analyze [文件路径]"
+      },
+      "code-review": {
+        "description": "对指定文件或文件集执行架构和质量的代码审查，覆盖编码标准、架构模式、SOLID 原则、可测试性和性能风险。",
+        "argument-hint": "[文件或目录路径]"
+      },
+      "create-architecture": {
+        "description": "Godot 架构主入口。负责编写架构蓝图、ADR、架构覆盖审查、TR registry 和实现控制清单。",
+        "argument-hint": "[自然语言目标：blueprint | ADR | review | control manifest]"
+      },
+      "design-system": {
+        "description": "Godot 项目的系统设计/GDD 主入口。负责系统索引、完整 GDD、轻量设计补丁、设计审查、跨 GDD 一致性、平衡和设计变更影响。",
+        "argument-hint": "[系统名 | review/retrofit/current change]"
+      },
+      "dev-story": {
+        "description": "读取故事文件并实现它。先做 readiness preflight，再加载 GDD/TR、ADR、控制清单和 Godot 上下文，实现代码与测试。",
+        "argument-hint": "[story 文件路径]"
+      },
+      "gate-check": {
+        "description": "验证在开发阶段之间推进的就绪状态。生成带有具体阻碍和必需工件的 PASS/CONCERNS/FAIL 判定。",
+        "argument-hint": "[目标阶段：systems-design | technical-setup | pre-production | production | polish | release]"
+      },
+      "help": {
+        "description": "分析已完成的工作和用户当前问题，并在用户不确定、卡住或询问下一步时推荐最有用的下一步。",
+        "argument-hint": "[可选：刚完成的工作或卡点，例如 '刚完成 design-review' 或 '卡在 ADRs']"
+      },
+      "release-checklist": {
+        "description": "生成全面的前发布验证清单，涵盖构建验证、认证要求、商店元数据和发布就绪性。",
+        "argument-hint": "[平台：pc|console|mobile|all]"
+      },
+      "setup-engine": {
+        "description": "Godot-only 技术设置入口。锁定 Godot 版本、GDScript、工具路径、引擎参考和最小测试基础，并避免低价值设置确认。",
+        "argument-hint": "[godot-version | refresh | upgrade]"
+      },
+      "skill-create-ccgs": {
+        "description": "CCGS Skill 唯一治理入口。用自然语言处理 Skill 新增、修改、合并、删除、测试和优化。",
+        "argument-hint": "[自然语言 Skill 治理需求]"
+      },
+      "smoke-check": {
+        "description": "在 QA 交付前运行关键路径冒烟检查。执行自动化测试，验证核心功能，并写入通过/失败报告。",
+        "argument-hint": "[sprint | quick | --platform pc|console|mobile|all]"
+      },
+      "sprint-plan": {
+        "description": "根据当前里程碑、已完成工作和可用容量创建或更新冲刺计划，并从生产文档和设计待办中提取上下文。",
+        "argument-hint": "[自然语言目标：epics | stories | sprint | status | scope | estimate | retro]"
+      },
+      "start": {
+        "description": "首次会话引导：确认 Codex 职能覆盖和项目状态，然后进入完整方案包动线。",
+        "argument-hint": "[无参数]"
+      },
+      "story-done": {
+        "description": "根据验收标准、实现结果、GDD/ADR 偏差、代码审查提示、故事状态和下一个就绪故事检查故事完成度。",
+        "argument-hint": "[story 文件路径]"
+      },
+      "window-ccgs": {
+        "description": "CCGS 多窗口唯一入口。用于启动、恢复、创建、登记 lane 状态、审计、压缩、生成 checkpoint 建议，以及研究 worktree 创建/合并流程。",
+        "argument-hint": "[lane-id|audit|compact lane-id|checkpoint lane-id|research lane-id slug|merge lane-id] [可选摘要/目标]"
+      }
+    }
+  }
+}

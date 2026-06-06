@@ -1,6 +1,6 @@
 ---
 name: smoke-check
-description: "在 QA 交付前运行关键路径冒烟测试关卡。执行自动化测试套件，验证核心功能，并生成通过/失败报告。在冲刺的故事实施后和手动 QA 开始前运行。失败的冒烟测试意味着构建尚未准备好进行 QA。"
+description: "Run critical-path smoke checks before QA handoff. Executes automated tests, verifies core functionality, and writes a pass/fail report."
 argument-hint: "[sprint | quick | --platform pc|console|mobile|all]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Write, AskUserQuestion

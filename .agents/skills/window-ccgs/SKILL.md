@@ -1,6 +1,6 @@
 ---
 name: window-ccgs
-description: "CCGS 多窗口唯一入口。用于启动、恢复、创建、登记 lane 状态、审计、压缩、生成 checkpoint 提交建议，以及创建/合并研究 worktree；支持默认 A/B/C/D/Z，也支持自定义 lane id。"
+description: "Single CCGS multi-window entrypoint for starting, restoring, creating, registering lane state, auditing, compacting, checkpoint suggestions, and research worktree create/merge flows."
 argument-hint: "[lane-id|audit|compact lane-id|checkpoint lane-id|research lane-id slug|merge lane-id] [optional summary/objective]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Write, Edit

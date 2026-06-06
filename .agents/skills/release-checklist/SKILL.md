@@ -1,6 +1,6 @@
 ---
 name: release-checklist
-description: "生成全面的前发布验证清单，涵盖构建验证、认证要求、商店元数据和发布就绪性。"
+description: "Generate a comprehensive pre-release validation checklist covering build validation, certification requirements, store metadata, and release readiness."
 argument-hint: "[platform: pc|console|mobile|all]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write

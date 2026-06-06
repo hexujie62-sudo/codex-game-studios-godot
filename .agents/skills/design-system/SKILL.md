@@ -1,6 +1,6 @@
 ---
 name: design-system
-description: "Godot 项目的系统设计/GDD 主入口。负责系统索引、完整 GDD、轻量设计补丁、设计审查、跨 GDD 一致性、平衡和设计变更影响。"
+description: "Godot systems design and GDD entrypoint for system indexes, full GDDs, lightweight design patches, design review, consistency, balance, and change impact."
 argument-hint: "[system name | review/retrofit/current change]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Task, AskUserQuestion, TodoWrite

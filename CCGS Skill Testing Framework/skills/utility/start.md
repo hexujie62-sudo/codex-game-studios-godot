@@ -16,16 +16,30 @@ It should not ask the user to leave `/start` and run a separate window command,
 and it should not interrupt the user with a separate confirmation for low-risk
 lane bootstrap.
 
-`/start` may write `production/stage.txt` and
-`.codex/docs/collaboration-profile.md`. Those writes may happen only after the
-user completes both onboarding choices. `/start` no longer creates, reads, or
-normalizes `production/review-mode.txt`; the review standard is fixed and no
-longer asks the user to choose full/lean/solo.
+`/start` may write `production/stage.txt`,
+`.codex/docs/collaboration-profile.md`, project `AGENTS.md`, and session state.
+Those writes may happen only after the user completes both onboarding choices.
+`/start` no longer creates, reads, or normalizes `production/review-mode.txt`;
+the review standard is fixed and no longer asks the user to choose
+full/lean/solo.
 
 Skill source should remain English for public distribution. Runtime replies
 should use the active response language, inferred from the collaboration profile,
 the user's latest message, or the system/app language. `/start` should record
 the chosen `response_language` in `.codex/docs/collaboration-profile.md`.
+After language confirmation, `/start` should run
+`scripts/localize-skill-frontmatter.ps1 -Language [response_language]` so the
+visible Skill list matches the active language while Skill sources remain
+English. It may only run this command when the script and locale catalog exist
+inside the current repository; it must not search sibling framework copies or
+open Explorer when localization files are missing.
+
+`/start` should also write a user-reviewed artifact language rule into project
+`AGENTS.md`, using the active response language for the rule text. The rule must
+say that documents the user is expected to read, review, approve, or maintain
+use the active user language, while machine-readable tokens such as paths,
+slash commands, code identifiers, YAML/frontmatter keys, schema fields, status
+enums, test names, API names, and external terminology remain unchanged.
 
 ---
 
@@ -42,6 +56,10 @@ the chosen `response_language` in `.codex/docs/collaboration-profile.md`.
 - [ ] Presents project state as structured A/B/C/D options
 - [ ] Contains a fallback rule that preserves numbered options if `AskUserQuestion` is unavailable
 - [ ] Records response language in the collaboration profile
+- [ ] Writes or updates project `AGENTS.md` with the user-reviewed artifact language rule
+- [ ] Runs `scripts/localize-skill-frontmatter.ps1` after response language is confirmed or inferred
+- [ ] Skips Skill-list localization without blocking if the localizer script or catalog is missing
+- [ ] Provides localized prompt and option copy for Chinese users instead of copying English templates
 - [ ] Ends with a handoff instead of auto-running the next Skill
 
 ---
@@ -65,9 +83,11 @@ the chosen `response_language` in `.codex/docs/collaboration-profile.md`.
 3. Skill continues into Phase 1 project-state detection.
 4. Skill asks a structured Codex production-function coverage question first.
 5. After the user answers coverage, Skill asks a separate structured A/B/C/D project-state question.
-6. Skill writes `production/stage.txt`, `.codex/docs/collaboration-profile.md`, and session state only after the user makes both onboarding choices.
+6. Skill writes `production/stage.txt`, `.codex/docs/collaboration-profile.md`, project `AGENTS.md`, and session state only after the user makes both onboarding choices.
 7. Skill records `response_language` in `.codex/docs/collaboration-profile.md`.
-8. Skill does not create or normalize `production/review-mode.txt`.
+8. Skill writes the user-reviewed artifact language rule to `AGENTS.md`.
+9. Skill runs the Skill frontmatter localizer for the chosen response language.
+10. Skill does not create or normalize `production/review-mode.txt`.
 
 **Assertions:**
 
@@ -76,6 +96,7 @@ the chosen `response_language` in `.codex/docs/collaboration-profile.md`.
 - [ ] Lane creation does not require a separate micro-approval.
 - [ ] After lane setup, normal onboarding can continue.
 - [ ] The onboarding questions do not collapse into one open-ended prompt.
+- [ ] The AGENTS.md language rule write does not require a separate micro-approval after onboarding choices are complete.
 
 ### Case 2: User Explicitly Chooses Single-Window
 
@@ -201,12 +222,48 @@ the chosen `response_language` in `.codex/docs/collaboration-profile.md`.
 1. Skill keeps its source instructions in English.
 2. Skill renders user-facing prompts and option labels in Chinese.
 3. Skill writes the inferred response language to `.codex/docs/collaboration-profile.md`.
+4. Skill writes the user-reviewed artifact language rule to `AGENTS.md` in Chinese.
+5. Skill runs `scripts/localize-skill-frontmatter.ps1 -Language zh-CN`.
 
 **Assertions:**
 
 - [ ] The user receives localized onboarding prompts.
 - [ ] The structured choices keep the same meanings as the English source.
 - [ ] Later Skills can read `response_language` from the collaboration profile.
+- [ ] User-reviewed production docs are governed by AGENTS.md to use Chinese body text.
+- [ ] Machine-readable tokens remain unchanged in the AGENTS.md rule.
+- [ ] The visible Skill frontmatter list can switch to Chinese without rewriting Skill bodies.
+- [ ] Missing localizer files do not cause `/start` to search or invoke paths outside the current repository.
+
+### Case 8: Existing AGENTS.md Is Updated In Place
+
+**Fixture:**
+
+- `AGENTS.md` exists and contains existing project instructions.
+- `.codex/docs/collaboration-profile.md` does not exist or has no
+  `response_language`.
+- The user's latest message is written in Chinese.
+
+**Input:** `/start`
+
+**Expected behavior:**
+
+1. Skill preserves existing `AGENTS.md` content.
+2. Skill inserts or updates one user-reviewed artifact language block under
+   `## Collaboration Protocol` when that heading exists, or near the project
+   instructions when it does not.
+3. Skill writes the block in Chinese for `zh-CN`.
+4. Skill does not translate paths, slash commands, schema keys, status enums, or
+   code identifiers inside the rule.
+5. Skill does not rewrite unrelated `AGENTS.md` sections.
+
+**Assertions:**
+
+- [ ] Existing project instructions remain intact.
+- [ ] The rule covers documents the user reads, reviews, approves, or maintains.
+- [ ] The rule covers GDDs, art bible, architecture docs, sprint/story plans,
+  QA/review reports, and adoption plans.
+- [ ] No separate AGENTS.md approval is requested after startup choices are complete.
 
 ---
 
@@ -216,7 +273,7 @@ the chosen `response_language` in `.codex/docs/collaboration-profile.md`.
 - [ ] `/start` does not auto-run the next Skill.
 - [ ] If no lane exists, `/start` bootstraps lane state instead of blocking.
 - [ ] If the user explicitly opts into single-window mode, `/start` can proceed but warns about the tradeoff.
-- [ ] File writes are limited to documented startup state files; `production/review-mode.txt` is not created or normalized.
+- [ ] File writes are limited to documented startup state files and project `AGENTS.md`; `production/review-mode.txt` is not created or normalized.
 - [ ] The first two user questions stay structured and separate.
 
 ---

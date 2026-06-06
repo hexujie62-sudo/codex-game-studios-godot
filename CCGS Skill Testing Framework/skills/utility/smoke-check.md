@@ -136,14 +136,14 @@ None. `/smoke-check` is a pre-QA utility skill. No director gates apply.
 
 **Expected behavior:**
 1. Phase 1 checks for `tests/` directory — not found
-2. Skill outputs: "No test directory found at `tests/`. Run `/test-setup` to
-   scaffold the testing infrastructure, or create the directory manually if
-   tests live elsewhere."
+2. Skill outputs: "No test directory found at `tests/`. Run `/setup-engine` to
+   scaffold the minimal Godot testing foundation, or create the directory
+   manually if tests live elsewhere."
 3. Skill stops — no automated tests run, no manual smoke checks, no report written
 
 **Assertions:**
 - [ ] Error message references the missing `tests/` directory
-- [ ] `/test-setup` is suggested as the remediation step
+- [ ] `/setup-engine` is suggested as the remediation step
 - [ ] Skill stops after this message (no further phases run)
 - [ ] No report file is written
 

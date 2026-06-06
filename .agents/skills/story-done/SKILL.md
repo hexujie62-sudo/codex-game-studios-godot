@@ -1,6 +1,6 @@
 ---
 name: story-done
-description: "故事完成后的完成度审查。读取故事文件，根据实现验证每个验收标准，检查 GDD/ADR 偏差，提示代码审查，将故事状态更新为完成，并从冲刺中显示下一个就绪的故事。"
+description: "Review story completion against acceptance criteria, implementation, GDD/ADR deviations, code-review prompt, story status, and next ready story."
 argument-hint: "[story-file-path]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Write, Edit, AskUserQuestion, Task

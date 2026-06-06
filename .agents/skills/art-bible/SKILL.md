@@ -1,6 +1,6 @@
 ---
 name: art-bible
-description: "引导式、逐章节的美术圣经编写。创建视觉识别、资源规格、资产检查和 UX 规格的统一生产标准。在 /brainstorm 获批后运行。"
+description: "Guided, chapter-by-chapter art bible authoring. Creates unified production standards for visual identity, asset specifications, asset checks, and UX specs. Run after /brainstorm approval."
 argument-hint: "[visuals | assets | ux | audit]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Task, AskUserQuestion

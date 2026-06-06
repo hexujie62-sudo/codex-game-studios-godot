@@ -1,7 +1,7 @@
 ---
 name: sprint-plan
-description: "根据当前里程碑、已完成的工作和可用容量生成新的冲刺计划或更新现有计划。从生产文档和设计待办事项中提取上下文。"
-argument-hint: "[自然语言目标：epics / stories / sprint / status / scope / estimate / retro]"
+description: "Create or update sprint plans from the current milestone, completed work, and available capacity, pulling context from production docs and design backlog."
+argument-hint: "[natural-language goal: epics | stories | sprint | status | scope | estimate | retro]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Task, AskUserQuestion
 model: sonnet
