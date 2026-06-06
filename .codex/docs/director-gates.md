@@ -23,73 +23,52 @@ the verdict using the **Verdict handling** rules below.
 
 ---
 
-## Review Modes
+## Review Policy
 
-Review intensity controls whether director gates run. It can be set globally
-(persists across sessions) or overridden per skill run.
+The current CCGS fork uses a fixed Lean review policy. Users do not choose
+`full`, `lean`, or `solo`, and Skills must not parse `--review`.
 
-**Global config**: `production/review-mode.txt` — one word: `full`, `lean`, or `solo`.
-Set once during `/start`. Edit the file directly to change it at any time.
+No active Skill creates `production/review-mode.txt`. Active Skills must not
+read, create, or normalize review-mode state. If an older project still has
+that file, treat it as inert compatibility residue and do not use it to branch
+behavior.
 
-**Per-run override**: any gate-using skill accepts `--review [full|lean|solo]` as an
-argument. This overrides the global config for that run only.
+Lean policy keeps review value at phase transitions while removing per-command
+review choices:
 
-Examples:
-```
-/brainstorm space horror           → uses global mode
-/brainstorm space horror --review full   → forces full mode this run
-/architecture-decision --review solo     → skips all gates this run
-```
+| Gate type | Default behavior |
+|---|---|
+| PHASE-GATEs (`CD-PHASE-GATE`, `TD-PHASE-GATE`, `PR-PHASE-GATE`, `AD-PHASE-GATE`) | Run in `/gate-check` |
+| Inline concept/design/architecture/sprint/story gates | Do not spawn by default; replace with internal checks, evidence review, or a handoff to the relevant core Skill |
 
-| Mode | What runs | Best for |
-|------|-----------|----------|
-| `full` | All gates active — every workflow step reviewed | Teams, learning users, or when you want thorough director feedback at every step |
-| `lean` | PHASE-GATEs only (`/gate-check`) — per-skill gates skipped | **Default** — solo devs and small teams; directors review at milestones only |
-| `solo` | No director gates anywhere | Game jams, prototypes, maximum speed |
+**Check pattern:**
 
-**Check pattern — apply before every gate spawn:**
-
-```
+```text
 Before spawning gate [GATE-ID]:
-1. If skill was called with --review [mode], use that
-2. Else read production/review-mode.txt
-3. Else default to lean
-
-Apply the resolved mode:
-- solo → skip all gates. Note: "[GATE-ID] skipped — Solo mode"
-- lean → skip unless this is a PHASE-GATE (CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE, AD-PHASE-GATE)
-         Note: "[GATE-ID] skipped — Lean mode"
-- full → spawn as normal
+1. Do not parse user review flags.
+2. If [GATE-ID] is one of the four PHASE-GATEs and this is /gate-check, spawn it.
+3. Otherwise do not spawn the gate; use the owning Skill's internal checks,
+   evidence review, or handoff instead.
 ```
 
 ---
 
-## Invocation Pattern (copy into any skill)
+## Invocation Pattern (copy into /gate-check only)
 
-**MANDATORY: Resolve review mode before every gate spawn.** Never spawn a gate without checking. The resolved mode is determined once per skill run:
-1. If skill was called with `--review [mode]`, use that
-2. Else read `production/review-mode.txt`
-3. Else default to `lean`
+Only `/gate-check` should use the phase-gate director panel by default:
 
-Apply the resolved mode:
-- `solo` → **skip all gates**. Note in output: `[GATE-ID] skipped — Solo mode`
-- `lean` → **skip unless this is a PHASE-GATE** (CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE, AD-PHASE-GATE). Note: `[GATE-ID] skipped — Lean mode`
-- `full` → spawn as normal
-
-```
-# Apply mode check, then:
+```text
 Spawn `[agent-name]` via Task:
 - Gate: [GATE-ID] (see .codex/docs/director-gates.md)
 - Context: [fields listed under that gate]
 - Await the verdict before proceeding.
 ```
 
-For parallel spawning (multiple directors at the same gate point):
+For the phase-gate director panel:
 
-```
-# Apply mode check for each gate first, then spawn all that survive:
-Spawn all [N] agents simultaneously via Task — issue all Task calls before
-waiting for any result. Collect all verdicts before proceeding.
+```text
+Spawn all 4 phase-gate agents simultaneously via Task. Issue all Task calls
+before waiting for any result. Collect all verdicts before proceeding.
 ```
 
 ---
@@ -175,7 +154,7 @@ workflow that produces a GDD)
 
 ### CD-SYSTEMS — Systems Decomposition Vision Check
 
-**Trigger**: After the systems index is written by `/map-systems` — validates the
+**Trigger**: After the systems index is written by `/design-system` — validates the
 complete system set before GDD authoring begins
 
 **Context to pass**:
@@ -224,7 +203,7 @@ deliverables)
 
 ### CD-PLAYTEST — Player Experience Validation
 
-**Trigger**: After playtest reports are generated (`/playtest-report`), or after
+**Trigger**: After playtest reports are generated (`/smoke-check`), or after
 any session that produces player feedback
 
 **Context to pass**:
@@ -272,7 +251,7 @@ Agent: `technical-director` | Model tier: Opus | Domain: Architecture, engine ri
 
 ### TD-SYSTEM-BOUNDARY — System Boundary Architecture Review
 
-**Trigger**: After `/map-systems` Phase 3 dependency mapping is agreed but before
+**Trigger**: After `/design-system` Phase 3 dependency mapping is agreed but before
 GDD authoring begins — validates that the system structure is architecturally
 sound before teams invest in writing GDDs against it
 
@@ -348,7 +327,7 @@ Phase 7), and after any major architecture revision
 
 ### TD-ADR — Architecture Decision Review
 
-**Trigger**: After an individual ADR is authored (`/architecture-decision`), before
+**Trigger**: After an individual ADR is authored (`/create-architecture`), before
 it is marked Accepted
 
 **Context to pass**:
@@ -465,7 +444,7 @@ mid-sprint scope change
 
 ### PR-MILESTONE — Milestone Risk Assessment
 
-**Trigger**: At milestone review (`/milestone-review`), at mid-sprint retrospectives,
+**Trigger**: At milestone review (`/gate-check`), at mid-sprint retrospectives,
 or when a scope change is proposed that affects the milestone
 
 **Context to pass**:
@@ -488,8 +467,8 @@ or when a scope change is proposed that affects the milestone
 
 ### PR-EPIC — Epic Structure Feasibility Review
 
-**Trigger**: After epics are defined by `/create-epics`, before stories are
-broken out — validates the epic structure is producible before `/create-stories`
+**Trigger**: After epics are defined by `/sprint-plan`, before stories are
+broken out — validates the epic structure is producible before `/sprint-plan`
 is invoked
 
 **Context to pass**:
@@ -669,8 +648,8 @@ as part of `/code-review`
 
 ### QL-STORY-READY — QA Lead Story Readiness Check
 
-**Trigger**: Before a story is accepted into a sprint — invoked by `/create-stories`,
-`/story-readiness`, and `/sprint-plan` during story selection
+**Trigger**: Before a story is accepted into a sprint — invoked by `/sprint-plan`,
+`/dev-story`, and `/sprint-plan` during story selection
 
 **Context to pass**:
 - Story file path
@@ -804,3 +783,4 @@ When a new gate is needed for a new skill or workflow:
 | **Production** | LP-CODE-REVIEW (per story), QL-STORY-READY, PR-SPRINT (per sprint), QL-TEST-COVERAGE (per sprint close-out) | PR-MILESTONE, AD-VISUAL |
 | **Polish** | QL-TEST-COVERAGE, CD-PLAYTEST, PR-MILESTONE | AD-VISUAL |
 | **Release** | All four PHASE-GATEs (via gate-check) | QL-TEST-COVERAGE |
+

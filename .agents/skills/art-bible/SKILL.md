@@ -1,20 +1,75 @@
 ---
 name: art-bible
-description: "引导式、逐章节的美术圣经编写。创建视觉识别规范，控制所有资源生产。在 /brainstorm 获批后、在 /map-systems 或任何 GDD 编写开始之前运行。"
-argument-hint: "[--review full|lean|solo]"
+description: "引导式、逐章节的美术圣经编写。创建视觉识别、资源规格、资产检查和 UX 规格的统一生产标准。在 /brainstorm 获批后运行。"
+argument-hint: "[visuals | assets | ux | audit]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Task, AskUserQuestion
 model: sonnet
 ---
 
+## Absorbed Responsibilities
+
+This is now the single art/assets/UX entrypoint. It also covers the former
+`asset-spec`, `asset-audit`, `content-audit`, `ux-design`, `ux-review`,
+`team-ui`, and `team-audio` routes.
+
+Use it to:
+
+- Author or retrofit the art bible.
+- Produce asset manifests and AI asset prompts from current GDD/art facts.
+- Check asset naming, format, size, and reference concerns.
+- Draft or review key UX/HUD/screen specs.
+
+Preserved CCGS value:
+
+- Art bible output: `design/art/art-bible.md`.
+- Visual inventory output: `design/assets/entity-inventory.md`.
+- Asset spec output: `design/assets/specs/[target-name]-assets.md`.
+- Asset manifest output: `design/assets/asset-manifest.md`.
+- UX spec outputs: `design/ux/[screen-or-flow].md`,
+  `design/ux/interaction-patterns.md`, and
+  `design/accessibility-requirements.md`.
+- Audio design output: `design/audio/audio-[feature].md`.
+- Asset audit checks: lowercase/snake_case filenames, source/derived asset
+  distinction, Godot import compatibility, missing references, oversized files,
+  and orphaned assets.
+- UX review verdicts: `APPROVED`, `NEEDS REVISION`, `MAJOR REVISION NEEDED`.
+- Godot UI facts belong here only as UX/asset constraints: Control hierarchy,
+  Theme resources, input focus, scalable text, safe touch targets, and
+  accessibility notes. Do not hard-code a permanent genre, camera, art style,
+  or input scheme.
+
+If a request is only about implementing UI code, route to `/dev-story` or
+`/code-review`. This Skill owns specs and evidence, not gameplay implementation.
+
+## Reference Loading Rules
+
+Do not read `.agents/skills-archive/` during normal use. The old Skill contents
+have been extracted into these references:
+
+- For assets, content audit, asset audit, asset manifests, and audio design:
+  read `references/asset-content-audio.md`.
+- For UX specs, HUD specs, interaction patterns, UX review, and UI handoff:
+  read `references/ux-ui.md`.
+- For checking what was absorbed from old Skills during future governance work:
+  read `references/absorption-map.md`.
+
+Load only the reference that matches the user's request. Full art bible authoring
+can run from this SKILL.md alone unless the user asks for assets, UX, audit, or
+audio.
+
 ## Phase 0: Parse Arguments and Context Check
 
-Resolve the review mode (once, store for all gate spawns this run):
-1. If `--review [full|lean|solo]` was passed → use that
-2. Else read `production/review-mode.txt` → use that value
-3. Else → default to `lean`
+Do not parse review mode arguments and do not read or create
+`production/review-mode.txt`. Use the fixed review standard: internal checks
+here, phase-gate director review only in `/gate-check`.
 
-See `.codex/docs/director-gates.md` for the full check pattern.
+If the argument or user request is mainly `assets`, `asset-spec`, `manifest`,
+`audit`, `content-audit`, or `audio`, read
+`references/asset-content-audio.md` before proceeding.
+
+If the argument or user request is mainly `ux`, `hud`, `screen`, `flow`,
+`patterns`, or `ux-review`, read `references/ux-ui.md` before proceeding.
 
 Read `design/gdd/game-concept.md`. If it does not exist, fail with:
 > "No game concept found. Run `/brainstorm` first — the art bible is authored after the game concept is approved."
@@ -187,17 +242,22 @@ Write the approved section to file.
 
 ## Phase 5: Art Director Sign-Off
 
-**Review mode check** — apply before spawning AD-ART-BIBLE:
-- `solo` → skip. Note: "AD-ART-BIBLE skipped — Solo mode." Proceed to Phase 6.
-- `lean` → skip (not a PHASE-GATE). Note: "AD-ART-BIBLE skipped — Lean mode." Proceed to Phase 6.
-- `full` → spawn as normal.
+`AD-ART-BIBLE` is not invoked as a separate gate. Do not spawn the art director
+here; run the internal sign-off checklist below and proceed to Phase 6.
 
-After all sections are complete (or the scoped set from Phase 1 is complete), spawn `creative-director` via Task using gate **AD-ART-BIBLE** (`.codex/docs/director-gates.md`).
+After all sections are complete (or the scoped set from Phase 1 is complete),
+run an internal sign-off checklist:
 
-Pass: art bible file path, game pillars, visual identity anchor.
+- Every requested section has real content, not placeholders.
+- Visual identity, mood, shape language, and color system do not contradict each
+  other.
+- Asset standards reflect Godot constraints from `.codex/docs/technical-preferences.md`
+  when that file exists.
+- UI/HUD direction preserves readability and accessibility.
+- Open questions are explicitly listed rather than silently resolved.
 
-Handle verdict per standard rules in `director-gates.md`. Record the verdict in the art bible's status header:
-`> **Art Director Sign-Off (AD-ART-BIBLE)**: APPROVED [date] / CONCERNS (accepted) [date] / REVISED [date]`
+Record the status in the art bible header:
+`> **Art Bible Review**: COMPLETE [date] / CONCERNS [date] / REVISED [date]`
 
 ---
 
@@ -208,17 +268,17 @@ Before presenting next steps, check project state:
 - Does `.codex/docs/technical-preferences.md` contain a configured engine (not `[TO BE CONFIGURED]`)? → setup-engine is done, skip that option
 - Does `design/gdd/` contain any `*.md` files? → design-system has been run, skip that option
 - Does `design/gdd/gdd-cross-review-*.md` exist? → review-all-gdds is done
-- Do GDDs exist (check above)? → include /consistency-check option
+- Do GDDs exist (check above)? → include /design-system option
 
 Use `AskUserQuestion` for next steps. Only include options that are genuinely next based on the state check above:
 
 **Option pool — include only if not already done:**
-- `[_] Run /map-systems — decompose the concept into systems before writing GDDs` (skip if systems-index.md exists)
+- `[_] Run /design-system — decompose the concept into systems before writing GDDs` (skip if systems-index.md exists)
 - `[_] Run /setup-engine — configure the engine (asset standards may need revisiting after engine is set)` (skip if engine configured)
 - `[_] Run /design-system — start the first GDD` (skip if any GDDs exist)
-- `[_] Run /review-all-gdds — cross-GDD consistency check (required before Technical Setup gate)` (skip if gdd-cross-review-*.md exists)
-- `[_] Run /asset-spec — generate per-asset visual specs and AI generation prompts from approved GDDs` (include if GDDs exist)
-- `[_] Run /consistency-check — scan existing GDDs against the art bible for visual direction conflicts` (include if GDDs exist)
+- `[_] Run /design-system — cross-GDD consistency check (required before Technical Setup gate)` (skip if gdd-cross-review-*.md exists)
+- `[_] Run /art-bible — generate per-asset visual specs and AI generation prompts from approved GDDs` (include if GDDs exist)
+- `[_] Run /design-system — scan existing GDDs against the art bible for visual direction conflicts` (include if GDDs exist)
 - `[_] Run /create-architecture — author the master architecture document (next Technical Setup step)`
 - `[_] Stop here`
 
@@ -233,6 +293,7 @@ Assign letters A, B, C… only to the options actually included. Mark the most l
 Every section follows: **Question → Options → Decision → Draft (from art-director agent) → Approval → Write to file**
 
 - Never draft a section without first spawning the relevant agent(s)
+- Before every section write, ask: "May I write this approved section to `design/art/art-bible.md`?"
 - Write each section to file immediately after approval — do not batch
 - Surface all agent disagreements to the user — never silently resolve conflicts between art-director and technical-artist
 - The art bible is a constraint document: it restricts future decisions in exchange for visual coherence. Every section should feel like it narrows the solution space productively.
@@ -242,8 +303,10 @@ Every section follows: **Question → Options → Decision → Draft (from art-d
 ## Recommended Next Steps
 
 After the art bible is approved:
-- Run `/map-systems` to decompose the concept into game systems before authoring GDDs
-- Run `/setup-engine` if the engine is not yet configured (asset standards may need revisiting after engine selection)
+- Run `/design-system` to decompose the concept into game systems before authoring GDDs
+- Run `/setup-engine` if Godot is not yet configured (asset standards may need revisiting after the pinned Godot version is known)
 - Run `/design-system [first-system]` to start authoring per-system GDDs
-- Run `/consistency-check` once GDDs exist to validate them against the art bible's visual rules
+- Run `/design-system` once GDDs exist to validate them against the art bible's visual rules
 - Run `/create-architecture` to produce the master architecture document
+
+

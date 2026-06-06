@@ -1,7 +1,7 @@
 ---
 name: create-architecture
-description: "引导式、逐章节编写游戏的主架构文档。读取所有 GDD、系统索引、现有 ADR 和引擎参考库，在编写任何代码之前生成完整的架构蓝图。支持引擎版本感知：标记知识缺口并根据固定引擎版本验证决策。"
-argument-hint: "[focus-area: full | layers | data-flow | api-boundaries | adr-audit] [--review full|lean|solo]"
+description: "Godot 架构主入口。负责编写架构蓝图、ADR、架构覆盖审查、TR registry 和实现控制清单。"
+argument-hint: "[自然语言目标：blueprint / ADR / review / control manifest]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Bash, AskUserQuestion, Task
 model: sonnet
@@ -14,22 +14,67 @@ This skill produces `docs/architecture/architecture.md` — the master architect
 document that translates all approved GDDs into a concrete technical blueprint.
 It sits between design and implementation, and must exist before sprint planning begins.
 
-**Distinct from `/architecture-decision`**: ADRs record individual point decisions.
-This skill creates the whole-system blueprint that gives ADRs their context.
+**Absorbed responsibilities:** this Skill now also covers the former
+`architecture-decision`, `architecture-review`, and `create-control-manifest`
+routes. Use it to create ADRs, audit architecture coverage, and generate the
+flat implementation control manifest when the blueprint is ready.
 
-Resolve the review mode (once, store for all gate spawns this run):
-1. If `--review [full|lean|solo]` was passed → use that
-2. Else read `production/review-mode.txt` → use that value
-3. Else → default to `lean`
+Preserved CCGS value:
 
-See `.codex/docs/director-gates.md` for the full check pattern.
+- Architecture output: `docs/architecture/architecture.md`.
+- ADR outputs: `docs/architecture/adr-NNNN-[slug].md`.
+- Traceability outputs: `docs/architecture/tr-registry.yaml` and
+  `docs/architecture/architecture-traceability.md`.
+- Control manifest output: `docs/architecture/control-manifest.md`.
+- ADR status values: `Proposed`, `Accepted`, `Superseded`, `Rejected`.
+- Every implementation-facing story should trace to a GDD requirement ID and an
+  Accepted ADR or an explicit architecture concern.
+- Architecture review must detect missing TR coverage, conflicting ADRs,
+  dependency ordering problems, stale ADRs after GDD changes, and Godot version
+  compatibility risks.
+- Godot-only architecture concerns: node ownership, scene boundaries, autoload
+  usage, signal/event flow, Resource/data layout, save data format, import
+  pipeline, GDScript/C# boundary if any, and headless test/export constraints.
+- Do not reintroduce Unity/Unreal engine-selection logic. If a template mentions
+  other engines, treat it as historical reference and translate the decision
+  into Godot terms.
 
-**Argument modes:**
-- **No argument / `full`**: Full guided walkthrough — all sections, start to finish
-- **`layers`**: Focus on the system layer diagram only
-- **`data-flow`**: Focus on data flow between modules only
-- **`api-boundaries`**: Focus on API boundary definitions only
-- **`adr-audit`**: Audit existing ADRs for engine compatibility gaps only
+## Reference Loading Rules
+
+Do not read `.agents/skills-archive/` during normal use. Old architecture Skill
+content has been extracted into `references/adr-review-control.md`.
+
+Read that reference for ADR authoring, architecture coverage review,
+traceability review, control-manifest generation, stale ADR checks, or
+Godot-specific risk review. Full architecture blueprint authoring can run from
+this `SKILL.md` alone once GDDs and technical preferences exist.
+
+Do not parse review mode arguments and do not read or create
+`production/review-mode.txt`. Use the fixed review standard: internal
+architecture checks here, architecture review through this Skill when requested,
+and phase-gate director review only in `/gate-check`.
+
+## Phase -1: Classify Architecture Task
+
+Do not require the user to remember old command names or mode parameters.
+Classify the request from natural language:
+
+- **Architecture blueprint**: create or update `docs/architecture/architecture.md`.
+- **ADR authoring**: create or retrofit `docs/architecture/adr-NNNN-[slug].md`.
+- **Architecture review**: check TR coverage, ADR conflicts, stale decisions,
+  Godot compatibility, and traceability.
+- **Control manifest**: generate or update
+  `docs/architecture/control-manifest.md`.
+- **Godot risk review**: inspect a specific Godot API/domain risk against the
+  pinned engine reference.
+
+If the user used an absorbed legacy name (`architecture-decision`,
+`architecture-review`, or `create-control-manifest`), run the matching internal
+path here and report the current command as `/create-architecture`.
+
+For ADR, review, traceability, stale ADR, or control-manifest work, load
+`references/adr-review-control.md` before drafting. For full blueprint authoring,
+this `SKILL.md` is sufficient after loading project context.
 
 ---
 
@@ -262,10 +307,10 @@ not yet have a corresponding ADR, PLUS all uncovered Technical Requirements.
 Group by layer — Foundation first:
 
 **Foundation Layer (must create before any coding):**
-- `/architecture-decision [title]` → covers: TR-[id], TR-[id]
+- `/create-architecture [title]` → covers: TR-[id], TR-[id]
 
 **Core Layer:**
-- `/architecture-decision [title]` → covers: TR-[id]
+- `/create-architecture [title]` → covers: TR-[id]
 
 ---
 
@@ -346,22 +391,28 @@ After writing the master architecture document, perform an explicit sign-off bef
 
 **Step 1 — Technical Director self-review** (this skill runs as technical-director):
 
-Apply gate **TD-ARCHITECTURE** (`.codex/docs/director-gates.md`) as a self-review. Check all four criteria from that gate definition against the completed document.
+Apply **TD-ARCHITECTURE** as an internal self-review. Check the criteria from
+`.codex/docs/director-gates.md` against the completed document without spawning
+another gate.
 
-**Review mode check** — apply before spawning LP-FEASIBILITY:
-- `solo` → skip. Note: "LP-FEASIBILITY skipped — Solo mode." Proceed to Phase 8 handoff.
-- `lean` → skip (not a PHASE-GATE). Note: "LP-FEASIBILITY skipped — Lean mode." Proceed to Phase 8 handoff.
-- `full` → spawn as normal.
+`LP-FEASIBILITY` is not invoked as a separate gate. Do not spawn the lead
+programmer here; use the internal feasibility checklist below before Phase 8
+handoff.
 
-**Step 2 — Spawn `lead-programmer` via Task using gate LP-FEASIBILITY (`.codex/docs/director-gates.md`):**
+**Step 2 — Internal feasibility checklist:**
 
-Pass: architecture document path, technical requirements baseline summary, ADR list.
+- Each high-risk GDD requirement has either an Accepted ADR, a Proposed ADR, or
+  an explicit architecture concern.
+- Godot node/resource/autoload decisions are implementable with the pinned
+  version.
+- Control manifest ownership is clear enough for `/dev-story`.
+- Known gaps are listed as ADR follow-ups rather than hidden.
 
-**Step 3 — Present both assessments to the user:**
+**Step 3 — Present the assessments to the user:**
 
-Show the Technical Director assessment and Lead Programmer verdict side by side.
+Show the Technical Director self-review and feasibility checklist side by side.
 
-Use `AskUserQuestion` — "Technical Director and Lead Programmer have reviewed the architecture. How would you like to proceed?"
+Use `AskUserQuestion` — "Architecture self-review is complete. How would you like to proceed?"
 Options: `Accept — proceed to handoff` / `Revise flagged items first` / `Discuss specific concerns`
 
 **Step 4 — Record sign-off in the architecture document:**
@@ -395,13 +446,13 @@ Show the proposed Document Status block inline, then use `AskUserQuestion`:
 
 ## Run These ADRs Next
 
-**1. `/architecture-decision "[Title]"` → ADR-[XXXX]**
+**1. `/create-architecture "[Title]"` → ADR-[XXXX]**
 [One sentence: what it defines and what it unblocks.]
 
-**2. `/architecture-decision "[Title]"` → ADR-[XXXX]**
+**2. `/create-architecture "[Title]"` → ADR-[XXXX]**
 [One sentence.]
 
-**3. `/architecture-decision "[Title]"` → ADR-[XXXX]**
+**3. `/create-architecture "[Title]"` → ADR-[XXXX]**
 [One sentence.]
 
 List top 3 from Phase 6 in priority order. If fewer than 3 remain, list only what's outstanding.
@@ -413,8 +464,8 @@ List top 3 from Phase 6 in priority order. If fewer than 3 remain, list only wha
 > **Required before `/gate-check [stage]`:**
 > - [ ] Accept ADRs: [list Proposed ADR IDs that must be Accepted]
 > - [ ] Write ADRs: [list ADR IDs that must still be written]
-> - [ ] Run `/test-setup` — scaffolds `tests/unit/`, `tests/integration/`, CI workflow, and an example test file
-> - [ ] Run `/ux-design` — creates `design/ux/interaction-patterns.md` and `design/accessibility-requirements.md`
+> - [ ] Run `/smoke-check` — scaffolds `tests/unit/`, `tests/integration/`, CI workflow, and an example test file
+> - [ ] Run `/art-bible` — creates `design/ux/interaction-patterns.md` and `design/accessibility-requirements.md`
 >
 > Run `/gate-check [stage]` when all boxes are checked.
 
@@ -460,9 +511,11 @@ unsure, present 2-4 options with pros/cons before asking them to decide.
 
 ## Recommended Next Steps
 
-- Run `/architecture-decision [title]` for each required ADR listed in Phase 6 — Foundation layer ADRs first
-- Run `/architecture-review` — bootstraps the Requirements Traceability Matrix and TR registry from the ADRs just written. Required before the Pre-Production gate.
-- Run `/test-setup` to scaffold `tests/unit/`, `tests/integration/`, CI workflow, and an example test (required for gate-check)
-- Run `/ux-design` to initialize `design/ux/interaction-patterns.md` and `design/accessibility-requirements.md` (required for gate-check)
-- Run `/create-control-manifest` once the required ADRs are written to produce the layer rules manifest
-- Run `/gate-check pre-production` when all required ADRs, `/test-setup`, and `/ux-design` are complete
+- Run `/create-architecture [title]` for each required ADR listed in Phase 6 — Foundation layer ADRs first
+- Run `/create-architecture` — bootstraps the Requirements Traceability Matrix and TR registry from the ADRs just written. Required before the Pre-Production gate.
+- Run `/smoke-check` to scaffold `tests/unit/`, `tests/integration/`, CI workflow, and an example test (required for gate-check)
+- Run `/art-bible` to initialize `design/ux/interaction-patterns.md` and `design/accessibility-requirements.md` (required for gate-check)
+- Run `/create-architecture` once the required ADRs are written to produce the layer rules manifest
+- Run `/gate-check pre-production` when all required ADRs, `/smoke-check`, and `/art-bible` are complete
+
+

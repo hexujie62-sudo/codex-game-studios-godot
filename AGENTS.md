@@ -48,12 +48,16 @@ Every task follows: **Question -> Options -> Decision -> Draft -> Approval**
 - Agents MUST ask "May I write this to [filepath]?" before using Write/Edit tools
 - Agents MUST show drafts or summaries before requesting approval
 - Multi-file changes require explicit approval for the full changeset
-- No commits without user instruction
+- No commits without user instruction or an explicit lane checkpoint policy
+  recorded in the relevant lane. Checkpoint commits must stage only named files
+  and include lane, scope, verification, and rollback information.
 
 See `docs/COLLABORATIVE-DESIGN-PRINCIPLE.md` for full protocol and examples.
 
-> **First session?** If the project has no engine configured and no game concept,
-> run `/start` to begin the guided onboarding flow.
+> **First session?** Run `/start`. If the project has no lane state yet, `/start`
+> bootstraps the initial `A-producer` lane and then continues the guided
+> onboarding flow. Use `/window-ccgs` for later window recovery, updates,
+> audits, compaction, or additional lanes.
 
 ## Coding Standards
 

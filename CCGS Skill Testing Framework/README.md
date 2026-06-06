@@ -1,150 +1,115 @@
 # CCGS Skill Testing Framework
 
-Quality assurance infrastructure for the **Codex Game Studios** framework.
-Tests the skills and agents themselves — not any game built with them.
+Quality assurance reference material for **Codex Game Studios** Skills and Agents.
+It tests the framework itself, not any game built with it.
 
-> **This folder is self-contained and optional.**
-> Game developers using CCGS don't need it. To remove it entirely:
-> `rm -rf "CCGS Skill Testing Framework"` — nothing in `.codex/` depends on it.
+This folder is now an **internal reference library** used by `/skill-create-ccgs`.
+Users do not need to run separate Skill testing commands.
+
+The active catalog currently tracks **17 core Skill specs**. Absorbed legacy
+specs are intentionally not kept as shadow coverage targets.
 
 ---
 
-## What's in here
+## What's In Here
 
-```
+```text
 CCGS Skill Testing Framework/
-├── README.md              ← you are here
-├── AGENTS.md              ← tells Codex how to use this framework
-├── catalog.yaml           ← master registry: all 73 skills + 49 agents, coverage tracking
-├── quality-rubric.md      ← category-specific pass/fail metrics for /skill-test category
-│
-├── skills/                ← behavioral spec files for skills (one per skill)
-│   ├── gate/              ← gate category specs
-│   ├── review/            ← review category specs
-│   ├── authoring/         ← authoring category specs
-│   ├── readiness/         ← readiness category specs
-│   ├── pipeline/          ← pipeline category specs
-│   ├── analysis/          ← analysis category specs
-│   ├── team/              ← team category specs
-│   ├── sprint/            ← sprint category specs
-│   └── utility/           ← utility category specs
-│
-├── agents/                ← behavioral spec files for agents (one per agent)
-│   ├── directors/         ← creative-director, technical-director, producer, art-director
-│   ├── leads/             ← lead-programmer, narrative-director, audio-director, etc.
-│   ├── specialists/       ← engine/code/shader/UI specialists
-│   ├── godot/             ← Godot-specific specialists
-│   ├── unity/             ← Unity-specific specialists
-│   ├── unreal/            ← Unreal-specific specialists
-│   ├── operations/        ← QA, live-ops, release, localization, etc.
-│   └── creative/          ← writer, world-builder, game-designer, etc.
-│
-├── templates/             ← spec file templates for writing new specs
-│   ├── skill-test-spec.md ← template for skill behavioral specs
-│   └── agent-test-spec.md ← template for agent behavioral specs
-│
-└── results/               ← test run outputs (written by /skill-test spec, gitignored)
+├── README.md
+├── AGENTS.md
+├── catalog.yaml
+├── quality-rubric.md
+├── skills/
+├── agents/
+├── templates/
+└── results/
 ```
+
+Important files:
+
+| File | Purpose |
+|---|---|
+| `catalog.yaml` | Registry for active core Skills, including category, spec path, and last-check fields |
+| `quality-rubric.md` | Category-specific pass/fail metrics used by `/skill-create-ccgs` internal verification |
+| `skills/[category]/[name].md` | Behavioral specs for active core Skills; absorbed legacy specs should be removed after their durable behavior is migrated |
+| `agents/[tier]/[name].md` | Historical agent specs kept as reference material |
+| `templates/skill-test-spec.md` | Template for new Skill specs |
+| `templates/agent-test-spec.md` | Template for new Agent specs |
+| `results/` | Optional saved verification output, gitignored |
 
 ---
 
-## How to use it
+## How It Is Used
 
-All testing is driven by two skills already in the framework:
+When a Skill is created, modified, merged, deleted, tested, or repaired, use:
 
-### Check structural compliance
-
-```
-/skill-test static [skill-name]     # Check one skill (7 checks)
-/skill-test static all              # Check all 73 skills
+```text
+/skill-create-ccgs
 ```
 
-### Run a behavioral spec test
+That Skill reads this framework internally and performs:
 
-```
-/skill-test spec gate-check         # Evaluate a skill against its written spec
-/skill-test spec design-review
-```
+- static structure checks;
+- behavioral spec checks;
+- category rubric checks;
+- route index and catalog coverage checks;
+- workflow insertion checks;
+- repair loops when verification fails.
 
-### Check against category rubric
-
-```
-/skill-test category gate-check     # Evaluate one skill against its category metrics
-/skill-test category all            # Run rubric checks across all categorized skills
-```
-
-### See full coverage picture
-
-```
-/skill-test audit                   # Skills + agents: has-spec, last tested, result
-```
-
-### Improve a failing skill
-
-```
-/skill-improve gate-check           # Test → diagnose → propose fix → retest loop
-```
+The user should not need to remember separate testing or improve commands.
 
 ---
 
-## Skill categories
+## Skill Categories
 
-| Category | Skills | Key metrics |
-|----------|--------|-------------|
-| `gate` | gate-check | Review mode read, full/lean/solo director panel, no auto-advance |
-| `review` | design-review, architecture-review, review-all-gdds | Read-only, 8-section check, correct verdicts |
-| `authoring` | design-system, quick-design, art-bible, create-architecture, … | Section-by-section May-I-write, skeleton-first |
-| `readiness` | story-readiness, story-done | Blockers surfaced, director gate in full mode |
-| `pipeline` | create-epics, create-stories, dev-story, map-systems, … | Upstream dependency check, handoff path clear |
-| `analysis` | consistency-check, balance-check, code-review, tech-debt, … | Read-only report, verdict keyword, no writes |
-| `team` | team-combat, team-narrative, team-audio, … | All required agents spawned, blocked surfaced |
-| `sprint` | sprint-plan, sprint-status, milestone-review, … | Reads sprint data, status keywords present |
-| `utility` | start, adopt, hotfix, localize, setup-engine, … | Passes static checks |
-
----
-
-## Agent tiers
-
-| Tier | Agents |
-|------|--------|
-| `directors` | creative-director, technical-director, producer, art-director |
-| `leads` | lead-programmer, narrative-director, audio-director, ux-designer, qa-lead, release-manager, localization-lead |
-| `specialists` | gameplay-programmer, engine-programmer, ui-programmer, tools-programmer, network-programmer, ai-programmer, level-designer, sound-designer, technical-artist |
-| `godot` | godot-specialist, godot-gdscript-specialist, godot-csharp-specialist, godot-shader-specialist, godot-gdextension-specialist |
-| `unity` | unity-specialist, unity-ui-specialist, unity-shader-specialist, unity-dots-specialist, unity-addressables-specialist |
-| `unreal` | unreal-specialist, ue-gas-specialist, ue-replication-specialist, ue-umg-specialist, ue-blueprint-specialist |
-| `operations` | devops-engineer, security-engineer, performance-analyst, analytics-engineer, community-manager |
-| `creative` | writer, world-builder, game-designer, economy-designer, systems-designer, prototyper |
+| Category | Examples | Key metrics |
+|---|---|---|
+| `gate` | gate-check | Fixed Lean policy, phase-gate director panel, no auto-advance |
+| `review` | absorbed into design-system/create-architecture/code-review | Read-only analysis behavior when used internally |
+| `authoring` | design-system, create-architecture, art-bible | Section-by-section or draft-first write approval, skeleton-first where appropriate |
+| `readiness` | story-done | Blockers surfaced, evidence checked |
+| `pipeline` | dev-story | Upstream dependency check, handoff path clear |
+| `analysis` | code-review; design/balance checks inside design-system | Read-only report, verdict keyword, no writes unless approved |
+| `team` | absorbed into dev-story, art-bible, smoke-check, release-checklist | Required agents coordinated internally when still needed |
+| `sprint` | sprint-plan | Reads sprint data, status keywords present |
+| `utility` | start, help, window-ccgs, skill-create-ccgs | Navigation, maintenance, setup, or QA behavior |
 
 ---
 
-## Updating the catalog
+## Updating The Catalog
 
-`catalog.yaml` tracks test coverage for every skill and agent. After running a test:
+`catalog.yaml` tracks coverage for every active Skill that remains in
+`.agents/skills/`. It no longer registers archived/absorbed legacy Skills or
+historical agent specs. During migration, an old spec may exist briefly; once
+its durable behavior is migrated into an active Skill spec or a direct
+`references/` file, delete the redundant spec instead of leaving a shadow Skill
+pile.
 
-- `/skill-test spec [name]` will offer to update `last_spec` and `last_spec_result`
-- `/skill-test category [name]` will offer to update `last_category` and `last_category_result`
-- `last_static` and `last_static_result` are updated manually or via `/skill-improve`
+If a Skill is removed from `.agents/skills/`, remove its catalog entry and route
+index entry too. If a legacy Skill is absorbed, route it through
+`.codex/docs/skill-route-index.yaml` instead of keeping a catalog entry for it.
+
+For new or modified Skills, `/skill-create-ccgs` should update:
+
+- the Skill spec path;
+- category;
+- priority;
+- last-check fields when results are saved.
 
 ---
 
-## Writing a new spec
+## Writing A New Spec
 
-1. Find the spec template at `templates/skill-test-spec.md`
-2. Copy it to `skills/[category]/[skill-name].md`
-3. Update the `spec:` field in `catalog.yaml` to point to the new file
-4. Run `/skill-test spec [skill-name]` to validate it
+1. Use `templates/skill-test-spec.md`.
+2. Save the spec under `skills/[category]/[skill-name].md`.
+3. Register it in `catalog.yaml`.
+4. Let `/skill-create-ccgs` run its internal verification.
 
 ---
 
-## Removing this framework
+## Optional Folder
 
-This folder has no hooks into the main project. To remove:
+This folder is platform QA infrastructure. It can be removed from a lightweight
+game project if the project does not need Skill/Agent governance evidence, but
+public CCGS platform releases should keep it.
 
-```bash
-rm -rf "CCGS Skill Testing Framework"
-```
-
-The skills `/skill-test` and `/skill-improve` will still function — they'll simply
-report that `catalog.yaml` is missing and suggest running `/skill-test audit` to
-initialize it.

@@ -13,7 +13,7 @@ critical gate-keeping skill in the pipeline.
 
 ## Static Assertions (Structural)
 
-Verified automatically by `/skill-test static` — no fixture needed.
+Verified automatically by `/skill-create-ccgs` internal static check — no fixture needed.
 
 - [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
 - [ ] Has ≥2 phase headings (numbered Phase N or ## sections)
@@ -124,50 +124,30 @@ Verified automatically by `/skill-test static` — no fixture needed.
 
 ---
 
-### Case 5: Director Gate — lean vs full vs solo mode
+### Case 5: Phase-Gate Panel — fixed gate behavior
 
 **Fixture:**
-- `production/session-state/review-mode.txt` exists (or equivalent state file)
 - All required artifacts for the target gate are present
 - `design/gdd/game-concept.md` exists
+- `production/review-mode.txt` and `production/session-state/review-mode.txt`
+  are absent
 
-**Case 5a — full mode:**
-- `review-mode.txt` contains `full`
-
-**Input:** `/gate-check systems-design` (with full mode active)
-
-**Expected behavior:**
-1. Skill reads review mode — determines `full`
-2. Skill spawns all 4 PHASE-GATE director prompts in parallel:
-   - CD-PHASE-GATE (creative-director)
-   - TD-PHASE-GATE (technical-director)
-   - PR-PHASE-GATE (producer)
-   - AD-PHASE-GATE (art-director)
-3. If one director returns CONCERNS → overall gate verdict is at minimum CONCERNS
-4. All 4 verdicts are collected before producing final output
-
-**Assertions (5a):**
-- [ ] Skill reads review-mode before deciding which directors to spawn
-- [ ] All 4 PHASE-GATE director prompts are spawned (not just 1 or 2)
-- [ ] Directors are spawned in parallel (simultaneous, not sequential)
-- [ ] A CONCERNS verdict from any one director propagates to overall verdict
-- [ ] Verdict is NOT auto-PASS if any director returns CONCERNS or REJECT
-
-**Case 5b — solo mode:**
-- `review-mode.txt` contains `solo`
-
-**Input:** `/gate-check systems-design` (with solo mode active)
+**Input:** `/gate-check systems-design`
 
 **Expected behavior:**
-1. Skill reads review mode — determines `solo`
-2. Each director is noted as skipped: "[CD-PHASE-GATE] skipped — Solo mode"
-3. Gate verdict is derived from artifact/quality checks only
-4. No director gates spawn
+1. Skill does not parse `--review` arguments.
+2. Skill does not read, create, or normalize any `review-mode.txt` file.
+3. Skill runs the fixed phase-gate review behavior for the target transition.
+4. Any CONCERNS or FAIL/REJECT result from a gate check propagates to the
+   overall verdict.
+5. All required checks are collected before producing final output.
 
-**Assertions (5b):**
-- [ ] No director gates are spawned in solo mode
-- [ ] Each skipped gate is explicitly noted in output: "[GATE-ID] skipped — Solo mode"
-- [ ] Verdict is based on artifact and quality checks only
+**Assertions:**
+- [ ] No review-mode file is read or required.
+- [ ] Gate behavior is determined by the target transition, not by full/lean/solo state.
+- [ ] A CONCERNS result from any required gate check propagates to overall verdict.
+- [ ] Verdict is NOT auto-PASS if any required gate check returns CONCERNS or FAIL/REJECT.
+- [ ] Stage advancement still requires explicit user confirmation.
 
 **Note on Case 3 correction:**
 The Case 3 assertions previously stated "Skill does not ask the user which gate to check
@@ -198,3 +178,4 @@ treat this confirmation as a failure.
 - The Vertical Slice validation block (Pre-Production → Production gate) is not
   covered because it requires a playable build context that cannot be expressed
   as a document fixture.
+

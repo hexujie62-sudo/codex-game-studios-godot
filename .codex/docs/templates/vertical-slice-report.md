@@ -115,13 +115,13 @@ Can the team build at this quality on the projected schedule?]
 
 **Performance targets:** [Confirmed / Revised — list changes if revised]
 
-**Playtest note:** Run `/playtest-report` to structure additional session data
+**Playtest note:** Run `/smoke-check` to structure additional session data
 before running `/gate-check pre-production`.
 
 **Next steps:**
 1. `/gate-check pre-production` — formally advance to Production
-2. `/create-epics layer:foundation` — plan Foundation layer epics
-3. `/create-epics layer:core` — plan Core layer epics
+2. `/sprint-plan layer:foundation` — plan Foundation layer epics
+3. `/sprint-plan layer:core` — plan Core layer epics
 4. `/sprint-plan` — use velocity data from this report in the estimate
 
 ---
@@ -131,13 +131,13 @@ before running `/gate-check pre-production`.
 [Which GDDs need revision and why — be specific about the failure mode observed.]
 
 **Systems requiring GDD revision:** [List]
-**Architecture decisions to revisit:** [List — use `/architecture-decision` to update]
+**Architecture decisions to revisit:** [List — use `/create-architecture` to update]
 **Core loop change needed:** [What specifically to change]
 
 **Next steps:**
 1. `/design-system [mechanic]` — revise affected GDDs
-2. `/architecture-decision [decision]` — address architecture issues
-3. `/vertical-slice` — re-validate after revisions
+2. `/create-architecture [decision]` — address architecture issues
+3. `/sprint-plan` — re-validate after revisions
 
 ---
 
@@ -146,7 +146,7 @@ before running `/gate-check pre-production`.
 [Why the full game loop does not work at this quality level. What specifically
 prevented the player from experiencing the core fantasy. What to do instead.]
 
-**Next step:** `/brainstorm` to explore a new direction, or `/prototype [new-concept]`
+**Next step:** `/brainstorm` to explore a new direction, or `/brainstorm [new-concept]`
 to test a different concept cheaply before investing in another vertical slice.
 
 ---
@@ -167,3 +167,4 @@ to test a different concept cheaply before investing in another vertical slice.
 > *Vertical slice code location: `prototypes/[concept-name]-vertical-slice/`*
 > *This code is reference material only. Production implementation is written from scratch.*
 > *Never import or refactor this code into production.*
+

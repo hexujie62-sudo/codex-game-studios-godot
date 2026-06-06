@@ -5,15 +5,18 @@ lightweight: session context, obvious route gaps, dangerous-command protection,
 skill-change reminders, and compaction recovery. Stronger checks live in
 `.githooks/` and CI.
 
+Git checkpoint and research branch policy lives in
+`.codex/docs/git-checkpoint-workflow.md`.
+
 ## Active Codex Hooks
 
 | Hook | Event | Trigger | Action |
 | ---- | ----- | ------- | ------ |
-| `session-start.sh` | SessionStart | New Codex thread/session | Emits JSON `additionalContext` with branch, stage, active state file, hook reminders, and dirty worktree count |
+| `session-start.sh` | SessionStart | New Codex thread/session | Emits JSON `additionalContext` with branch, stage, active state file, registered lane restore commands, hook reminders, dirty worktree count, and low-frequency checkpoint hints |
 | `detect-gaps-lite.sh` | SessionStart | New Codex thread/session | Emits JSON `additionalContext` for obvious missing route artifacts only |
 | `dangerous-command-policy.sh` | PreToolUse | `Bash` or `apply_patch` | Blocks force push, hard reset, checkout discard, and high-risk recursive deletion of core folders |
-| `skill-change-reminder.sh` | PostToolUse | `Write`, `Edit`, or `apply_patch` | Detects `.agents/skills/*/SKILL.md` changes and reminds `/skill-test`; also writes `production/session-state/hook-reminders.md` |
-| `post-compact-restore.sh` | PostCompact | After context compaction | Emits JSON `systemMessage` reminding Codex to read `production/session-state/active.md` |
+| `skill-change-reminder.sh` | PostToolUse | `Write`, `Edit`, or `apply_patch` | Detects `.agents/skills/*/SKILL.md` changes and reminds `/skill-create-ccgs`; also writes `production/session-state/hook-reminders.md` |
+| `post-compact-restore.sh` | PostCompact | After context compaction | Emits JSON `systemMessage` reminding Codex to read `production/session-state/active.md` and restore the correct lane with `/window-ccgs <lane-id>` |
 
 ## Git Hooks
 
@@ -25,7 +28,7 @@ git config core.hooksPath .githooks
 
 | Hook | Trigger | Action |
 | ---- | ------- | ------ |
-| `.githooks/pre-commit` | `git commit` | Blocks invalid JSON; warns on GDD section gaps, gameplay hardcoded values, TODO owner format, asset naming, and skill edits |
+| `.githooks/pre-commit` | `git commit` | Blocks invalid JSON, untracked lane files, and duplicate lane Active Files; warns on multi-domain staged changes, GDD section gaps, gameplay hardcoded values, TODO owner format, asset naming, and skill edits |
 | `.githooks/pre-push` | `git push` | Blocks direct pushes to `main`, `master`, and `develop` |
 
 ## Legacy Scripts
@@ -36,3 +39,4 @@ checks. See `docs/ccgs-codex-hook-adaptation-plan.md` for the migration
 rationale.
 
 Hook input schema documentation: `.codex/docs/hooks-reference/hook-input-schemas.md`
+

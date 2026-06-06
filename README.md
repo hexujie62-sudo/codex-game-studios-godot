@@ -13,7 +13,7 @@ This project is a modified derivative of `Claude Code Game Studios`, released un
 <p>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
   <a href=".codex/agents"><img src="https://img.shields.io/badge/agents-49-blueviolet" alt="49 Agents"></a>
-  <a href=".agents/skills"><img src="https://img.shields.io/badge/skills-76-green" alt="76 Skills"></a>
+  <a href=".agents/skills"><img src="https://img.shields.io/badge/skills-17%20core-green" alt="17 Core Skills"></a>
   <a href=".codex/hooks"><img src="https://img.shields.io/badge/codex%20hooks-5-orange" alt="5 Codex Hooks"></a>
   <a href="https://godotengine.org/"><img src="https://img.shields.io/badge/Godot-4.x-478cbf" alt="Godot 4.x"></a>
 </p>
@@ -28,6 +28,8 @@ This fork keeps the studio-style structure, but moves the long-lived project mem
 - **Godot-focused**: the default technical stack is Godot 4.x and GDScript.
 - **Recoverable multi-window lanes**: production, development, art, QA, and platform maintenance can run in separate Codex windows.
 - **File-backed state**: `production/session-state/` stores lane state so new windows do not need a copied chat transcript.
+- **Checkpoint-aware Git workflow**: `/window-ccgs checkpoint` recommends scoped, rollback-friendly commits instead of broad `git add .` commits.
+- **Research isolation**: uncertain or experimental work can run in a separate research worktree and merge back only after clean preflight.
 - **Governed Skills**: route index, test specs, catalog entries, and `/skill-create-ccgs` keep Skills from becoming an unmanaged command pile.
 
 ## Compared With Original CCGS
@@ -37,7 +39,7 @@ This fork keeps the studio-style structure, but moves the long-lived project mem
 | Primary ecosystem | Claude Code | Codex |
 | Work style | Single-window serial flow first | Multi-window lane workflow |
 | Context recovery | More dependent on the current conversation | File-backed session state |
-| Skill management | Many slash commands | Route index + Skill tests + CCGS-specific creation flow |
+| Skill management | Many slash commands | Small core command set + route index + CCGS-specific creation flow |
 | Hook model | Claude/CC-oriented semantics | Codex-oriented lightweight reminders |
 | Engine stance | Multi-engine template | Godot-first |
 | Best fit | General AI game studio framework | Long-running AI-first Godot development |
@@ -56,22 +58,36 @@ First session:
 /start
 ```
 
+`/start` bootstraps the producer lane when lane state is missing, then continues the guided onboarding flow. Use `/window-ccgs` later when opening additional windows, updating handoffs, auditing lanes, or recovering an existing lane.
+
 When you do not know what to do next:
 
 ```text
 /help
 ```
 
-Start or resume a work lane:
+Start or resume another work lane:
 
 ```text
-/window-start-ccgs A
+/window-ccgs A
 ```
 
 Update the lane before closing a window, switching tasks, or hitting long-context pressure:
 
 ```text
-/window-handoff-ccgs A
+/window-ccgs update A
+```
+
+Ask whether the current lane is ready for a recoverable checkpoint:
+
+```text
+/window-ccgs checkpoint A
+```
+
+Start isolated research without switching the shared worktree branch:
+
+```text
+/window-ccgs research Z skill-experiment
 ```
 
 Create or change a Skill through the CCGS governance flow:
@@ -106,35 +122,35 @@ Recommended flow:
 1. Start the producer lane first.
 
 ```text
-/window-start-ccgs A
+/window-ccgs A
 ```
 
 2. Start focused lanes as needed.
 
 ```text
-/window-start-ccgs B
-/window-start-ccgs C
-/window-start-ccgs D
-/window-start-ccgs Z
+/window-ccgs B
+/window-ccgs C
+/window-ccgs D
+/window-ccgs Z
 ```
 
 3. Update the lane before closing, switching tasks, long context compression, or cross-window handoff.
 
 ```text
-/window-handoff-ccgs B
+/window-ccgs update B
 ```
 
 4. Resume the same responsibility from the lane file.
 
 ```text
-/window-start-ccgs B
+/window-ccgs B
 ```
 
 Shortcut lanes are not hard-coded roles. You can create custom lanes too:
 
 ```text
-/window-start-ccgs ui-polish
-/window-handoff-ccgs ui-polish
+/window-ccgs ui-polish
+/window-ccgs update ui-polish
 ```
 
 Lane state lives under:
@@ -144,6 +160,34 @@ production/session-state/
 ```
 
 Core rule: long-lived state belongs in the lane body; the latest handoff is only the most recent recovery point. Do not copy a whole old conversation into a new window.
+
+## Git Checkpoints And Research Worktrees
+
+Commits are treated as recovery checkpoints. They should be small enough to explain, tied to one lane when possible, and easy to roll back with `git revert`.
+
+Use:
+
+```text
+/window-ccgs checkpoint <lane-id>
+```
+
+The checkpoint flow produces:
+
+- files to stage;
+- files to leave unstaged;
+- a Conventional Commit subject;
+- `Lane:`, `Scope:`, `Verification:`, and `Rollback:` body fields.
+
+It must not use `git add .`. Automatic checkpoint commits are allowed only when a lane explicitly records `auto_checkpoint: true`, the file list is explicit, and `/window-ccgs audit` reports no conflicts.
+
+For uncertain platform work or research directions, use:
+
+```text
+/window-ccgs research <lane-id> <slug>
+/window-ccgs merge <lane-id>
+```
+
+Research work uses `codex/research/...` branches in separate worktrees so one window does not switch the branch under another window. Clean-only auto-merge is allowed only when the lane records that policy and the merge preflight passes.
 
 ## Skill Governance With `/skill-create-ccgs`
 
@@ -179,17 +223,17 @@ Example:
 I want a Godot UI generation Skill that turns a UX spec into Control node structure and GDScript bindings.
 ```
 
-If that capability already belongs under `/team-ui`, `/ux-design`, or a Godot implementation Skill, `/skill-create-ccgs` should recommend modifying the existing route or Skill instead of blindly creating another command.
+If that capability already belongs under `/art-bible`, `/design-system`, or `/dev-story`, `/skill-create-ccgs` should recommend modifying the existing route or Skill instead of blindly creating another command.
 
 ## What's Included
 
 | Category | Count | Notes |
 |---|---:|---|
 | Agents | 49 | Production, design, programming, art, audio, narrative, QA, release, and platform roles |
-| Skills | 76 | From `/start` and `/help` to design, implementation, review, QA, release, and CCGS platform maintenance |
+| Skills | 17 core | Older CCGS micro-skills are folded into core Skills and routed through `.codex/docs/skill-route-index.yaml` |
 | Codex Hooks | 5 | Session start, context recovery, dangerous command reminders, Skill-change reminders, and related lightweight checks |
-| Git Hooks | 2+ | Local pre-commit checks, Skill-change reminders, and lane-state sanity checks |
-| Docs | Many | Architecture, collaboration protocol, Hook adaptation, directory structure, context management, and release docs |
+| Git Hooks | 2+ | Local pre-commit checks, checkpoint reminders, owner-domain warnings, and lane-state sanity checks |
+| Docs | Many | Architecture, collaboration protocol, checkpoint workflow, multi-window workflow, Hook adaptation, context management, and release docs |
 
 ## Godot Boundary
 
@@ -309,25 +353,27 @@ Please avoid baking temporary game themes, fixed art styles, or one project's sh
 
 ### 多窗口怎么用
 
-推荐先开总控窗口：
+第一次进入项目时运行：
 
 ```text
-/window-start-ccgs A
+/start
 ```
 
-再按需要开开发、美术、QA 或底层维护窗口：
+`/start` 会在缺少 lane 状态时先引导创建最小 `A-producer` 总控 lane，然后继续原本的概念、引擎和阶段引导。这样窗口化会融入原 CCGS 动线，而不是替代 `/start`。
+
+之后按需要开开发、美术、QA 或底层维护窗口：
 
 ```text
-/window-start-ccgs B
-/window-start-ccgs C
-/window-start-ccgs D
-/window-start-ccgs Z
+/window-ccgs B
+/window-ccgs C
+/window-ccgs D
+/window-ccgs Z
 ```
 
 窗口完成阶段性工作、准备关闭、切换任务、上下文过长或需要交接时：
 
 ```text
-/window-handoff-ccgs B
+/window-ccgs update B
 ```
 
 长期状态写在 lane 主体，最近恢复点写在 handoff。不要把整段旧对话复制到新窗口。

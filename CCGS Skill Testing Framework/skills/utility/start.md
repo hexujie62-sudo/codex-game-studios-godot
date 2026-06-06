@@ -2,172 +2,186 @@
 
 ## Skill Summary
 
-`/start` is the first-time onboarding skill for new projects. It guides the
-user through naming the project, choosing a game engine, and setting up the
-initial directory structure. It creates stub configuration files (AGENTS.md,
-technical-preferences.md) and then routes to `/setup-engine` with the chosen
-engine as an argument. Each file or directory created is gated behind a
-"May I write" ask, following the collaborative protocol.
+`/start` 是 Codex Game Studios 的首次引导入口。它不直接假设用户的
+game concept、engine 偏好或当前阶段，而是先读取项目工件，再把用户路由到
+合适的下一步。
 
-The skill detects whether a project is already configured and whether a
-partial setup exists, offering to resume or restart as appropriate. It has
-no director gates — it is a utility setup skill that runs before any agent
-hierarchy exists.
+本 fork 使用多窗口 lane 保存长期状态，所以 `/start` 必须先检查窗口状态：
+如果项目还没有任何 `production/session-state/windows/*.md`，`/start` 应在内部
+引导创建最小 `A-producer` 总控 lane，然后继续原本 onboarding。它不应要求用户
+先退出 `/start` 再运行另一个窗口命令。
+
+`/start` 可以写入 `production/stage.txt`。stage 写入只能发生在用户完成起点选择
+之后。`/start` 不再创建、读取或标准化 `production/review-mode.txt`；审查标准固定
+为 Lean 口径，不再要求用户选择 full/lean/solo。
 
 ---
 
-## Static Assertions (Structural)
-
-Verified automatically by `/skill-test static` — no fixture needed.
+## Static Assertions
 
 - [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
-- [ ] Has ≥2 phase headings
-- [ ] Contains verdict keywords: COMPLETE, BLOCKED
-- [ ] Contains "May I write" collaborative protocol language for each config file
-- [ ] Has a next-step handoff at the end (routes to `/setup-engine`)
-
----
-
-## Director Gate Checks
-
-None. `/start` is a utility setup skill. No director agents exist yet at the
-point this skill runs.
+- [ ] Has at least two phase headings
+- [ ] Contains `Phase 0: Window Lane Bootstrap`
+- [ ] Can bootstrap `A-producer` lane before onboarding phases
+- [ ] Contains a `single-window` override path
+- [ ] Contains verdict keywords: `COMPLETE` and `BLOCKED`
+- [ ] Contains the project-state detection inputs: technical preferences, game concept, source code, prototypes, design docs, production artifacts
+- [ ] Ends with a handoff instead of auto-running the next Skill
 
 ---
 
 ## Test Cases
 
-### Case 1: Happy Path — Fresh repo, no engine, full onboarding flow
+### Case 1: Fresh Project With No Lane State
 
 **Fixture:**
-- Empty repository: no AGENTS.md overrides, no `production/stage.txt`, no
-  `technical-preferences.md` content beyond placeholders
-- No existing design docs or source code
+
+- No `production/session-state/windows/*.md`
+- No `production/session-state/active.md`
+- No `design/gdd/game-concept.md`
 
 **Input:** `/start`
 
 **Expected behavior:**
-1. Skill detects no existing configuration and begins fresh onboarding
-2. Skill asks for project name
-3. Skill presents 3 engine options: Godot 4, Unity, Unreal Engine 5
-4. User selects an engine
-5. Skill asks "May I write the initial directory structure?"
-6. Skill creates all directories defined in `directory-structure.md`
-7. Skill asks "May I write AGENTS.md stub?" and writes it on approval
-8. Skill routes to `/setup-engine [chosen-engine]` to complete technical config
+
+1. Skill checks lane state before asking about game concept.
+2. Skill explains that it will create a minimal `A-producer` lane before continuing.
+3. Skill asks permission to write `production/session-state/windows/A-producer.md`.
+4. If approved, Skill writes the lane and continues into Phase 1 project-state detection.
+5. Skill does not write `production/stage.txt` until the user makes the corresponding onboarding choice.
+6. Skill does not create or normalize `production/review-mode.txt`.
 
 **Assertions:**
-- [ ] Project name is captured before any file is written
-- [ ] Exactly 3 engine options are presented
-- [ ] "May I write" is asked for each config file individually
-- [ ] No file is written without explicit user approval
-- [ ] Handoff to `/setup-engine` occurs at the end with the chosen engine argument
-- [ ] Verdict is COMPLETE after all files are written and handoff is issued
 
----
+- [ ] `/start` remains the first user entry.
+- [ ] No `BLOCKED` verdict is used merely because lane state is missing.
+- [ ] Lane creation is gated behind "May I write".
+- [ ] After lane setup, normal onboarding can continue.
 
-### Case 2: Already Configured — Detects existing config, offers to skip or reconfigure
+### Case 2: User Explicitly Chooses Single-Window
 
 **Fixture:**
-- `technical-preferences.md` has engine already set (not placeholder)
-- `production/stage.txt` exists with `Concept`
+
+- No lane files exist.
+
+**Input:** `/start single-window`
+
+**Expected behavior:**
+
+1. Skill skips the lane bootstrap because the user explicitly opted out.
+2. Skill warns that recovery and parallel coordination will not be written to a lane.
+3. Skill proceeds to normal onboarding.
+
+**Assertions:**
+
+- [ ] Warning mentions `/window-ccgs A` can be run later.
+- [ ] The skill still follows normal write approval rules.
+- [ ] No lane file is created by `/start`.
+
+### Case 3: Existing Lane State
+
+**Fixture:**
+
+- `production/session-state/windows/A-producer.md` exists.
+- `production/session-state/active.md` may or may not exist.
 
 **Input:** `/start`
 
 **Expected behavior:**
-1. Skill reads `technical-preferences.md` and detects configured engine
-2. Skill reports: "This project is already configured with [engine]"
-3. Skill presents options: skip (exit), reconfigure engine, or reconfigure specific sections
-4. If user selects skip: skill exits cleanly with a summary of current config
-5. If user selects reconfigure: skill proceeds to the engine-selection step
+
+1. Skill recognizes that the project has entered the lane system.
+2. Skill continues to project-state detection.
+3. Skill asks where the user's game idea currently is.
 
 **Assertions:**
-- [ ] Skill does NOT overwrite existing config without user choosing reconfigure
-- [ ] Detected engine name is shown to the user in the status message
-- [ ] User is offered at least 2 options (skip or reconfigure)
-- [ ] Verdict is COMPLETE whether user skips or reconfigures
 
----
+- [ ] The lane bootstrap does not block.
+- [ ] The onboarding options A/B/C/D are shown.
+- [ ] No duplicate lane creation is suggested as the primary action.
 
-### Case 3: Engine Choice — User picks Godot 4, routes to /setup-engine godot
+### Case 4: Custom Lane Exists But No Producer Lane
 
 **Fixture:**
-- Fresh repo — no existing configuration
+
+- `production/session-state/windows/systems-design.md` exists.
+- `production/session-state/windows/A-producer.md` does not exist.
 
 **Input:** `/start`
 
 **Expected behavior:**
-1. Skill presents engine options and user selects Godot 4
-2. Skill writes initial stubs (directory structure, AGENTS.md) after approval
-3. Skill explicitly routes to `/setup-engine godot` as the next step
-4. Handoff message clearly names the engine and the next skill invocation
+
+1. Skill treats the project as lane-enabled.
+2. Skill continues onboarding.
+3. Skill reminds the user that long-running projects should also have a control lane such as `/window-ccgs A`.
 
 **Assertions:**
-- [ ] Handoff command is `/setup-engine godot` (not generic `/setup-engine`)
-- [ ] Handoff is issued after all initial stubs are written, not before
-- [ ] Engine choice is echoed back to user before writing begins
 
----
+- [ ] Custom lane is accepted as valid lane state.
+- [ ] `/window-ccgs A` appears as a reminder, not as a blocker.
 
-### Case 4: Interrupted Setup — Partial config detected, offers resume or restart
+### Case 5: Returning Project
 
 **Fixture:**
-- Directory structure exists (was created) but `technical-preferences.md` is
-  still all placeholders (engine was never chosen — setup was interrupted)
-- No `production/stage.txt`
+
+- Engine is configured in `.codex/docs/technical-preferences.md`.
+- `design/gdd/game-concept.md` exists.
+- At least one lane file exists.
 
 **Input:** `/start`
 
 **Expected behavior:**
-1. Skill detects partial state: directories exist but engine is unconfigured
-2. Skill reports: "A partial setup was detected — directories exist but engine is not configured"
-3. Skill offers: resume from engine selection, or restart from scratch
-4. If resume: skill skips directory creation, proceeds to engine choice
-5. If restart: skill asks "May I overwrite existing structure?" before proceeding
+
+1. Skill detects that basic setup already exists.
+2. Skill does not restart onboarding by default.
+3. Skill summarizes current engine, concept file, and Lean review policy.
+4. Skill suggests continuing with an appropriate next command such as `/help`, `/design-system`, or the current required step.
 
 **Assertions:**
-- [ ] Partial state is correctly identified (directories present, engine absent)
-- [ ] User is offered resume vs. restart choice — not forced into one path
-- [ ] Resume path skips re-creating directories (no redundant "May I write" for structure)
-- [ ] Restart path asks for permission to overwrite before touching any files
 
----
+- [ ] Existing configuration is not overwritten.
+- [ ] The user is not asked to recreate already existing concept work.
+- [ ] Verdict is `COMPLETE` or a clear handoff is provided.
 
-### Case 5: Director Gate Check — No gate; start is a utility setup skill
+### Case 6: Stage Write And Fixed Lean Review Policy
 
 **Fixture:**
-- Any fixture
+
+- Lane state exists.
+- `production/stage.txt` is missing.
+- `production/review-mode.txt` is missing.
 
 **Input:** `/start`
 
 **Expected behavior:**
-1. Skill completes full onboarding flow
-2. No director agents are spawned at any point
-3. No gate IDs (CD-*, TD-*, AD-*, PR-*) appear in the output
+
+1. Skill only writes `production/stage.txt` after the user chooses an onboarding path.
+2. Skill does not create, read, or normalize `production/review-mode.txt`.
+3. Skill states the fixed Lean review policy as conversation guidance only.
+4. The stage value maps to the documented stage mapping.
 
 **Assertions:**
-- [ ] No director gate is invoked during the skill execution
-- [ ] No gate skip messages appear (gates are absent, not suppressed)
-- [ ] Skill reaches COMPLETE without any gate verdict
+
+- [ ] Stage write happens after path selection, not before.
+- [ ] No full/lean/solo review-mode prompt appears.
+- [ ] Review mode file is not created.
+- [ ] No unrelated files are modified.
 
 ---
 
 ## Protocol Compliance
 
-- [ ] Asks for project name before any file is written
-- [ ] Presents engine options as a structured choice (not free text)
-- [ ] Asks "May I write" separately for directory structure and for AGENTS.md stub
-- [ ] Ends with a handoff to `/setup-engine` with the engine name as argument
-- [ ] Verdict is clearly stated (COMPLETE or BLOCKED) at end of output
+- [ ] `/start` may create the initial `A-producer` lane during first onboarding.
+- [ ] `/start` does not auto-run the next Skill.
+- [ ] If no lane exists, `/start` bootstraps lane state instead of blocking.
+- [ ] If the user explicitly opts into single-window mode, `/start` can proceed but warns about the tradeoff.
+- [ ] File writes are limited to documented startup state files; `production/review-mode.txt` is not created or normalized.
 
 ---
 
 ## Coverage Notes
 
-- The case where the user rejects all engine options and provides a custom
-  engine name is not tested — the skill is designed for the three supported
-  engines only.
-- Git initialization (if any) is not tested here; that is an infrastructure
-  concern outside the skill boundary.
-- Solo vs. lean mode behavior is not applicable — this skill has no gates and
-  mode selection is irrelevant.
+- This spec intentionally treats multi-window lane setup as a first-class entry
+  concern because this fork is Codex-first and file-backed.
+- The exact content of game concept questions is tested by authoring Skills, not
+  by this utility spec.
+- `/help` is responsible for ongoing route recommendations after startup.

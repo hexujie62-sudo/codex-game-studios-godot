@@ -74,81 +74,31 @@ Ask yourself: "What department would handle this in a real studio?"
 
 ### 3. Use Slash Commands for Common Tasks
 
+The visible command set is intentionally small. Older CCGS micro-skills are
+folded into these core entries and routed through
+`.codex/docs/skill-route-index.yaml`.
+
 | Command | What it does |
-|---------|-------------|
-| `/start` | First-time onboarding — asks where you are, guides you to the right workflow |
-| `/help` | Context-aware "what do I do next?" — reads your current phase and artifacts |
-| `/project-stage-detect` | Analyze project state, detect stage, identify gaps |
-| `/setup-engine` | Configure engine + version, populate reference docs |
-| `/adopt` | Brownfield audit and migration plan for existing projects |
-| `/brainstorm` | Guided game concept ideation from scratch |
-| `/map-systems` | Decompose concept into systems, map dependencies, guide per-system GDDs |
-| `/design-system` | Guided, section-by-section GDD authoring for a single game system |
-| `/quick-design` | Lightweight spec for small changes — tuning, tweaks, minor additions |
-| `/review-all-gdds` | Cross-GDD consistency and game design theory review |
-| `/propagate-design-change` | Find ADRs and stories affected by a GDD change |
-| `/art-bible` | Guided, section-by-section Art Bible authoring — creates visual identity spec before asset production |
-| `/asset-spec` | Generate per-asset visual specifications and AI generation prompts from GDDs or character profiles |
-| `/ux-design` | Author UX specs (screen/flow, HUD, interaction patterns) |
-| `/ux-review` | Validate UX specs for accessibility and GDD alignment |
-| `/create-architecture` | Master architecture document for the game |
-| `/architecture-decision` | Creates an ADR |
-| `/architecture-review` | Validate all ADRs, dependency ordering, GDD traceability |
-| `/create-control-manifest` | Flat programmer rules sheet from Accepted ADRs |
-| `/create-epics` | Translate GDDs + ADRs into epics (one per architectural module) |
-| `/create-stories` | Break a single epic into implementable story files |
-| `/dev-story` | Read a story and implement it — routes to the correct programmer agent |
-| `/sprint-plan` | Creates or updates sprint plans |
-| `/sprint-status` | Quick 30-line sprint snapshot |
-| `/story-readiness` | Validate a story is implementation-ready before pickup |
-| `/story-done` | End-of-story completion review — verifies acceptance criteria |
-| `/estimate` | Produces structured effort estimates |
-| `/design-review` | Reviews a design document |
-| `/code-review` | Reviews code for quality and architecture |
-| `/balance-check` | Analyzes game balance data |
-| `/asset-audit` | Audits assets for compliance |
-| `/content-audit` | GDD-specified content vs. implemented — find gaps |
-| `/scope-check` | Detect scope creep against plan |
-| `/perf-profile` | Performance profiling and bottleneck ID |
-| `/tech-debt` | Scan, track, and prioritize tech debt |
-| `/gate-check` | Validate phase readiness (PASS/CONCERNS/FAIL) |
-| `/consistency-check` | Scan all GDDs for cross-document inconsistencies (conflicting stats, names, rules) |
-| `/security-audit` | Audit for security vulnerabilities: save tampering, cheat vectors, network exploits, data exposure |
-| `/reverse-document` | Generate design/architecture docs from existing code |
-| `/milestone-review` | Reviews milestone progress |
-| `/retrospective` | Runs sprint/milestone retrospective |
-| `/bug-report` | Structured bug report creation |
-| `/playtest-report` | Creates or analyzes playtest feedback |
-| `/onboard` | Generates onboarding docs for a role |
-| `/release-checklist` | Validates pre-release checklist |
-| `/launch-checklist` | Complete launch readiness validation |
-| `/changelog` | Generates changelog from git history |
-| `/patch-notes` | Generate player-facing patch notes |
-| `/hotfix` | Emergency fix with audit trail |
-| `/day-one-patch` | Prepare a focused day-one patch for known issues discovered after gold master |
-| `/prototype` | Concept prototype — validate core idea before writing GDDs (Phase 1) |
-| `/vertical-slice` | Production-quality end-to-end build — validate full game loop (Phase 4) |
-| `/localize` | Localization scan, extract, validate |
-| `/team-combat` | Orchestrate full combat team pipeline |
-| `/team-narrative` | Orchestrate full narrative team pipeline |
-| `/team-ui` | Orchestrate full UI team pipeline |
-| `/team-release` | Orchestrate full release team pipeline |
-| `/team-polish` | Orchestrate full polish team pipeline |
-| `/team-audio` | Orchestrate full audio team pipeline |
-| `/team-level` | Orchestrate full level creation pipeline |
-| `/team-live-ops` | Orchestrate live-ops team for seasons, events, and post-launch content |
-| `/team-qa` | Orchestrate full QA team cycle — test plan, test cases, smoke check, sign-off |
-| `/qa-plan` | Generate a QA test plan for a sprint or feature |
-| `/bug-triage` | Re-prioritize open bugs, assign to sprints, surface systemic trends |
-| `/smoke-check` | Run critical path smoke test gate before QA hand-off (PASS/FAIL) |
-| `/soak-test` | Generate a soak test protocol for extended play sessions |
-| `/regression-suite` | Map coverage to GDD critical paths, flag gaps, maintain regression suite |
-| `/test-setup` | Scaffold test framework + CI pipeline for the project's engine (run once) |
-| `/test-helpers` | Generate engine-specific test helper libraries and factory functions |
-| `/test-flakiness` | Detect flaky tests from CI history, flag for quarantine or fix |
-| `/test-evidence-review` | Quality review of test files and manual evidence — ADEQUATE/INCOMPLETE/MISSING |
-| `/skill-test` | Validate skill files for compliance and correctness (static / spec / audit) |
-| `/skill-improve` | Improve a skill using a test-fix-retest loop — diagnose, propose fix, rewrite, verify |
+|---|---|
+| `/start` | New project, existing project adoption, or full re-orientation |
+| `/help` | Read current project state and recommend one next step |
+| `/window-ccgs` | Start, recover, update, audit, or compact multi-window lanes |
+| `/skill-create-ccgs` | Create, merge, modify, delete, route, and test CCGS Skills |
+| `/setup-engine` | Pin Godot version, language, tools, and engine references |
+| `/brainstorm` | Shape game concept, pillars, loop, and prototype direction |
+| `/design-system` | Systems map, GDDs, light design, review, consistency, and balance |
+| `/art-bible` | Visual identity, asset specs, asset audit, UX specs, and UX review |
+| `/create-architecture` | Architecture document, ADRs, architecture review, and control manifest |
+| `/sprint-plan` | Epics, stories, estimates, sprint plans, scope, status, and retrospectives |
+| `/dev-story` | Implement a ready story with a small readiness preflight |
+| `/story-done` | Verify acceptance criteria, deviations, and test evidence |
+| `/code-review` | Review code quality, architecture drift, security, tech debt, and performance |
+| `/smoke-check` | QA plan, smoke tests, regression, flaky tests, playtest, and soak evidence |
+| `/bug-report` | Bug report, triage, and hotfix routing |
+| `/gate-check` | Phase gate, milestone, and vertical-slice readiness judgement |
+| `/release-checklist` | Release, launch, changelog, patch notes, localization, and day-one patch |
+
+See `.codex/docs/skills-reference.md` for the compact command reference.
 
 ### 4. Use Templates for New Documents
 
@@ -222,13 +172,13 @@ If you already know what you need, jump directly to the relevant path:
      performance budgets, and engine-specific defaults
    - If the engine version is newer than the LLM's training data, it fetches
      current docs from the web so agents suggest correct APIs
-3. **Validate the concept** — Run `/design-review design/gdd/game-concept.md`
-4. **Decompose into systems** — Run `/map-systems` to map all systems and dependencies
-5. **Design each system** — Run `/design-system [system-name]` (or `/map-systems next`)
+3. **Validate the concept** — Run `/design-system design/gdd/game-concept.md`
+4. **Decompose into systems** — Run `/design-system` to map all systems and dependencies
+5. **Design each system** — Run `/design-system [system-name]` (or `/design-system next`)
    to write GDDs in dependency order
-6. **Prototype the mechanic** — Run `/prototype [core-mechanic]` (1–3 days — before writing GDDs)
+6. **Prototype the mechanic** — Run `/brainstorm [core-mechanic]` (1–3 days — before writing GDDs)
 7. **Design each system** — Run `/design-system [system-name]` to write GDDs, informed by prototype findings
-8. **Plan the first sprint** — After architecture and `/vertical-slice`, run `/sprint-plan new`
+8. **Plan the first sprint** — After architecture and `/sprint-plan`, run `/sprint-plan new`
 9. Start building
 
 ### Path B: "I know what I want to build"
@@ -238,9 +188,9 @@ If you already have a game concept and engine choice:
 1. **Set up the engine** — Run `/setup-engine [engine] [version]`
    (e.g., `/setup-engine godot 4.6`) — also creates technical preferences
 2. **Write the Game Pillars** — delegate to `creative-director`
-3. **Decompose into systems** — Run `/map-systems` to enumerate systems and dependencies
+3. **Decompose into systems** — Run `/design-system` to enumerate systems and dependencies
 4. **Design each system** — Run `/design-system [system-name]` for GDDs in dependency order
-5. **Create the initial ADR** — Run `/architecture-decision`
+5. **Create the initial ADR** — Run `/create-architecture`
 6. **Create the first milestone** in `production/milestones/`
 7. **Plan the first sprint** — Run `/sprint-plan new`
 8. Start building
@@ -258,9 +208,9 @@ If you have a concept but don't know which engine fits:
 
 If you have design docs, prototypes, or code already:
 
-1. **Run `/start`** (or `/project-stage-detect`) — analyzes what exists,
+1. **Run `/start`** (or `/help`) — analyzes what exists,
    identifies gaps, and recommends next steps
-2. **Run `/adopt`** if you have existing GDDs, ADRs, or stories — audits
+2. **Run `/start`** if you have existing GDDs, ADRs, or stories — audits
    internal format compliance and builds a numbered migration plan to fill gaps
    without overwriting your existing work
 3. **Configure engine if needed** — Run `/setup-engine` if not yet configured
@@ -293,3 +243,4 @@ AGENTS.md                          -- Master config (read this first, ~60 lines)
   pre-commit                       -- Local JSON/design/skill reminders
   pre-push                         -- Local protected-branch push guard
 ```
+

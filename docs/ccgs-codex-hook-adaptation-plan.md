@@ -56,7 +56,7 @@
 2. **真正需要强制性的规则迁到 Git/CI。**
    例如 JSON 有效性、提交前检查、推送保护、资源格式检查。
 
-3. **Skill 体系相关规则迁到 `/skill-test`。**
+3. **Skill 体系相关规则迁到 `/skill-create-ccgs` 内部验证。**
    例如 Skill 修改后必须有 catalog、spec、静态检查、类别检查。
 
 4. **不适配且没有独立价值的 Hook 删除。**
@@ -72,7 +72,7 @@
 | Codex hooks | 会话上下文、轻量提醒、危险操作软拦截 | `.codex/hooks.json` | 中等：依赖 trust、事件覆盖和 tool path |
 | Git hooks | commit/push 前本地强制检查 | `.githooks/` 或 repo git config | 高：真实拦截 git 操作 |
 | CI | 跨环境最终质量门 | GitHub Actions 或其他 CI | 最高：不依赖 Codex |
-| Skills | 工作流审查和人机协作把关 | `/help`、`/skill-test`、`/asset-audit` | 中高：依赖显式调用和体系路由 |
+| Skills | 工作流审查和人机协作把关 | `/help`、`/skill-create-ccgs`、`/asset-audit` | 中高：依赖显式调用和体系路由 |
 | AGENTS/rules | 模型执行前的常驻规范 | `AGENTS.md`、`.codex/rules/` | 中：影响模型行为，但不是硬门 |
 
 ## 12 个 Hook 的去留方案
@@ -84,7 +84,7 @@
 | `validate-commit.sh` | Codex `PreToolUse` 只能拦截部分 Bash；不能保证所有 commit。 | 迁出 Codex 主责。 | Git pre-commit + CI；Codex 中可留提醒版。 | Git/CI 负责强制，Codex 只提醒。 |
 | `validate-push.sh` | 与分支保护、pre-push 重叠；Codex 不能覆盖所有 push。 | 从 Codex 默认 hook 删除。 | Git pre-push / 远端 branch protection | 不依赖 Codex。 |
 | `validate-assets.sh` | 当前按 `file_path` 解析，Codex `apply_patch` 下不可靠；PostToolUse 不能撤销副作用。 | 迁到 `/asset-audit` + CI；Codex 可留 advisory parser。 | Skill + CI | 最终检查由 CI/显式审计负责。 |
-| `validate-skill-change.sh` | 当前按 `file_path` 解析，Codex `apply_patch` 下不可靠。 | 改成解析 patch diff，提醒 `/skill-test audit`。 | Codex `PostToolUse` + `/skill-test` | 能发现大部分 Codex 文件改动，但不当硬门。 |
+| `validate-skill-change.sh` | 当前按 `file_path` 解析，Codex `apply_patch` 下不可靠。 | 改成解析 patch diff，提醒使用 `/skill-create-ccgs` 做内部审计。 | Codex `PostToolUse` + `/skill-create-ccgs` 内部验证 | 能发现大部分 Codex 文件改动，但不当硬门。 |
 | `pre-compact.sh` | 依赖纯文本 stdout 注入上下文；Codex 会忽略 PreCompact 纯文本。 | 重写，不再吐长文本。 | Codex `PreCompact` | 只写入 session-state 文件，必要时 JSON `systemMessage`。 |
 | `post-compact.sh` | 依赖纯文本 stdout；Codex 会忽略 PostCompact 纯文本。 | 重写为 JSON 输出。 | Codex `PostCompact` | 用 JSON 提醒读取 `active.md`。 |
 | `session-stop.sh` | Codex `Stop` 是 turn scope，不是“会话关闭”；exit 0 纯文本 stdout 无效。 | 改名并重写。 | Codex `Stop` 或移出 | 只做 turn-end continuation/提醒，不做 session-end 语义。 |
@@ -100,7 +100,7 @@ Codex 默认只保留 5 类 hook：
 |---|---|---|
 | `SessionStart` | `session-start.sh` | 给 Codex 注入阶段、恢复点、当前工作树概况。 |
 | `SessionStart` | `detect-gaps-lite.sh` | 只提示新项目、缺引擎、缺概念、缺系统索引等明显缺口。 |
-| `PostToolUse` | `skill-change-reminder.sh` | 解析 `apply_patch`，发现 `.agents/skills/*/SKILL.md` 改动后提醒 `/skill-test audit`。 |
+| `PostToolUse` | `skill-change-reminder.sh` | 解析 `apply_patch`，发现 `.agents/skills/*/SKILL.md` 改动后提醒使用 `/skill-create-ccgs` 做内部审计。 |
 | `PostCompact` | `post-compact-restore.sh` | JSON 提醒读取 `production/session-state/active.md`。 |
 | `PreToolUse` | `dangerous-command-policy.sh` | 阻止明显危险命令，例如强推、递归删除、删除 `.codex`/`.agents`。 |
 
@@ -124,7 +124,7 @@ Codex 默认只保留 5 类 hook：
 - `design/gdd/*.md` 的必需章节检查。
 - `src/gameplay/**` 的硬编码数值提醒。
 - TODO/FIXME 负责人格式提醒。
-- `.agents/skills/*/SKILL.md` 修改时提示运行 `/skill-test audit`。
+- `.agents/skills/*/SKILL.md` 修改时提示使用 `/skill-create-ccgs` 做内部审计。
 
 位置建议：
 
@@ -159,10 +159,10 @@ CI 应负责最终质量门：
 
 | 规则 | 迁移到 |
 |---|---|
-| Skill 修改后必须有 catalog entry | `/skill-test audit` |
-| Skill 修改后必须有 spec | `/skill-test audit` |
-| Skill frontmatter 结构 | `/skill-test static <skill>` |
-| Skill 行为是否符合用途 | `/skill-test spec <skill>` |
+| Skill 修改后必须有 catalog entry | `/skill-create-ccgs` 内部审计 |
+| Skill 修改后必须有 spec | `/skill-create-ccgs` 内部审计 |
+| Skill frontmatter 结构 | `/skill-create-ccgs` 内部静态检查 |
+| Skill 行为是否符合用途 | `/skill-create-ccgs` 内部 spec 检查 |
 | 资源命名、孤立资源、引用缺失 | `/asset-audit` |
 | 项目阶段缺口 | `/help` + `/project-stage-detect` |
 
@@ -247,7 +247,7 @@ Hook 只负责“提醒运行这些 Skill”，不负责替代这些 Skill。
 3. 重写 `.codex/hooks.json`，只保留 Codex-native 最小集。
 4. 重写保留的 Codex hook 脚本。
 5. 把 optional/legacy 脚本移到 `.codex/hooks/optional/` 或删除。
-6. 新增 `/skill-test audit` 或增强现有 `/skill-test`，覆盖 catalog/spec。
+6. 增强 `/skill-create-ccgs` 内部审计，覆盖 catalog/spec。
 7. 增加 CI 检查。
 8. 跑验收标准。
 
@@ -261,3 +261,4 @@ Hook 只负责“提醒运行这些 Skill”，不负责替代这些 Skill。
 - Skills：负责工作流级审查和人工决策。
 
 这样改完后，体系会比原来更轻，也更可靠。关键是：**不再把 Codex Hook 误当成完整安全网。**
+

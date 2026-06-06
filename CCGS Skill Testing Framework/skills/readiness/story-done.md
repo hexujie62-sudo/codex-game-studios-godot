@@ -14,7 +14,7 @@ the story file and optionally to `docs/tech-debt-register.md`.
 
 ## Static Assertions (Structural)
 
-Verified automatically by `/skill-test static` — no fixture needed.
+Verified automatically by `/skill-create-ccgs` internal static check — no fixture needed.
 
 - [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
 - [ ] Has ≥5 phase headings (complex skill warranting `context: fork` if applicable)
@@ -144,45 +144,30 @@ Verified automatically by `/skill-test static` — no fixture needed.
 
 ---
 
-### Case 5: Director Gate — LP-CODE-REVIEW behavior across review modes
+### Case 5: Code Review Prompt — fixed Lean policy
 
 **Fixture:**
 - Story file at `production/epics/core/story-light-pickup.md`
 - All acceptance criteria verified, no GDD deviations
-- `production/session-state/review-mode.txt` exists
+- No `production/review-mode.txt` or `production/session-state/review-mode.txt`
+  exists
 
-**Case 5a — full mode:**
-- `review-mode.txt` contains `full`
-
-**Input:** `/story-done production/epics/core/story-light-pickup.md` (full mode)
+**Input:** `/story-done production/epics/core/story-light-pickup.md`
 
 **Expected behavior:**
-1. Skill reads review mode — determines `full`
-2. After implementation verification, skill invokes LP-CODE-REVIEW gate
-3. Lead programmer reviews the implementation
-4. If LP verdict is NEEDS CHANGES → story cannot be marked Complete
-5. If LP verdict is APPROVED → skill proceeds to mark story Complete
+1. Skill does not read or create review-mode state.
+2. After implementation verification, skill asks whether `/code-review` was run.
+3. Code review status is recorded in completion notes.
+4. Missing code review remains advisory unless acceptance criteria, evidence, or
+   deviation checks are blocking.
+5. Skill still asks "May I write" before updating story status.
 
-**Assertions (5a):**
-- [ ] Skill reads review mode before deciding whether to invoke LP-CODE-REVIEW
-- [ ] LP-CODE-REVIEW gate is invoked in full mode after implementation check
-- [ ] An LP NEEDS CHANGES verdict prevents story from being marked Complete
-- [ ] Gate result is noted in output: "Gate: LP-CODE-REVIEW — [result]"
-- [ ] Skill still asks "May I write" before updating story status even if LP approved
-
-**Case 5b — lean or solo mode:**
-- `review-mode.txt` contains `lean` or `solo`
-
-**Expected behavior:**
-1. Skill reads review mode — determines `lean` or `solo`
-2. LP-CODE-REVIEW gate is SKIPPED
-3. Output notes the skip: "[LP-CODE-REVIEW] skipped — Lean/Solo mode"
-4. Story completion proceeds based on acceptance criteria check only
-
-**Assertions (5b):**
-- [ ] LP-CODE-REVIEW gate does NOT spawn in lean or solo mode
-- [ ] Skip is explicitly noted in output
-- [ ] Skill still requires "May I write" approval before marking story Complete
+**Assertions:**
+- [ ] No review-mode file is read or required.
+- [ ] LP-CODE-REVIEW gate is not spawned.
+- [ ] Code review is prompted and recorded as Pending / Complete / Skipped.
+- [ ] Missing code review alone does not block a COMPLETE WITH NOTES verdict.
+- [ ] Skill still requires "May I write" approval before marking story Complete.
 
 ---
 
@@ -191,7 +176,7 @@ Verified automatically by `/skill-test static` — no fixture needed.
 - [ ] Uses "May I write" before updating the story file
 - [ ] Uses "May I write" before adding entries to `docs/tech-debt-register.md`
 - [ ] Presents complete findings (criteria check, deviation check) before asking approval
-- [ ] Ends by surfacing the next ready story from the sprint plan
+- [ ] Ends by surfacing the next ready story and recommending `/window-ccgs checkpoint B-dev` when completion changes are rollback-sized
 - [ ] Does not mark a story Complete if any criteria are in ERROR state
 - [ ] Does not skip the code review prompt
 
@@ -207,3 +192,4 @@ Verified automatically by `/skill-test static` — no fixture needed.
 - The `sprint-status.yaml` update (Phase 7 in the skill) is implied by Case 1
   but not the primary assertion; assumed to follow the same "May I write" pattern.
 - Stories with multiple TR-IDs or multiple ADRs are not explicitly tested.
+

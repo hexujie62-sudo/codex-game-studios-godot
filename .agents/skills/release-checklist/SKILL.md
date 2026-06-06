@@ -7,7 +7,38 @@ allowed-tools: Read, Glob, Grep, Write
 model: sonnet
 ---
 
-> **Explicit invocation only**: This skill should only run when the user explicitly requests it with `/release-checklist`. Do not auto-invoke based on context matching.
+## Absorbed Responsibilities
+
+This is now the single release entrypoint. It also covers the former
+`launch-checklist`, `changelog`, `patch-notes`, `day-one-patch`, `localize`,
+`team-release`, and `team-live-ops` routes.
+
+Use the smallest release action that fits:
+
+- Release readiness: build/store/legal/certification checklist.
+- Player communication: changelog and patch notes.
+- Post-gold risk: day-one patch or hotfix coordination.
+- Market readiness: localization and launch checklist.
+
+Preserved CCGS value:
+
+- Release checklist output: `production/releases/release-checklist-[version].md`.
+- Launch checklist output: `production/releases/launch-checklist-[version].md`.
+- Changelog output: `production/releases/[version]/changelog.md` or
+  `docs/CHANGELOG.md` when the user wants a persistent public history.
+- Patch notes output: `production/releases/[version]/patch-notes.md`.
+- Day-one patch output: `production/releases/day-one-patch-[version].md`.
+- Rollback output: `production/releases/rollback-plan-[version].md`.
+- Localization outputs live under `production/localization/`.
+- Release verdicts: `GO`, `GO WITH RISKS`, `NO-GO`, or `BLOCKED`.
+- Patch notes must not expose internal file paths, private reasoning, developer
+  names, or implementation-only details.
+- Localization checks are only required for locales/platforms actually planned
+  for this project; do not add localization work to a scope that has not chosen
+  it.
+- Release checks must read current stage, latest gate report, smoke/regression
+  evidence, open P1/P2 bugs, security concerns, store/platform requirements, and
+  rollback readiness.
 
 ## Phase 1: Parse Arguments
 
@@ -179,4 +210,5 @@ If yes, write the file, creating the directory if needed.
 ## Phase 6: Next Steps
 
 - Run `/gate-check` for a formal phase gate verdict before proceeding to release.
-- Coordinate final sign-offs via `/team-release`.
+- Coordinate final sign-offs via `/release-checklist`.
+

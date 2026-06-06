@@ -1,6 +1,6 @@
 ---
 name: dev-story
-description: "读取故事文件并实现它。加载完整上下文（故事、GDD 需求、ADR 指导原则、控制清单），路由到适合系统和引擎的程序员代理，实现代码和测试，并确认每个验收标准。核心实现技能 — 在 /story-readiness 之后运行，在 /code-review 和 /story-done 之前。"
+description: "读取故事文件并实现它。先做 readiness preflight，再加载 GDD/TR、ADR、控制清单和 Godot 上下文，实现代码与测试。"
 argument-hint: "[story-path]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Bash, Task, AskUserQuestion
@@ -15,14 +15,38 @@ drives implementation to completion — including writing the test.
 
 **The loop for every story:**
 ```
-/qa-plan sprint           ← define test requirements before sprint begins
-/story-readiness [path]   ← validate before starting
+/smoke-check sprint       ← define or verify test expectations before QA
 /dev-story [path]         ← implement it  (this skill)
 /code-review [files]      ← review it
 /story-done [path]        ← verify and close it
 ```
 
-**After all sprint stories are done:** run `/team-qa sprint` to execute the full QA cycle and get a sign-off verdict before advancing the project stage.
+**Absorbed responsibilities:** this Skill now performs the former
+`story-readiness` preflight before implementation. It also absorbs team-style
+implementation routing such as combat, level, and narrative coordination by
+loading the relevant GDD/ADR context instead of exposing separate team commands.
+
+Preserved CCGS value:
+
+- Before writing code, classify the story as `READY`, `NEEDS WORK`, or
+  `BLOCKED`.
+- Block implementation if the story lacks acceptance criteria, GDD/TR reference,
+  governing ADR or explicit architecture concern, test evidence path, or clear
+  player-facing behavior.
+- Block implementation if governing ADR status is `Proposed`, `Rejected`, or
+  missing when the story requires architecture guidance.
+- Read `docs/architecture/control-manifest.md` if present and treat forbidden
+  patterns as implementation constraints.
+- For Godot work, verify likely target files under `project.godot`, `src/`,
+  `scripts/`, `scenes/`, `addons/`, and `tests/`; do not invent Unity/Unreal
+  component patterns.
+- Update `production/sprint-status.yaml` to `in_progress` when beginning a story
+  if that file exists.
+- Produce or update tests where the story type requires automated evidence; for
+  visual/feel/UI stories, record manual evidence expectations for `/story-done`.
+
+**After all sprint stories are done:** run `/smoke-check sprint` to execute the
+QA cycle and get a sign-off verdict before advancing the project stage.
 
 **Output:** Source code + test file in the project's `src/` and `tests/` directories.
 
@@ -45,9 +69,9 @@ If not found, ask: "Which story are we implementing?" Glob
 
 | File | Path | If missing |
 |------|------|------------|
-| TR registry | `docs/architecture/tr-registry.yaml` | **STOP** — "TR registry not found at `docs/architecture/tr-registry.yaml`. Run `/architecture-review` to bootstrap the registry from your GDDs and ADRs." |
-| Governing ADR | path from story's ADR field | **STOP** — "ADR file [path] not found. Run `/architecture-decision` to create it, or correct the filename in the story's ADR field." |
-| Control manifest | `docs/architecture/control-manifest.md` | **WARN and continue** — "Control manifest not found — layer rules cannot be checked. Run `/create-control-manifest`." |
+| TR registry | `docs/architecture/tr-registry.yaml` | **STOP** — "TR registry not found at `docs/architecture/tr-registry.yaml`. Run `/create-architecture` to bootstrap the registry from your GDDs and ADRs." |
+| Governing ADR | path from story's ADR field | **STOP** — "ADR file [path] not found. Run `/create-architecture` to create it, or correct the filename in the story's ADR field." |
+| Control manifest | `docs/architecture/control-manifest.md` | **WARN and continue** — "Control manifest not found — layer rules cannot be checked. Run `/create-architecture`." |
 
 If the TR registry or governing ADR is missing, set the story status to **BLOCKED** in the session state and do not spawn any programmer agent.
 
@@ -163,8 +187,6 @@ engine risk.
 | Engine | Specialist agents available |
 |--------|----------------------------|
 | Godot 4 | `godot-specialist`, `godot-gdscript-specialist`, `godot-shader-specialist` |
-| Unity | `unity-specialist`, `unity-ui-specialist`, `unity-shader-specialist` |
-| Unreal Engine | `unreal-specialist`, `ue-gas-specialist`, `ue-blueprint-specialist`, `ue-umg-specialist`, `ue-replication-specialist` |
 
 **When engine risk is HIGH** (from the ADR or VERSION.md): always spawn the engine
 specialist, even for non-engine-facing stories. High risk means the ADR records
@@ -290,8 +312,8 @@ If any spawned agent (via Task) returns BLOCKED, errors, or cannot complete:
 
 Common blockers:
 - Input file missing (story not found, GDD absent) → redirect to the skill that creates it
-- ADR status is Proposed → do not implement; run `/architecture-decision` first
-- Scope too large → split into two stories via `/create-stories`
+- ADR status is Proposed → do not implement; run `/create-architecture` first
+- Scope too large → split into two stories via `/sprint-plan`
 - Conflicting instructions between ADR and story → surface the conflict, do not guess
 - Manifest version mismatch → show diff to user, ask whether to proceed with old rules or update story first
 
@@ -322,4 +344,5 @@ Common blockers:
 
 - Run `/code-review [file1] [file2]` to review the implementation before closing the story
 - Run `/story-done [story-path]` to verify acceptance criteria and mark the story complete
-- After all sprint stories are done: run `/team-qa sprint` for the full QA cycle before advancing the project stage
+- After all sprint stories are done: run `/smoke-check sprint` for the full QA cycle before advancing the project stage
+

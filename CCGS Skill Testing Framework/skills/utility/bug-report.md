@@ -18,7 +18,7 @@ ask. No director gates are used — bug reporting is an operational utility.
 
 ## Static Assertions (Structural)
 
-Verified automatically by `/skill-test static` — no fixture needed.
+Verified automatically by `/skill-create-ccgs` internal static check — no fixture needed.
 
 - [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
 - [ ] Has ≥2 phase headings
@@ -172,3 +172,4 @@ None. `/bug-report` is an operational documentation skill. No director gates app
   this is accepted as a valid value and not tested separately.
 - Report slug generation (sanitizing the title into a filename) is an
   implementation detail not assertion-tested here.
+

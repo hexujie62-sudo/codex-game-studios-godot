@@ -20,7 +20,7 @@ if [ ! -f "design/gdd/game-concept.md" ]; then
 fi
 
 if [ ! -f "design/gdd/systems-index.md" ]; then
-  MESSAGES="$MESSAGES\n- 缺少系统索引: 概念明确后运行 /map-systems。"
+  MESSAGES="$MESSAGES\n- 缺少系统索引: 概念明确后运行 /design-system。"
 fi
 
 if [ -d ".agents/skills" ] && [ ! -f "CCGS Skill Testing Framework/catalog.yaml" ]; then
@@ -31,7 +31,7 @@ if [ -n "$MESSAGES" ]; then
   {
     echo "CCGS 明显缺口提醒："
     printf '%b\n' "$MESSAGES"
-    echo "完整审计请运行 /project-stage-detect；轻量下一步请运行 /help。"
+    echo "轻量下一步请运行 /help；阶段推进判断请运行 /gate-check。"
   } | emit_session_context
 fi
 

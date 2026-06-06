@@ -1,6 +1,6 @@
 # Architecture Traceability Index
 
-<!-- Living document — updated by /architecture-review after each review run.
+<!-- Living document — updated by /create-architecture after each review run.
      Do not edit manually unless correcting an error. -->
 
 ## Document Status
@@ -9,7 +9,7 @@
 - **Engine**: [e.g. Godot 4.6]
 - **GDDs Indexed**: [N]
 - **ADRs Indexed**: [M]
-- **Last Review**: [link to docs/architecture/architecture-review-[date].md]
+- **Last Review**: [link to docs/architecture/create-architecture-[date].md]
 
 ## Coverage Summary
 
@@ -32,7 +32,7 @@
 | Req ID | GDD | System | Requirement Summary | ADR(s) | Status | Notes |
 |--------|-----|--------|---------------------|--------|--------|-------|
 | TR-[gdd]-001 | [filename] | [system name] | [one-line summary] | [ADR-NNNN] | ✅ | |
-| TR-[gdd]-002 | [filename] | [system name] | [one-line summary] | — | ❌ GAP | Needs `/architecture-decision [title]` |
+| TR-[gdd]-002 | [filename] | [system name] | [one-line summary] | — | ❌ GAP | Needs `/create-architecture [title]` |
 
 ---
 
@@ -94,8 +94,9 @@ the requirements it satisfies as ✅ in the matrix.
 and check whether the change invalidates any existing ADR. Add to "Superseded
 Requirements" if so.
 
-**When running `/architecture-review`**: The skill will update this document
+**When running `/create-architecture`**: The skill will update this document
 automatically with the current state.
 
 **Gate check**: The Pre-Production gate requires this document to exist and to
 have zero Foundation Layer Gaps.
+

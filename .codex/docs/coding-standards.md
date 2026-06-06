@@ -4,8 +4,9 @@
 - Every system must have a corresponding architecture decision record in `docs/architecture/`
 - Gameplay values must be data-driven (external config), never hardcoded
 - All public methods must be unit-testable (dependency injection over singletons)
-- Commits must reference the relevant design document or task ID
-- **Commit messages**: Use Conventional Commits format — `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`. Reference the story or task ID in the body (e.g., `Story: EPIC-001-S02`).
+- Commits must reference the relevant design document, task ID, or lane checkpoint.
+- **Commit messages**: Use Conventional Commits format — `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`. Reference the story, task ID, or lane in the body (e.g., `Story: EPIC-001-S02` or `Lane: Z-platform`).
+- **Checkpoint body**: For CCGS framework or multi-window work, include `Lane:`, `Scope:`, `Verification:`, and `Rollback:` fields. See `.codex/docs/git-checkpoint-workflow.md`.
 - **Verification-driven development**: Write tests first when adding gameplay systems.
   For UI changes, verify with screenshots. Compare expected output to actual output
   before marking work complete. Every implementation should have a way to prove it works.

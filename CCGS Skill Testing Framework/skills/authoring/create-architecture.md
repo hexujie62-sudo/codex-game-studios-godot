@@ -1,187 +1,197 @@
 # Skill Test Spec: /create-architecture
 
+> **Category**: authoring
+> **Priority**: critical
+> **Spec written**: 2026-06-06
+
 ## Skill Summary
 
-`/create-architecture` guides the user through section-by-section authoring of a
-technical architecture document. It uses a skeleton-first approach — the file is
-created with all required section headers before any content is filled. Each
-section is discussed, drafted, and written individually after user approval. If an
-architecture document already exists, the skill offers retrofit mode to update
-specific sections.
-
-In `full` review mode, TD-ARCHITECTURE (technical-director) and LP-FEASIBILITY
-(lead-programmer) spawn after the complete draft is finished. In `lean` or `solo`
-mode, both gates are skipped. The skill writes to `docs/architecture/architecture.md`.
+`/create-architecture` is the Godot architecture core Skill. It authors or
+updates the master architecture blueprint, creates and retrofits ADRs, reviews
+architecture coverage/traceability, and generates the control manifest. It
+absorbs the former `architecture-decision`, `architecture-review`, and
+`create-control-manifest` routes; those names are aliases only, not separate
+active Skill specs.
 
 ---
 
-## Static Assertions (Structural)
+## Static Assertions
 
-Verified automatically by `/skill-test static` — no fixture needed.
-
-- [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
-- [ ] Has ≥2 phase headings
-- [ ] Contains verdict keywords: APPROVED, NEEDS REVISION, MAJOR REVISION NEEDED
-- [ ] Contains "May I write" collaborative protocol language (per-section approval)
-- [ ] Has a next-step handoff at the end (`/architecture-review` or `/create-control-manifest`)
-- [ ] Documents skeleton-first approach
-- [ ] Documents gate behavior: TD-ARCHITECTURE + LP-FEASIBILITY in full mode; skipped in lean/solo
-- [ ] Documents retrofit mode for existing architecture documents
+- [ ] Frontmatter has all required fields (`name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`)
+- [ ] 2+ phase headings found
+- [ ] Verdict keywords present (`PASS`, `FAIL`, `CONCERNS`, `BLOCKED`, `COMPLETE`, `READY`)
+- [ ] `"May I write"` language present for architecture, ADR, registry, traceability, and manifest writes
+- [ ] Next-step handoff section present
+- [ ] Argument hint accepts natural-language goals instead of forcing `full|lean|solo`
+- [ ] Reference loading rules use direct `references/adr-review-control.md`, not `.agents/skills-archive/`
+- [ ] Fixed Lean policy present: no `--review full|lean|solo`, no `production/review-mode.txt`
 
 ---
 
 ## Director Gate Checks
 
-In `full` mode: TD-ARCHITECTURE (technical-director) and LP-FEASIBILITY
-(lead-programmer) spawn in parallel after all sections are drafted and before
-any final approval write.
-
-In `lean` mode: both gates are skipped. Output notes:
-"TD-ARCHITECTURE skipped — lean mode" and "LP-FEASIBILITY skipped — lean mode".
-
-In `solo` mode: both gates are skipped with equivalent notes.
+- **Phase gates**: Only `/gate-check` should spawn phase-gate directors.
+- **Inline gates**: Architecture self-review and feasibility checks are internal
+  checks inside `/create-architecture`; legacy `TD-ADR`, `TD-ARCHITECTURE`,
+  `TD-MANIFEST`, and `LP-FEASIBILITY` mode switches are not user-exposed.
+- **Absorbed legacy behavior**: old route names may map to internal task scopes,
+  but output should recommend `/create-architecture`, not the old commands.
 
 ---
 
 ## Test Cases
 
-### Case 1: Happy Path — New architecture doc, skeleton-first, full mode gates approve
+### Case 1: Happy Path — Master architecture blueprint, skeleton-first
 
-**Fixture:**
+**Fixture**:
+- Godot engine reference exists under `docs/engine-reference/godot/`
+- `.codex/docs/technical-preferences.md` pins Godot
+- Approved GDD context exists in `design/gdd/`
 - No existing `docs/architecture/architecture.md`
-- `docs/architecture/` contains Accepted ADRs for reference
-- `production/session-state/review-mode.txt` contains `full`
 
-**Input:** `/create-architecture`
+**Input**: `/create-architecture`
 
-**Expected behavior:**
-1. Skill creates skeleton `docs/architecture/architecture.md` with all required section headers
-2. For each section: drafts content, shows draft, asks "May I write [section]?", writes after approval
-3. After all sections are drafted: TD-ARCHITECTURE and LP-FEASIBILITY spawn in parallel
-4. Both gates return APPROVED
-5. Final "May I confirm architecture is complete?" asked
-6. Session state updated
+**Expected behavior**:
+1. Skill loads engine, technical preferences, systems index, GDDs, and existing architecture files.
+2. Skill extracts a Technical Requirements Baseline.
+3. Skill creates or proposes a skeleton for `docs/architecture/architecture.md`.
+4. Each architecture section is drafted and shown before write approval.
+5. Skill asks `May I write this to docs/architecture/architecture.md?` or an equivalent section-specific approval before writing.
+6. Handoff lists required ADRs, control-manifest readiness, and gate-check readiness.
 
-**Assertions:**
-- [ ] Skeleton file is created with all section headers before any content is written
-- [ ] "May I write [section]?" asked per section during authoring
-- [ ] TD-ARCHITECTURE and LP-FEASIBILITY spawn in parallel (not sequentially)
-- [ ] Both gates complete before the final completion confirmation
-- [ ] Verdict is APPROVED when both gates return APPROVED
-- [ ] Next-step handoff to `/architecture-review` or `/create-control-manifest` is present
+**Assertions**:
+- [ ] Skeleton-first behavior is documented
+- [ ] Technical requirements baseline is produced before architecture decisions
+- [ ] Godot version/API risk is checked against engine reference
+- [ ] Per-section or grouped write approval is required before writing
+- [ ] Handoff uses `/create-architecture` for next ADR/review tasks
 
----
-
-### Case 2: Failure Path — TD-ARCHITECTURE returns MAJOR REVISION
-
-**Fixture:**
-- Architecture doc is fully drafted (all sections)
-- `production/session-state/review-mode.txt` contains `full`
-- TD-ARCHITECTURE gate returns MAJOR REVISION: "[specific structural issue]"
-
-**Input:** `/create-architecture`
-
-**Expected behavior:**
-1. All sections are drafted and written
-2. TD-ARCHITECTURE gate runs and returns MAJOR REVISION with specific feedback
-3. Skill surfaces the feedback to the user
-4. Architecture is NOT marked as finalized
-5. User is asked: revise the flagged sections, or accept the document as a draft
-
-**Assertions:**
-- [ ] Architecture is NOT marked finalized when TD-ARCHITECTURE returns MAJOR REVISION
-- [ ] Gate feedback is shown to the user with specific issue descriptions
-- [ ] User is given the option to revise specific sections
-- [ ] Skill does NOT auto-finalize despite MAJOR REVISION feedback
+**Case Verdict**: PASS / FAIL / PARTIAL
 
 ---
 
-### Case 3: Lean Mode — Both gates skipped; architecture written with user approval only
+### Case 2: Absorbed ADR Path — Create or retrofit ADR
 
-**Fixture:**
-- No existing architecture doc
-- `production/session-state/review-mode.txt` contains `lean`
+**Fixture**:
+- `docs/architecture/` exists
+- Existing ADR files may or may not exist
+- Relevant GDD and Godot engine reference files exist
 
-**Input:** `/create-architecture`
+**Input**: `/create-architecture ADR: event bus ownership`
 
-**Expected behavior:**
-1. Skeleton file is created
-2. All sections are authored and written per-section with user approval
-3. After completion: TD-ARCHITECTURE and LP-FEASIBILITY are skipped
-4. Output notes: "TD-ARCHITECTURE skipped — lean mode" and "LP-FEASIBILITY skipped — lean mode"
-5. Architecture is considered complete based on user approval alone
+**Expected behavior**:
+1. Skill classifies the request as ADR authoring.
+2. Skill loads `references/adr-review-control.md`.
+3. Skill scans `docs/architecture/adr-*.md` to assign the next unused ADR number or detect a duplicate topic.
+4. Skill drafts an ADR with status, date, Godot compatibility, dependencies, context, decision, alternatives, consequences, GDD requirements, performance impact, migration plan, validation criteria, and related decisions.
+5. Skill asks before writing `docs/architecture/adr-NNNN-[slug].md`.
+6. Skill asks separately before updating `docs/architecture/tr-registry.yaml`.
 
-**Assertions:**
-- [ ] Both gate skip notes appear in output
-- [ ] Architecture document is written with only user approval in lean mode
-- [ ] Skill does NOT block completion because gates were skipped
-- [ ] Next-step handoff is still present
+**Assertions**:
+- [ ] ADR status values are `Proposed`, `Accepted`, `Superseded`, `Rejected`
+- [ ] Duplicate ADR topics are not silently duplicated
+- [ ] Godot compatibility section is required
+- [ ] TR registry updates preserve stable IDs and require approval
+- [ ] No `--review full|lean|solo` or `production/review-mode.txt` behavior is used
 
----
-
-### Case 4: Retrofit Mode — Existing architecture doc, user updates a section
-
-**Fixture:**
-- `docs/architecture/architecture.md` already exists with all sections populated
-
-**Input:** `/create-architecture`
-
-**Expected behavior:**
-1. Skill detects existing architecture doc and reads its current content
-2. Skill offers retrofit mode: "Architecture doc already exists. Which section would you like to update?"
-3. User selects a section
-4. Skill authors only that section, asks "May I write [section]?"
-5. Only the selected section is updated — other sections unchanged
-
-**Assertions:**
-- [ ] Skill detects and reads the existing architecture doc before offering retrofit
-- [ ] User is asked which section to update — not asked to rewrite the whole document
-- [ ] Only the selected section is updated
-- [ ] Other sections are not modified during a retrofit session
+**Case Verdict**: PASS / FAIL / PARTIAL
 
 ---
 
-### Case 5: Director Gate — Architecture references a Proposed ADR; flagged as risk
+### Case 3: Absorbed Review Path — Coverage, conflicts, and RTM
 
-**Fixture:**
-- Architecture doc is being authored
-- One section references or depends on an ADR that has `Status: Proposed`
-- `production/session-state/review-mode.txt` contains `full`
+**Fixture**:
+- `design/gdd/systems-index.md` exists
+- One or more GDDs exist
+- `docs/architecture/adr-*.md` exists
+- Optional stories/tests exist for RTM mode
 
-**Input:** `/create-architecture`
+**Input**: `/create-architecture review coverage and conflicts`
 
-**Expected behavior:**
-1. Skill authors all sections
-2. During authoring, skill detects a reference to a Proposed ADR
-3. Skill flags: "Note: [section] references ADR-NNN which is Proposed — this is a risk until the ADR is accepted"
-4. Risk flag is embedded in the relevant section's content
-5. TD-ARCHITECTURE and LP-FEASIBILITY still run — they are informed of the Proposed ADR risk
+**Expected behavior**:
+1. Skill classifies the request as architecture review.
+2. Skill extracts or reuses stable TR IDs from `docs/architecture/tr-registry.yaml`.
+3. Skill maps GDD technical requirements to ADR coverage.
+4. Skill checks cross-ADR conflicts, dependency cycles, stale ADRs, and Godot deprecated/post-cutoff API assumptions.
+5. Skill reports verdict `PASS`, `CONCERNS`, or `FAIL`.
+6. Skill asks before writing review report, traceability index, RTM, or registry changes.
 
-**Assertions:**
-- [ ] Proposed ADR reference is detected and flagged during section authoring
-- [ ] Risk note is embedded in the architecture document section
-- [ ] TD-ARCHITECTURE and LP-FEASIBILITY still spawn (the risk does not block the gates)
-- [ ] Risk flag names the specific ADR number and title
+**Assertions**:
+- [ ] Coverage statuses are `Covered`, `Partial`, and `Gap`
+- [ ] Verdict semantics match the reference: critical Foundation/Core gaps or blocking conflicts produce `FAIL`
+- [ ] Stable TR IDs are never renumbered
+- [ ] RTM output links GDD -> ADR -> Story -> Test when stories/tests exist
+- [ ] Review remains advisory and does not auto-advance project stage
+
+**Case Verdict**: PASS / FAIL / PARTIAL
+
+---
+
+### Case 4: Absorbed Control Manifest Path — Accepted ADRs only
+
+**Fixture**:
+- `docs/architecture/` contains a mix of Accepted and Proposed ADRs
+- `.codex/docs/technical-preferences.md` exists
+- Godot deprecated API reference exists
+
+**Input**: `/create-architecture generate control manifest`
+
+**Expected behavior**:
+1. Skill classifies the request as control-manifest generation.
+2. Skill reads all ADRs and filters to `Status: Accepted`.
+3. Skill lists Proposed/Superseded/Rejected ADRs excluded from the manifest.
+4. Skill drafts `docs/architecture/control-manifest.md` with control IDs, TR/GDD sources, governing ADRs, layer, required/forbidden patterns, owner/path, dependency order, readiness notes, test evidence expectation, and status.
+5. Skill asks before writing or overwriting the manifest.
+
+**Assertions**:
+- [ ] Proposed ADRs are excluded and named
+- [ ] Every control rule has a source ADR, technical preference, or Godot reference
+- [ ] Existing manifest is read before regeneration
+- [ ] Manifest is identified as `/dev-story` readiness input
+- [ ] No director gate or review-mode file is required
+
+**Case Verdict**: PASS / FAIL / PARTIAL
+
+---
+
+### Case 5: Policy Regression — Legacy commands are aliases, not facts
+
+**Fixture**:
+- Route index maps `architecture-decision`, `architecture-review`, and
+  `create-control-manifest` to `create-architecture`
+- Old archive directories and old specs have been removed after absorption
+
+**Input**: User asks for old `/architecture-review`
+
+**Expected behavior**:
+1. `/help` or route index maps the request to `/create-architecture`.
+2. `/create-architecture` runs the internal architecture review path.
+3. Output does not ask the user to switch to the old command.
+4. No active spec exists for the old command.
+
+**Assertions**:
+- [ ] Route alias exists for old names
+- [ ] Old specs are not active coverage targets
+- [ ] Active Skill does not depend on `.agents/skills-archive/`
+- [ ] Fixed Lean policy remains intact
+
+**Case Verdict**: PASS / FAIL / PARTIAL
 
 ---
 
 ## Protocol Compliance
 
-- [ ] Skeleton file created with all section headers before any content is written
-- [ ] "May I write [section]?" asked per section during authoring
-- [ ] TD-ARCHITECTURE and LP-FEASIBILITY spawn in parallel in full mode
-- [ ] Skipped gates noted by name and mode in lean/solo output
-- [ ] Proposed ADR references flagged as risks in the document
-- [ ] Ends with next-step handoff: `/architecture-review` or `/create-control-manifest`
+- [ ] Presents findings or draft before requesting approval
+- [ ] Uses `"May I write"` before any file write
+- [ ] Keeps ADR authoring, architecture review, and control-manifest writes inside `/create-architecture`
+- [ ] Does not auto-advance stage or commit changes
+- [ ] Ends with next step, blocker, or handoff
 
 ---
 
 ## Coverage Notes
 
-- The required section list for architecture documents is defined in the skill
-  body and in the `/architecture-review` skill — not re-enumerated here.
-- Engine version stamping in the architecture doc (parallel to ADR stamping)
-  is part of the authoring workflow — tested implicitly via Case 1.
-- The retrofit mode for updating multiple sections in one session follows the
-  same per-section approval pattern — not independently tested for multi-section
-  retrofits.
+- The exact section content of architecture documents and ADRs is validated by
+  behavior and required-field assertions rather than by fixture-locking prose.
+- Old standalone architecture specs are intentionally deleted once their durable
+  behavior is covered here and in `references/adr-review-control.md`.

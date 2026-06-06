@@ -12,7 +12,7 @@ APPROVED, CONCERNS, or NEEDS CHANGES.
 
 ## Static Assertions (Structural)
 
-Verified automatically by `/skill-test static` — no fixture needed.
+Verified automatically by `/skill-create-ccgs` internal static check — no fixture needed.
 
 - [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
 - [ ] Has ≥2 phase headings
@@ -135,19 +135,21 @@ None. Code review is a read-only advisory skill; no gates are invoked.
 
 **Fixture:**
 - Source file follows most standards but has 1 CONCERNS-level finding (a magic number)
-- `review-mode.txt` contains `full`
+- No review-mode file exists
 
 **Input:** `/code-review src/gameplay/loot_system.gd`
 
 **Expected behavior:**
 1. Skill reads and reviews the source file
-2. No director gate is invoked (code review findings are advisory)
-3. Skill presents findings with the CONCERNS verdict
-4. Output notes: "Consider requesting a Lead Programmer review for architecture concerns"
-5. Skill does not invoke any agent automatically
+2. No review-mode file is read or required
+3. No director gate is invoked (code review findings are advisory)
+4. Skill presents findings with the CONCERNS verdict
+5. Output notes: "Consider requesting a Lead Programmer review for architecture concerns"
+6. Skill does not invoke any agent automatically
 
 **Assertions:**
-- [ ] No director gate is invoked in any review mode
+- [ ] No review-mode file is read or required
+- [ ] No director gate is invoked
 - [ ] LP consultation is suggested (not mandated) in the output
 - [ ] No code edits are made
 - [ ] Verdict is CONCERNS for advisory-level findings
@@ -169,4 +171,5 @@ None. Code review is a read-only advisory skill; no gates are invoked.
 - Batch review of all files in a directory is not explicitly tested; behavior
   is assumed to apply the same checks file by file and aggregate the verdict.
 - Test coverage checks (verifying corresponding test files exist) are a stretch
-  goal not tested here; that is primarily the domain of `/test-evidence-review`.
+  goal not tested here; evidence sufficiency is primarily handled by `/story-done`.
+

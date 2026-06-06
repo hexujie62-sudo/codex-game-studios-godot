@@ -5,8 +5,8 @@ param(
     [string]$Owner = '',
     [ValidateSet('public', 'private')]
     [string]$Visibility = 'public',
-    [string]$ReleaseTag = 'v0.1.0-alpha',
-    [string]$ReleaseTitle = 'Codex Game Studios for Godot v0.1.0-alpha',
+    [string]$ReleaseTag = 'v0.2.0-alpha',
+    [string]$ReleaseTitle = 'Codex Game Studios for Godot v0.2.0-alpha',
     [string]$Description = 'Unofficial Codex-first Godot game development workflow kit, adapted from Claude Code Game Studios.',
     [string]$Proxy = '',
     [switch]$NoProxyAutoDetect,
@@ -214,20 +214,21 @@ function Remove-TemporaryStagingRoot {
 
 function Get-ReleaseNotes {
     return @'
-First public alpha of Codex Game Studios for Godot.
+Framework update for Codex Game Studios for Godot.
 
 This release includes:
 
-- Codex-first CCGS workflow conversion
-- Godot-focused technical defaults
-- 49 agent definitions
-- 76 Skills
-- Lightweight Codex hooks and local Git hooks
-- Multi-window lane workflow
-- File-backed session state and handoff guidance
-- Skill route index
-- CCGS Skill Testing Framework
-- Public release generator with whitelist copying and path sanitization
+- Codex-first, Godot-focused CCGS framework cleanup
+- 17 core Skills with legacy routes absorbed into the route index
+- Unified /window-ccgs workflow for lane restore, handoff, audit, checkpoint, research worktree, and merge preflight
+- Git checkpoint policy with Lane, Scope, Verification, and Rollback fields
+- Lightweight Codex hooks and local Git hooks for context recovery and staged-change safety
+- Updated README, workflow guide, Skill governance docs, and public GitHub listing copy
+- CCGS Skill Testing Framework reduced to active core Skill specs only
+- Public release generator with whitelist copying and local path sanitization
+
+This public release intentionally excludes private game-project content such as design drafts,
+prototype code/assets, source folders, production session state, and local machine context.
 
 This is an unofficial MIT-licensed derivative of Claude Code Game Studios.
 It is not affiliated with OpenAI, Anthropic, Claude, Codex, Godot, or the original CCGS author.

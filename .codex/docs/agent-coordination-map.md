@@ -177,7 +177,7 @@ art-dir = art-director
 ### Pattern 6: Milestone Checkpoint
 
 ```
-1. producer           -- Runs /milestone-review
+1. producer           -- Runs /gate-check
 2. creative-director  -- Reviews creative progress
 3. technical-director -- Reviews technical health
 4. qa-lead            -- Reviews quality metrics
@@ -195,7 +195,7 @@ art-dir = art-director
 4. localization-lead    -- Verifies all strings translated, text fitting passes
 5. performance-analyst  -- Confirms performance benchmarks within targets
 6. devops-engineer      -- Builds release artifacts, runs deployment pipeline
-7. release-manager      -- Generates /changelog, tags release, creates release notes
+7. release-manager      -- Generates /release-checklist, tags release, creates release notes
 8. technical-director   -- Final sign-off on major releases
 9. release-manager      -- Deploys and monitors for 48 hours
 10. producer            -- Marks release complete
@@ -205,7 +205,7 @@ art-dir = art-director
 
 ```text
 1. game-designer        -- Defines the hypothesis and success criteria
-2. prototyper           -- Scaffolds concept prototype with /prototype
+2. prototyper           -- Scaffolds concept prototype with /brainstorm
 3. prototyper           -- Builds minimal implementation (1-3 days)
 4. game-designer        -- Evaluates prototype against criteria
 5. prototyper           -- Documents findings in REPORT.md
@@ -217,7 +217,7 @@ art-dir = art-director
 
 ```text
 1. game-designer        -- Confirms slice scope against GDDs
-2. prototyper           -- Builds production-quality end-to-end build with /vertical-slice
+2. prototyper           -- Builds production-quality end-to-end build with /sprint-plan
 3. prototyper           -- Conducts internal playtest sessions (minimum 1)
 4. prototyper           -- Documents findings in REPORT.md
 5. creative-director    -- Go/no-go decision on proceeding to Production (full mode)
@@ -279,3 +279,4 @@ When the art bible or asset standards change, the art-director must notify:
 5. **Assumption-based implementation**: If a spec is ambiguous, the implementer
    must ask the specifier rather than guessing. Wrong guesses are more expensive
    than a question.
+

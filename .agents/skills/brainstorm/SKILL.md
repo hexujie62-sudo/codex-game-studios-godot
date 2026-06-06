@@ -1,7 +1,7 @@
 ---
 name: brainstorm
 description: "引导式游戏概念构思 — 从零想法到结构化的游戏概念文档。使用专业工作室构思技巧、玩家心理框架和结构化创意探索。"
-argument-hint: "[genre or theme hint, or 'open'] [--review full|lean|solo]"
+argument-hint: "[genre/theme hint or open]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, WebSearch, Task, AskUserQuestion
 model: sonnet
@@ -9,14 +9,47 @@ model: sonnet
 
 When this skill is invoked:
 
+## Absorbed Responsibilities
+
+This Skill now also absorbs the concept-side of the former `prototype` route:
+when an idea is risky or unclear, define the smallest prototype question,
+success criteria, and throwaway validation path before moving into full design.
+
+Preserved CCGS value:
+
+- Concept output: `design/gdd/game-concept.md`.
+- Prototype evidence, if needed: `prototypes/[name]-concept/README.md` and
+  `prototypes/[name]-concept/REPORT.md`.
+- Prototype verdicts: `PROCEED`, `PIVOT`, or `KILL` (`ADJUST` maps to
+  `PIVOT`; `STOP` maps to `KILL` if old wording appears).
+- A prototype should answer one risky question about the core loop, not become a
+  parallel production branch.
+- If a prototype changes the concept, update the concept/GDD facts before
+  downstream design or architecture continues.
+
+## Reference Loading Rules
+
+Do not read `.agents/skills-archive/` during normal use. The old prototype Skill
+content has been extracted into direct references:
+
+- For concept prototype, spike, HTML/engine/paper path choice, prototype report,
+  pivot, or kill decisions: read `references/prototype-validation.md`.
+- For checking what was absorbed during future governance work: read
+  `references/absorption-map.md`.
+
+Full concept ideation can run from this SKILL.md alone unless the user asks for
+prototype validation or the concept risk is high enough that a prototype question
+must be defined before GDD work continues.
+
 1. **Parse the argument** for an optional genre/theme hint (e.g., `roguelike`,
    `space survival`, `cozy farming`). If `open` or no argument, start from
-   scratch. Also resolve the review mode (once, store for all gate spawns this run):
-   1. If `--review [full|lean|solo]` was passed → use that
-   2. Else read `production/review-mode.txt` → use that value
-   3. Else → default to `lean`
+   scratch. Do not parse review mode arguments and do not read or create
+   `production/review-mode.txt`. Use the fixed review standard: internal checks
+   here, phase-gate director review only in `/gate-check`.
 
-   See `.codex/docs/director-gates.md` for the full check pattern.
+   If the argument or user request is mainly `prototype`, `spike`, `validate`,
+   `playtest`, `pivot`, or `kill`, read `references/prototype-validation.md`
+   before proceeding.
 
 2. **Check for existing concept work**:
    - Read `design/gdd/game-concept.md` if it exists (resume, don't restart)
@@ -44,7 +77,7 @@ When this skill is invoked:
 
 ---
 
-### Phase 1: Creative Discovery
+## Phase 1: Creative Discovery
 
 Start by understanding the person, not the game. Ask these questions
 conversationally (not as a checklist):
@@ -77,7 +110,7 @@ Read the brief back and confirm it captures their intent.
 
 ---
 
-### Phase 2: Concept Generation
+## Phase 2: Concept Generation
 
 Using the creative brief as a foundation, generate **3 distinct concepts**
 that each take a different creative direction. Use these ideation techniques:
@@ -130,7 +163,7 @@ Never pressure toward a choice — let them sit with it.
 
 ---
 
-### Phase 3: Core Loop Design
+## Phase 3: Core Loop Design
 
 For the chosen concept, use structured questioning to build the core loop.
 The core loop is the beating heart of the game — if it isn't fun in
@@ -168,7 +201,7 @@ After capturing answers, analyze: Is this action intrinsically satisfying? What 
 
 ---
 
-### Phase 4: Pillars and Boundaries
+## Phase 4: Pillars and Boundaries
 
 Game pillars are used by real AAA studios (God of War, Hades, The Last of
 Us) to keep hundreds of team members making decisions that all point the
@@ -197,30 +230,32 @@ If the user selects B, C, or D, make the revision, then use `AskUserQuestion` ag
 
 Repeat until the user selects [A] Lock these in.
 
-**Review mode check** — apply before spawning CD-PILLARS and AD-CONCEPT-VISUAL:
-- `solo` → skip both. Note: "CD-PILLARS skipped — Solo mode. AD-CONCEPT-VISUAL skipped — Solo mode." Proceed to Phase 5.
-- `lean` → skip both (not PHASE-GATEs). Note: "CD-PILLARS skipped — Lean mode. AD-CONCEPT-VISUAL skipped — Lean mode." Proceed to Phase 5.
-- `full` → spawn as normal.
+`CD-PILLARS` and `AD-CONCEPT-VISUAL` are not invoked as separate gates. Do not
+spawn director agents here; run the internal pillar/visual-anchor check below and
+proceed to Phase 5.
 
-**After pillars and anti-pillars are agreed, spawn BOTH `creative-director` AND `art-director` via Task in parallel before moving to Phase 5. Issue both Task calls simultaneously — do not wait for one before starting the other.**
+Run an internal pillar/visual-anchor check:
 
-- **`creative-director`** — gate **CD-PILLARS** (`.codex/docs/director-gates.md`)
-  Pass: full pillar set with design tests, anti-pillars, core fantasy, unique hook.
+- Every pillar has a design test.
+- Anti-pillars block likely scope creep.
+- Pillars create useful tension instead of restating one idea.
+- The visual direction can be derived from the pillar set without contradicting
+  platform or scope constraints.
 
-- **`art-director`** — gate **AD-CONCEPT-VISUAL** (`.codex/docs/director-gates.md`)
-  Pass: game concept elevator pitch, full pillar set with design tests, target platform (if known), any reference games or visual touchstones the user mentioned.
+If the internal check has concerns, surface them before moving on. Then present a
+two-tab `AskUserQuestion`:
+- Tab **"Pillars"**: `Lock in as-is` / `Revise [specific pillar]` /
+  `Discuss further`.
+- Tab **"Visual anchor"**: 2-3 named visual direction options derived from the
+  pillars + `Combine elements across directions` + `Describe my own direction`.
 
-Collect both verdicts, then present them together using a two-tab `AskUserQuestion`:
-- Tab **"Pillars"**: present creative-director feedback. Options mirror the standard CD-PILLARS handling — `Lock in as-is` / `Revise [specific pillar]` / `Discuss further`.
-- Tab **"Visual anchor"**: present the art-director's 2-3 named visual direction options. Options: each named direction (one per option) + `Combine elements across directions` + `Describe my own direction`.
-
-The user's selected visual anchor (the named direction or their custom description) is stored as the **Visual Identity Anchor** — it will be written into the game-concept document and becomes the foundation of the art bible.
-
-If the creative-director returns CONCERNS or REJECT on pillars, resolve pillar issues before asking for the visual anchor selection — visual direction should flow from confirmed pillars.
+The user's selected visual anchor is stored as the **Visual Identity Anchor**. It
+will be written into the game-concept document and becomes the foundation of the
+art bible.
 
 ---
 
-### Phase 5: Player Type Validation
+## Phase 5: Player Type Validation
 
 Using the Bartle taxonomy and Quantic Foundry motivation model, validate
 who this game is actually for:
@@ -235,19 +270,18 @@ who this game is actually for:
 
 ---
 
-### Phase 6: Scope and Feasibility
+## Phase 6: Scope and Feasibility
 
 Ground the concept in reality:
 
 - **Target platform**: Use `AskUserQuestion` — "What platforms are you targeting for this game?"
   Options: `PC (Steam / Epic)` / `Mobile (iOS / Android)` / `Console` / `Web / Browser` / `Multiple platforms`
-  Record the answer — it directly shapes the engine recommendation and will be passed to `/setup-engine`.
-  Note platform implications if relevant (e.g., mobile means Unity is strongly preferred; console means Godot has limitations; web means Godot exports cleanly).
+  Record the answer — it shapes Godot export risk, UI/input assumptions, and scope.
+  Do not recommend another engine from this Skill. This fork is Godot-focused.
 
-- **Engine experience**: Use `AskUserQuestion` — "Do you already have an engine you work in?"
-  Options: `Godot` / `Unity` / `Unreal Engine 5` / `No preference — help me decide`
-  - If they pick an engine → record it as their preference and move on. Do NOT second-guess it.
-  - If "No preference" → tell them: "Run `/setup-engine` after this session — it will walk you through the full decision based on your concept and platform target." Do not make a recommendation here.
+- **Godot fit**: note any Godot-specific implications from platform and scope:
+  export target, input model, asset volume, UI scale, performance budget, and
+  whether the concept needs a small prototype before full GDD work.
 - **Art pipeline**: What's the art style and how labor-intensive is it?
 - **Content scope**: Estimate level/area count, item count, gameplay hours
 - **MVP definition**: What's the absolute minimum build that tests "is the
@@ -255,27 +289,26 @@ Ground the concept in reality:
 - **Biggest risks**: Technical risks, design risks, market risks
 - **Scope tiers**: What's the full vision vs. what ships if time runs out?
 
-**Review mode check** — apply before spawning TD-FEASIBILITY:
-- `solo` → skip. Note: "TD-FEASIBILITY skipped — Solo mode." Proceed directly to scope tier definition.
-- `lean` → skip (not a PHASE-GATE). Note: "TD-FEASIBILITY skipped — Lean mode." Proceed directly to scope tier definition.
-- `full` → spawn as normal.
+`TD-FEASIBILITY` is not invoked as a separate gate. Do not spawn a director agent
+here; run the internal Godot feasibility check below before scope tier
+definition.
 
-**After identifying biggest technical risks, spawn `technical-director` via Task using gate TD-FEASIBILITY (`.codex/docs/director-gates.md`) before scope tiers are defined.**
+Run an internal Godot feasibility check instead:
 
-Pass: core loop description, platform target, engine choice (or "undecided"), list of identified technical risks.
+- Does the concept depend on networking, procedural generation, complex physics,
+  heavy simulation, large content volume, or unusual platform requirements?
+- Is the core loop feel-sensitive enough to need a concept prototype before GDDs?
+- Are the target platform and scope realistic for the user's timeline?
 
-Present the assessment to the user. If HIGH RISK, offer to revisit scope before finalising. If CONCERNS, note them and continue.
+If risk is HIGH, offer to revisit scope or define a prototype question using
+`references/prototype-validation.md` before finalising.
 
-**Review mode check** — apply before spawning PR-SCOPE:
-- `solo` → skip. Note: "PR-SCOPE skipped — Solo mode." Proceed to document generation.
-- `lean` → skip (not a PHASE-GATE). Note: "PR-SCOPE skipped — Lean mode." Proceed to document generation.
-- `full` → spawn as normal.
+`PR-SCOPE` is not invoked as a separate gate. Do not spawn a producer agent here;
+run the internal scope check below before document generation.
 
-**After scope tiers are defined, spawn `producer` via Task using gate PR-SCOPE (`.codex/docs/director-gates.md`).**
-
-Pass: full vision scope, MVP definition, timeline estimate, team size.
-
-Present the assessment to the user. If UNREALISTIC, offer to adjust the MVP definition or scope tiers before writing the document.
+Run an internal scope check: compare full vision, MVP, timeline, team size, and
+content count. If the plan is unrealistic, offer to adjust the MVP or document a
+scope risk before writing the concept.
 
 ---
 
@@ -313,21 +346,21 @@ If yes, generate the document using the template at `.codex/docs/templates/game-
 **Path A — Design-First** (recommended if the concept is well-defined):
    1. "Run `/setup-engine` to configure the engine and populate version-aware reference docs"
    2. "Run `/art-bible` to create the visual identity specification — do this BEFORE writing GDDs. **The art bible is required before the Technical Setup gate.** It gates asset production and shapes technical architecture decisions (rendering, VFX, UI systems)."
-   3. "Use `/design-review design/gdd/game-concept.md` to validate concept completeness before going downstream"
+   3. "Use `/design-system design/gdd/game-concept.md` to validate concept completeness before going downstream"
    4. "Discuss vision with the `creative-director` agent for pillar refinement"
-   5. "Decompose the concept into individual systems with `/map-systems` — maps dependencies, assigns priorities, and creates the systems index"
+   5. "Decompose the concept into individual systems with `/design-system` — maps dependencies, assigns priorities, and creates the systems index"
    6. "Author per-system GDDs with `/design-system` — guided, section-by-section GDD writing for each system identified in step 5"
    7. "Plan the technical architecture with `/create-architecture` — produces the master architecture blueprint and Required ADR list"
-   8. "Record key architectural decisions with `/architecture-decision (×N)` — write one ADR per decision in the Required ADR list from `/create-architecture`"
-   9. "Run `/architecture-review` — bootstraps the TR registry and Requirements Traceability Matrix from your GDDs and ADRs (required before the Pre-Production gate)"
+   8. "Record key architectural decisions with `/create-architecture (×N)` — write one ADR per decision in the Required ADR list from `/create-architecture`"
+   9. "Run `/create-architecture` — bootstraps the TR registry and Requirements Traceability Matrix from your GDDs and ADRs (required before the Pre-Production gate)"
    10. "Validate readiness to advance with `/gate-check` — phase gate before committing to production"
 
 **Path B — Prototype-First** (use if the core mechanic is unproven or the concept needs validation):
    1. "Run `/setup-engine` to configure the engine"
-   2. "Run `/prototype [core-mechanic]` — validate the core idea is fun before writing any GDDs (1–3 days throwaway code)"
+   2. "Run `/brainstorm [core-mechanic]` — validate the core idea is fun before writing any GDDs (1–3 days throwaway code)"
    3. "If prototype PROCEEDS: run `/art-bible`, then continue with Path A steps 5–10 above, using prototype learnings to inform your GDDs"
    4. "If prototype PIVOTS: return to `/brainstorm` with the learnings and reshape the concept"
-   5. "After full design and architecture, build the `/vertical-slice` to validate production readiness before committing to sprints"
+   5. "After full design and architecture, build the `/sprint-plan` to validate production readiness before committing to sprints"
 
 7. **Output a summary** with the chosen concept's elevator pitch, pillars,
    primary player type, engine recommendation, biggest risk, and file path.
@@ -352,8 +385,9 @@ append this notice to the current response before continuing:
 After the game concept is written, follow the pre-production pipeline in order:
 1. `/setup-engine` — configure the engine and populate version-aware reference docs
 2. `/art-bible` — establish visual identity before writing any GDDs
-3. `/map-systems` — decompose the concept into individual systems with dependencies
+3. `/design-system` — decompose the concept into individual systems with dependencies
 4. `/design-system [first-system]` — author per-system GDDs in dependency order
 5. `/create-architecture` — produce the master architecture blueprint
-6. `/architecture-review` — bootstrap TR registry and Requirements Traceability Matrix
+6. `/create-architecture` — bootstrap TR registry and Requirements Traceability Matrix
 7. `/gate-check pre-production` — validate readiness before committing to production
+

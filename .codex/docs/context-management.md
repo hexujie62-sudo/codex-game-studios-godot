@@ -27,6 +27,22 @@ Most shell work should stay simple:
 Z-platform owns this rule. If a Skill, Hook, or lane workflow needs complex shell
 automation, update the shared rule here instead of inventing a local command style.
 
+## Git Checkpoints And Research Worktrees
+
+Use `.codex/docs/git-checkpoint-workflow.md` for commit checkpoints, rollback
+messages, multi-window commit conflict rules, and research worktree handling.
+
+Natural checkpoint points are the same places as natural compaction points:
+after writing a phase artifact, after updating a lane handoff, after completing
+a story/review/test unit, before switching lanes, and before starting research
+work.
+
+Default policy is to recommend a checkpoint, not silently commit. Automatic
+checkpoint commits require an explicit lane policy such as
+`auto_checkpoint: true` and must still stage only the files named in the
+checkpoint plan. Research branches should use `git worktree` instead of
+switching the shared worktree branch.
+
 ### Session State File
 
 Maintain `production/session-state/active.md` as a living checkpoint. Update it
@@ -56,14 +72,14 @@ Default windows:
 - `Z-platform` — CCGS bottom layer: Skills, Hooks, route index, test framework, docs
 
 Do not copy a full conversation into a new window. Start the new window by
-running `/window-start-ccgs [A|B|C|D|Z]`. If that Skill is unavailable, read
+running `/window-ccgs [A|B|C|D|Z]`. If that Skill is unavailable, read
 `active.md`, the relevant lane file, and `multi-window-workflow.md` manually.
 
 After taking over a window, update the lane with
-`/window-handoff-ccgs update [A|B|C|D|Z]` at each milestone, before closing the
+`/window-ccgs update [A|B|C|D|Z]` at each milestone, before closing the
 window, and before context reaches the danger zone. Use
-`/window-handoff-ccgs audit` from A-producer to verify lanes are current. Use
-`/window-handoff-ccgs compact [A|B|C|D|Z]` when a lane grows too long.
+`/window-ccgs audit` from A-producer to verify lanes are current. Use
+`/window-ccgs compact [A|B|C|D|Z]` when a lane grows too long.
 
 ### Status Line Block (Production+ only)
 
@@ -103,8 +119,8 @@ This keeps the context window holding only the *current* section's discussion
 
 - **Compact proactively** at ~60-70% context usage, not reactively at the limit
 - **Use `/clear`** between unrelated tasks, or after 2+ failed correction attempts
-- **Natural compaction points:** after writing a section to file, after committing,
-  after completing a task, before starting a new topic
+- **Natural compaction points:** after writing a section to file, after creating
+  a checkpoint commit, after completing a task, before starting a new topic
 - **Focused compaction:** `/compact Focus on [current task] — sections 1-3 are
   written to file, working on section 4`
 
@@ -150,4 +166,5 @@ If a session dies ("prompt too long") or you start a new session to continue wor
 2. Read the full state file for context
 3. Read the partially-completed file(s) listed in the state
 4. Continue from the next incomplete section or task
+
 

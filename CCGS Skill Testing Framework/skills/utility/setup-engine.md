@@ -18,7 +18,7 @@ fully written.
 
 ## Static Assertions (Structural)
 
-Verified automatically by `/skill-test static` — no fixture needed.
+Verified automatically by `/skill-create-ccgs` internal static check — no fixture needed.
 
 - [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
 - [ ] Has ≥2 phase headings
@@ -180,3 +180,4 @@ None. `/setup-engine` is a technical configuration skill. No director gates appl
   from VERSION.md) is surfaced by the skill but not assertion-tested here.
 - Performance budget defaults per engine are noted as engine-specific but
   exact default values are not assertion-tested.
+

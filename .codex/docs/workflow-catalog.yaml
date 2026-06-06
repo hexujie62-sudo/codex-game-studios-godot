@@ -46,7 +46,7 @@ phases:
 
       - id: design-review-concept
         name: "Concept Review"
-        command: /design-review
+        command: /design-system
         required: false
         description: "Validate the game concept (recommended before proceeding)"
 
@@ -60,7 +60,7 @@ phases:
 
       - id: map-systems
         name: "Systems Map"
-        command: /map-systems
+        command: /design-system
         required: true
         artifact:
           glob: "design/gdd/systems-index.md"
@@ -82,14 +82,14 @@ phases:
 
       - id: design-review
         name: "Per-System Design Review"
-        command: /design-review
+        command: /design-system
         required: true
         repeatable: true
         description: "Validate each GDD (8 required sections, no MAJOR REVISION verdict). Run per system."
 
       - id: review-all-gdds
         name: "Cross-GDD Review"
-        command: /review-all-gdds
+        command: /design-system
         required: true
         artifact:
           glob: "design/gdd/gdd-cross-review-*.md"
@@ -97,10 +97,10 @@ phases:
 
       - id: consistency-check
         name: "Consistency Check"
-        command: /consistency-check
+        command: /design-system
         required: false
         repeatable: true
-        description: "Scan all GDDs for contradictions, undefined references, and mechanic conflicts. Run after /review-all-gdds, and again any time a GDD is added or revised mid-project."
+        description: "Scan all GDDs for contradictions, undefined references, and mechanic conflicts. Run after /design-system, and again any time a GDD is added or revised mid-project."
 
   technical-setup:
     label: "Technical Setup"
@@ -117,7 +117,7 @@ phases:
 
       - id: architecture-decision
         name: "Architecture Decisions (ADRs)"
-        command: /architecture-decision
+        command: /create-architecture
         required: true
         repeatable: true
         artifact:
@@ -127,15 +127,15 @@ phases:
 
       - id: architecture-review
         name: "Architecture Review"
-        command: /architecture-review
+        command: /create-architecture
         required: true
         artifact:
-          glob: "docs/architecture/architecture-review-*.md"
+          glob: "docs/architecture/create-architecture-*.md"
         description: "Validate completeness, dependency ordering, engine compatibility"
 
       - id: control-manifest
         name: "Control Manifest"
-        command: /create-control-manifest
+        command: /create-architecture
         required: true
         artifact:
           glob: "docs/architecture/control-manifest.md"
@@ -155,24 +155,24 @@ phases:
     steps:
       - id: entity-inventory
         name: "Visual Entity & Screen Inventory"
-        command: /asset-spec
+        command: /art-bible
         required: false
         artifact:
           glob: "design/assets/entity-inventory.md"
-        description: "Enumerate everything the game needs visually: entities (characters, enemies, buildings, environment pieces), UI screens, HUD elements, panels. Run /asset-spec with no arguments to start a collaborative inventory session — brief or detailed based on your responses. Reads GDDs and art bible to propose a starting list; you add, remove, and adjust. Becomes the source of truth for all art and UX work. Not required if the game has very few distinct visual elements."
+        description: "Enumerate everything the game needs visually: entities (characters, enemies, buildings, environment pieces), UI screens, HUD elements, panels. Run /art-bible with no arguments to start a collaborative inventory session — brief or detailed based on your responses. Reads GDDs and art bible to propose a starting list; you add, remove, and adjust. Becomes the source of truth for all art and UX work. Not required if the game has very few distinct visual elements."
 
       - id: asset-spec
         name: "Asset Specs"
-        command: /asset-spec
+        command: /art-bible
         required: false
         repeatable: true
         artifact:
           glob: "design/assets/asset-manifest.md"
-        description: "Generate per-asset visual specifications and AI generation prompts. Run once per entity, system, level, or character. If no source doc exists, /asset-spec interviews you inline — no narrative document required."
+        description: "Generate per-asset visual specifications and AI generation prompts. Run once per entity, system, level, or character. If no source doc exists, /art-bible interviews you inline — no narrative document required."
 
       - id: ux-design
         name: "UX Specs (key screens)"
-        command: /ux-design
+        command: /art-bible
         required: true
         repeatable: true
         artifact:
@@ -182,13 +182,13 @@ phases:
 
       - id: ux-review
         name: "UX Review"
-        command: /ux-review
+        command: /art-bible
         required: true
         description: "Validate all key screen UX specs for GDD alignment and accessibility tier compliance. Run before creating epics."
 
       - id: prototype
         name: "Prototype"
-        command: /prototype
+        command: /brainstorm
         required: false
         artifact:
           glob: "prototypes/*/README.md"
@@ -197,31 +197,31 @@ phases:
 
       - id: create-epics
         name: "Create Epics"
-        command: /create-epics
+        command: /sprint-plan
         required: true
         repeatable: true
         artifact:
           glob: "production/epics/*/EPIC.md"
           min_count: 1
-        description: "Translate GDDs + ADRs into epics — one per architectural module. Run per layer: /create-epics layer: foundation, then /create-epics layer: core"
+        description: "Translate GDDs + ADRs into epics — one per architectural module. Run per layer: /sprint-plan layer: foundation, then /sprint-plan layer: core"
 
       - id: create-stories
         name: "Create Stories"
-        command: /create-stories
+        command: /sprint-plan
         required: true
         repeatable: true
         artifact:
           glob: "production/epics/**/*.md"
           min_count: 2
-        description: "Break each epic into implementable story files. Run per epic: /create-stories [epic-slug]"
+        description: "Break each epic into implementable story files. Run per epic: /sprint-plan [epic-slug]"
 
       - id: test-setup
         name: "Test Framework Setup"
-        command: /test-setup
+        command: /setup-engine
         required: false
         artifact:
           note: "Check tests/ directory for engine-specific test framework scaffold"
-        description: "Scaffold the test framework and CI pipeline once before the first sprint. Leads to /test-helpers for fixture generation, /qa-plan per epic, and /smoke-check per sprint."
+        description: "Scaffold the Godot test framework and CI/runtime checks once before the first sprint. /smoke-check uses this foundation for sprint QA."
 
       - id: sprint-plan
         name: "First Sprint Plan"
@@ -234,7 +234,7 @@ phases:
 
       - id: vertical-slice
         name: "Vertical Slice"
-        command: /vertical-slice
+        command: /gate-check
         required: false
         artifact:
           glob: "prototypes/*/REPORT.md"
@@ -255,11 +255,11 @@ phases:
           glob: "production/sprints/sprint-*.md"
         description: "Plan the current sprint with prioritized, ready stories"
 
-      - id: story-readiness
-        name: "Story Readiness Check"
-        command: /story-readiness
+      - id: dev-story-preflight
+        name: "Implementation Readiness Preflight"
+        command: /dev-story
         required: false
-        description: "Validate a story is implementation-ready before a developer picks it up"
+        description: "Validate that a story is implementation-ready inside /dev-story before code work begins"
 
       - id: implement
         name: "Implement Stories"
@@ -286,21 +286,21 @@ phases:
 
       - id: qa-plan
         name: "QA Plan"
-        command: /qa-plan
+        command: /smoke-check
         required: false
         repeatable: true
-        description: "Generate a QA test plan per epic or sprint. Run /qa-plan [epic-slug]. Produces test cases for /smoke-check, /regression-suite, and /test-evidence-review."
+        description: "Generate a QA test plan per epic or sprint. Run /smoke-check [epic-slug]. Produces test cases for /smoke-check, /smoke-check, and /story-done."
 
       - id: bug-report
         name: "Bug Report / Triage"
         command: /bug-report
         required: false
         repeatable: true
-        description: "Log and prioritize bugs found during implementation. /bug-report creates a structured report; /bug-triage prioritizes the open backlog."
+        description: "Log and prioritize bugs found during implementation. /bug-report creates a structured report; /bug-report prioritizes the open backlog."
 
       - id: retrospective
         name: "Sprint Retrospective"
-        command: /retrospective
+        command: /sprint-plan
         required: false
         repeatable: true
         description: "Post-sprint review to capture what worked and what to change. Run at the end of each sprint, before planning the next."
@@ -309,11 +309,11 @@ phases:
         name: "Team Orchestration (optional)"
         required: false
         repeatable: true
-        description: "Coordinate multiple agents on a complex feature. Use: /team-combat, /team-narrative, /team-ui, /team-audio, /team-level, /team-live-ops, /team-qa. Run when a feature spans multiple agent domains."
+        description: "Coordinate multiple agents on a complex feature. Use: /dev-story, /dev-story, /art-bible, /art-bible, /dev-story, /release-checklist, /smoke-check. Run when a feature spans multiple agent domains."
 
       - id: scope-check
         name: "Scope Check"
-        command: /scope-check
+        command: /sprint-plan
         required: false
         repeatable: true
         artifact:
@@ -323,7 +323,7 @@ phases:
 
       - id: sprint-status
         name: "Sprint Status"
-        command: /sprint-status
+        command: /sprint-plan
         required: false
         description: "Quick 30-line snapshot of sprint progress without a full report"
 
@@ -334,25 +334,25 @@ phases:
     steps:
       - id: perf-profile
         name: "Performance Profile"
-        command: /perf-profile
+        command: /code-review
         required: false
         description: "Profile and optimize CPU/GPU/memory bottlenecks"
 
       - id: balance-check
         name: "Balance Check"
-        command: /balance-check
+        command: /design-system
         required: false
         description: "Analyze game balance formulas and data for outliers and broken progressions"
 
       - id: asset-audit
         name: "Asset Audit"
-        command: /asset-audit
+        command: /art-bible
         required: false
         description: "Verify naming conventions, file format standards, and size budgets"
 
       - id: playtest-polish
         name: "Playtest Sessions (×3)"
-        command: /playtest-report
+        command: /smoke-check
         required: true
         artifact:
           glob: "production/playtests/*.md"
@@ -361,7 +361,7 @@ phases:
 
       - id: team-polish
         name: "Polish Team Pass"
-        command: /team-polish
+        command: /smoke-check
         required: true
         description: "Coordinated polish pass across performance, audio, visual, and UX"
 
@@ -378,18 +378,20 @@ phases:
 
       - id: patch-notes
         name: "Patch Notes"
-        command: /patch-notes
+        command: /release-checklist
         required: false
         description: "Generate player-facing patch notes from git history and sprint data"
 
       - id: changelog
         name: "Changelog"
-        command: /changelog
+        command: /release-checklist
         required: false
         description: "Auto-generate internal changelog from commits, sprints, and design docs"
 
       - id: launch-checklist
         name: "Launch Checklist"
-        command: /launch-checklist
+        command: /release-checklist
         required: true
         description: "Final launch readiness — last gate before shipping to players"
+
+

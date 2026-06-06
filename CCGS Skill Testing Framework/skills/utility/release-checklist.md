@@ -16,7 +16,7 @@ formal phase gate logic. Verdicts: RELEASE READY, RELEASE BLOCKED, or CONCERNS.
 
 ## Static Assertions (Structural)
 
-Verified automatically by `/skill-test static` — no fixture needed.
+Verified automatically by `/skill-create-ccgs` internal static check — no fixture needed.
 
 - [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
 - [ ] Has ≥2 phase headings
@@ -175,3 +175,4 @@ is managed by `/gate-check`.
 - Stories with `Status: In Review` (not Done) are treated as incomplete
   and result in RELEASE BLOCKED; this edge case follows the same pattern
   as the HIGH bug case.
+

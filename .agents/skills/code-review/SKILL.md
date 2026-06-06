@@ -8,6 +8,30 @@ model: sonnet
 agent: lead-programmer
 ---
 
+## Absorbed Responsibilities
+
+This is now the code quality entrypoint. It also covers the former `tech-debt`,
+`perf-profile`, and `security-audit` routes when the concern is tied to code or
+architecture changes.
+
+For broad release security or certification concerns, route to
+`/release-checklist`; for failing runtime paths, route to `/smoke-check`.
+
+Preserved CCGS value:
+
+- Review findings should be ordered by severity and tied to file/line evidence.
+- Architecture checks must compare implementation against Accepted ADRs and
+  `docs/architecture/control-manifest.md` when present.
+- Godot-specific checks: node lifecycle misuse, signal ownership confusion,
+  autoload overuse, scene/resource coupling, `_process` vs `_physics_process`,
+  input handling, save data validation, and generated/imported asset boundaries.
+- Performance checks stay evidence-based: only flag likely hotspots when there
+  is code evidence, measurement, or a clear Godot runtime pattern.
+- Security checks focus on relevant game risks: save tampering, unsafe file IO,
+  network trust, cheat vectors, and unvalidated external data.
+- Technical debt output should identify owner, affected subsystem, payoff, and
+  suggested sprint/backlog placement; do not create debt lists from style taste.
+
 ## Phase 1: Load Target Files
 
 Read the target file(s) in full. Read AGENTS.md for project coding standards.
@@ -181,5 +205,6 @@ Use `AskUserQuestion`:
     - `[C] Stop here`
 
 If an ARCHITECTURAL VIOLATION is found:
-- If the violation contradicts an **existing ADR**: fix the implementation to comply with `docs/architecture/[adr-file].md`. If the design has legitimately changed, run `/architecture-decision` to formally *revise* the existing ADR — do not create a competing one.
-- If **no ADR exists** for the pattern that was violated: run `/architecture-decision` to document the correct approach before fixing the code.
+- If the violation contradicts an **existing ADR**: fix the implementation to comply with `docs/architecture/[adr-file].md`. If the design has legitimately changed, run `/create-architecture` to formally *revise* the existing ADR — do not create a competing one.
+- If **no ADR exists** for the pattern that was violated: run `/create-architecture` to document the correct approach before fixing the code.
+

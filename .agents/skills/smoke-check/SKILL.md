@@ -19,6 +19,39 @@ Handing a broken build to QA wastes their time and demoralises the team.
 
 **Output:** `production/qa/smoke-[date].md`
 
+**Absorbed responsibilities:** this Skill now also covers the former `qa-plan`,
+`regression-suite`, `test-helpers`, `test-flakiness`,
+`playtest-report`, `soak-test`, `team-qa`, and `team-polish` routes.
+
+Use the smallest QA action that fits:
+
+- No test framework: report setup concern and route to `/setup-engine`.
+- Before QA: define the test plan and smoke scope.
+- After fixes: update regression coverage and review evidence.
+- Repeated failures: check flaky tests.
+- Playtest/long-run concerns: structure evidence and blockers.
+
+Preserved CCGS value:
+
+- QA plan output: `production/qa/qa-plan-[sprint-slug]-[date].md`.
+- Smoke output: `production/qa/smoke-[date].md`.
+- Regression manifest: `tests/regression-suite.md`.
+- Optional evidence review output: `production/qa/evidence-review-[date].md`.
+- Test helper location: `tests/helpers/`.
+- Story test types: Logic, Integration, Visual/Feel/UI, Content, Performance.
+- Suggested test paths: `tests/unit/[system]/[story-slug]_test.*`,
+  `tests/integration/[system]/[story-slug]_test.*`, and
+  `production/qa/evidence/[story-slug].md` for manual evidence.
+- Godot checks should prefer the pinned console command from
+  `.codex/docs/technical-preferences.md`; if missing, report a setup concern
+  and route to `/setup-engine`.
+- Smoke verdicts: `PASS`, `PASS WITH WARNINGS`, or `FAIL`. A `FAIL` means the
+  build is not ready for QA handoff.
+- Regression checks must map fixed bugs and critical GDD paths to real tests;
+  do not count vague manual notes as automated coverage.
+- Flaky test checks require repeated run data. If no history exists, say so
+  instead of inventing flakiness.
+
 ---
 
 ## Parse Arguments
@@ -47,8 +80,8 @@ Phase 5 outputs a per-platform verdict table in addition to the overall verdict.
 Before running anything, understand the environment:
 
 1. **Test framework check**: verify `tests/` directory exists.
-   If it does not: "No test directory found at `tests/`. Run `/test-setup`
-   to scaffold the testing infrastructure, or create the directory manually
+   If it does not: "No test directory found at `tests/`. Run `/setup-engine`
+   to scaffold the minimal Godot testing foundation, or create the directory manually
    if tests live elsewhere." Then stop.
 
 2. **CI check**: check whether `.github/workflows/` contains a workflow file
@@ -63,10 +96,10 @@ Before running anything, understand the environment:
    Phase 4. If neither exists, smoke tests will be drawn from the current QA
    plan (Phase 4 fallback).
 
-5. **QA plan check**: glob `production/qa/qa-plan-*.md` and take the most
+5. **QA plan check**: glob `production/qa/smoke-check-*.md` and take the most
    recently modified file. If found, note the path — it will be used in
    Phase 3 and Phase 4. If not found, note: "No QA plan found. Run
-   `/qa-plan sprint` before smoke-checking for best results."
+   `/smoke-check sprint` before smoke-checking for best results."
 
 Report findings before proceeding: "Environment: [engine]. Test directory:
 [found / not found]. CI configured: [yes / no]. QA plan: [path / not found]."
@@ -75,10 +108,9 @@ Report findings before proceeding: "Environment: [engine]. Test directory:
 
 ## Phase 2: Run Automated Tests
 
-Attempt to run the test suite via Bash. Select the command based on the engine
-detected in Phase 1:
+Attempt to run the Godot test suite. Prefer the pinned command from
+`.codex/docs/technical-preferences.md`; otherwise try these common Godot 4 paths:
 
-**Godot 4:**
 ```bash
 godot --headless --script tests/gdunit4_runner.gd 2>&1
 ```
@@ -89,30 +121,9 @@ godot --headless -s addons/gdunit4/GdUnitRunner.gd 2>&1
 If neither path exists, note: "GDUnit4 runner not found — confirm the runner
 path for your test framework."
 
-**Unity:**
-Unity tests require the editor and cannot be run headlessly via shell in most
-environments. Check for recent test result artifacts:
-```bash
-# List most recent test results (bash) — on Windows PowerShell use the fallback below
-ls -t test-results/ 2>/dev/null | head -5 \
-  || powershell -Command "Get-ChildItem test-results/ -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 5 -ExpandProperty Name"
-```
-If test result files exist (XML or JSON), read the most recent one and parse
-PASS/FAIL counts. If no artifacts exist: "Unity tests must be run from the
-editor or CI pipeline. Please confirm test status manually before proceeding."
-
-**Unreal Engine:**
-```bash
-# List most recent Unreal automation logs (bash) — on Windows PowerShell use the fallback below
-ls -t Saved/Logs/ 2>/dev/null | grep -i "test\|automation" | head -5 \
-  || powershell -Command "Get-ChildItem Saved/Logs/ -ErrorAction SilentlyContinue | Where-Object { $_.Name -match 'test|automation' } | Sort-Object LastWriteTime -Descending | Select-Object -First 5 -ExpandProperty Name"
-```
-If no matching log found: "UE automation tests must be run via the Session
-Frontend or CI pipeline. Please confirm test status manually."
-
 **Unknown engine / not configured:**
-"Engine not configured in `.codex/docs/technical-preferences.md`. Run
-`/setup-engine` to specify the engine, then re-run `/smoke-check`."
+"Godot is not configured in `.codex/docs/technical-preferences.md`. Run
+`/setup-engine` to pin Godot, then re-run `/smoke-check`."
 
 **If the test runner is not available in this environment** (engine binary not
 on PATH, runner script not found, etc.), report clearly:
@@ -277,7 +288,7 @@ Assemble the full smoke check report:
 **Date**: [date]
 **Sprint**: [sprint name / number, or "Not identified"]
 **Engine**: [engine]
-**QA Plan**: [path, or "Not found — run /qa-plan first"]
+**QA Plan**: [path, or "Not found — run /smoke-check first"]
 **Argument**: [sprint | quick | blank]
 
 ---
@@ -394,14 +405,14 @@ Fix the failures and run `/smoke-check` again to re-gate before QA hand-off."
 Advisory items to resolve before running `/story-done` on affected stories:
 [list MISSING test evidence entries]
 
-QA hand-off: share `production/qa/qa-plan-[sprint].md` with the qa-tester
+QA hand-off: share `production/qa/smoke-check-[sprint].md` with the qa-tester
 agent to begin manual verification."
 
 **If verdict is PASS:**
 
 "Smoke check passed cleanly. The build is ready for manual QA.
 
-QA hand-off: share `production/qa/qa-plan-[sprint].md` with the qa-tester
+QA hand-off: share `production/qa/smoke-check-[sprint].md` with the qa-tester
 agent to begin manual verification."
 
 ---
@@ -420,3 +431,4 @@ agent to begin manual verification."
 - Use `AskUserQuestion` for all manual smoke check verification.
 - **Never write the report without asking** — Phase 6 requires explicit
   approval before any file is created.
+

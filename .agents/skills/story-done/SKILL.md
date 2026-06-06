@@ -1,7 +1,7 @@
 ---
 name: story-done
 description: "故事完成后的完成度审查。读取故事文件，根据实现验证每个验收标准，检查 GDD/ADR 偏差，提示代码审查，将故事状态更新为完成，并从冲刺中显示下一个就绪的故事。"
-argument-hint: "[story-file-path] [--review full|lean|solo]"
+argument-hint: "[story-file-path]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Write, Edit, AskUserQuestion, Task
 model: sonnet
@@ -17,16 +17,32 @@ forgotten, and the story file reflects actual completion status.
 
 **Output:** Updated story file (Status: Complete) + surfaced next story.
 
+**Absorbed responsibilities:** this Skill now also covers the former
+`test-evidence-review` route. When closing a story, review test files and manual
+evidence for real assertion coverage, edge cases, and acceptance-criteria match.
+
+Preserved CCGS value:
+
+- Completion verdicts: `COMPLETE`, `NEEDS WORK`, or `BLOCKED`.
+- Verify every acceptance criterion against implementation and evidence; do not
+  mark a story complete from conversation claims alone.
+- Automated evidence should point to real test files under `tests/`.
+- Manual evidence should point to a concrete note/screenshot/report path such as
+  `production/qa/evidence/[story-slug].md`.
+- Check GDD/TR and ADR deviation. Any accepted deviation must be written into
+  the story completion notes.
+- Update the story status and `production/sprint-status.yaml` together when that
+  YAML exists.
+- Surface the next ready story from sprint status, but do not auto-start
+  implementation.
+
 ---
 
 ## Phase 1: Find the Story
 
-Resolve the review mode (once, store for all gate spawns this run):
-1. If `--review [full|lean|solo]` was passed → use that
-2. Else read `production/review-mode.txt` → use that value
-3. Else → default to `lean`
-
-See `.codex/docs/director-gates.md` for the full check pattern.
+Review policy: fixed Lean. Do not ask the user to choose review depth, do not
+parse `--review`, and do not read, create, or normalize
+`production/review-mode.txt`.
 
 **If a file path is provided** (e.g., `/story-done production/epics/core/story-damage-calculator.md`):
 read that file directly.
@@ -203,7 +219,7 @@ Run these checks automatically:
    - If they match → pass silently.
    - If the story's version is older → flag as ADVISORY:
      `ADVISORY: Story was written against manifest v[story-date]; current manifest
-     is v[current-date]. New rules may apply. Run /story-readiness to check.`
+     is v[current-date]. New rules may apply. Run /dev-story to check.`
    - If control-manifest.md does not exist → skip this check.
 
 3. **ADR constraints check**: Read the referenced ADR's Decision section. Check
@@ -229,25 +245,9 @@ For each deviation found, categorize:
 
 ## Phase 4b: QA Coverage Gate
 
-**Review mode check** — apply before spawning QL-TEST-COVERAGE:
-- `solo` → skip. Note: "QL-TEST-COVERAGE skipped — Solo mode." Proceed to Phase 5.
-- `lean` → skip (not a PHASE-GATE). Note: "QL-TEST-COVERAGE skipped — Lean mode." Proceed to Phase 5.
-- `full` → spawn as normal.
-
-After completing the deviation checks in Phase 4, spawn `qa-lead` via Task using gate **QL-TEST-COVERAGE** (`.codex/docs/director-gates.md`).
-
-Pass:
-- The story file path and story type
-- Test file paths found during Phase 3 (exact paths, or "none found")
-- The story's `## QA Test Cases` section (the pre-written test specs from story creation)
-- The story's `## Acceptance Criteria` list
-
-The qa-lead reviews whether the tests actually cover what was specified — not just whether files exist.
-
-Apply the verdict:
-- **ADEQUATE** → proceed to Phase 5
-- **GAPS** → flag as **ADVISORY**: "QA lead identified coverage gaps: [list]. Story can complete but gaps should be addressed in a follow-up story."
-- **INADEQUATE** → flag as **BLOCKING**: "QA lead: critical logic is untested. Verdict cannot be COMPLETE until coverage improves. Specific gaps: [list]."
+**Lean review policy**: QL-TEST-COVERAGE is not a phase gate. Do not spawn the
+qa-lead here. Use the evidence and coverage checks from Phase 3 and Phase 4 as
+the authority for this completion review.
 
 Skip this phase for Config/Data stories (no code tests required).
 
@@ -255,24 +255,11 @@ Skip this phase for Config/Data stories (no code tests required).
 
 ## Phase 5: Lead Programmer Code Review Gate
 
-**Review mode check** — apply before spawning LP-CODE-REVIEW:
-- `solo` → skip. Note: "LP-CODE-REVIEW skipped — Solo mode." Proceed to Phase 6 (completion report).
-- `lean` → use `AskUserQuestion` before proceeding:
-  - Prompt: "Code review is skipped in lean mode. Did you run `/code-review` on the implemented files?"
-  - Options:
-    - `Yes — /code-review passed or was approved with suggestions`
-    - `No — skipping code review for this story`
-    - `No — I'll run /code-review before the sprint close-out`
-  - Record the answer in the completion notes (Phase 7). All three options proceed to Phase 6.
-- `full` → spawn as normal.
-
-Spawn `lead-programmer` via Task using gate **LP-CODE-REVIEW** (`.codex/docs/director-gates.md`).
-
-Pass: implementation file paths, story file path, relevant GDD section, governing ADR.
-
-Present the verdict to the user. If CONCERNS, surface them via `AskUserQuestion`:
-- Options: `Revise flagged issues` / `Accept and proceed` / `Discuss further`
-If REJECT, do not proceed to Phase 6 verdict until the issues are resolved.
+**Lean review policy**: LP-CODE-REVIEW is not a phase gate. Do not spawn the
+lead programmer here. Ask whether `/code-review` was run on the implemented
+files and record the answer in the completion notes (Phase 7). This answer is
+advisory unless the story's own acceptance criteria or evidence checks are
+blocking.
 
 If the story has no implementation files yet (verdict is being run before coding is done), skip this phase and note: "LP-CODE-REVIEW skipped — no implementation files found. Run after implementation is complete."
 
@@ -330,15 +317,15 @@ fixed. Offer to help fix the blocking items.
 ## Phase 7: Update Story Status
 
 Use `AskUserQuestion` before writing anything:
-- Prompt: "Verification complete. How do you want to proceed?"
+- Prompt: "Verification complete. May I update `[story-file-path]` and related sprint/session state now?"
 - Options:
   - `Close the story — update file, mark Complete, log notes (Recommended)`
-  - `Close and log advisory deviations as tech debt in docs/tech-debt-register.md`
+  - `Close and log advisory deviations as tech debt in docs/code-review-register.md`
   - `There are issues I want to fix first — don't close yet`
   - `Accept deviations as-is and close anyway`
 
 If "Close", "Close and log tech debt", or "Accept deviations": edit the story file.
-If "Close and log tech debt": after updating the story file, also append the advisory deviations to `docs/tech-debt-register.md` (create the file if it does not exist).
+If "Close and log tech debt": after updating the story file, also append the advisory deviations to `docs/code-review-register.md` (create the file if it does not exist).
 If "Fix first": stop here and list what the user flagged. Do not write any files.
 
 1. Update the status field: `Status: Complete`
@@ -354,7 +341,7 @@ If "Fix first": stop here and list what the user flagged. Do not write any files
 **Code Review**: [Pending / Complete / Skipped]
 ```
 
-4. If the user chose "Close and log tech debt": append each advisory deviation to `docs/tech-debt-register.md` in this format:
+4. If the user chose "Close and log tech debt": append each advisory deviation to `docs/code-review-register.md` in this format:
    ```
    - **[date]** ([story title]): [deviation description] — tracked from [story file path]
    ```
@@ -366,15 +353,17 @@ If "Fix first": stop here and list what the user flagged. Do not write any files
    - Update the top-level `updated` field
    - This is a silent update — no extra approval needed (already approved in step above)
 
-6. **Suggest a git commit**: Output a ready-to-use commit command covering the implementation files from the dev-story summary and the updated story file:
+6. **Suggest a checkpoint**: Output a checkpoint recommendation covering the implementation files from the dev-story summary, the updated story file, and any sprint status update:
 
 ```
-Suggested commit:
-git add [src/ and tests/ files changed during implementation] [story-file-path]
-git commit -m "feat: [story title] ([TR-ID])"
+Checkpoint candidate:
+Lane: B-dev
+Run: /window-ccgs checkpoint B-dev
+Suggested subject: feat: [story title] ([TR-ID])
+Body fields: Lane, Scope, Verification, Rollback
 ```
 
-The `validate-commit.sh` hook will verify design doc references and check for hardcoded values automatically.
+Do not run `git add .`. The checkpoint flow must stage only named files and report `git revert <sha>` after commit.
 
 ### Session State Update
 
@@ -410,7 +399,7 @@ The following stories are ready to pick up:
 1. [Story name] — [1-line description] — Est: [X hrs]
 2. [Story name] — [1-line description] — Est: [X hrs]
 
-Run `/story-readiness [path]` to confirm a story is implementation-ready
+Run `/dev-story [path]` to confirm a story is implementation-ready
 before starting.
 ```
 
@@ -423,12 +412,12 @@ All Must Have stories are complete. QA sign-off is required before advancing.
 Run these in order:
 
 1. `/smoke-check sprint` — verify the critical path still works end-to-end
-2. `/team-qa sprint` — full QA cycle: test case execution, bug triage, sign-off report
-3. `/retrospective` — capture what went well, what didn't, and action items for the next sprint
+2. `/smoke-check sprint` — full QA cycle: test case execution, bug triage, sign-off report
+3. `/sprint-plan` — capture what went well, what didn't, and action items for the next sprint
 4. `/gate-check` — advance to the next phase once QA approves (only if advancing a phase)
 5. `/sprint-plan new` — plan the next sprint, incorporating velocity data and retrospective action items
 
-Do not run `/gate-check` until `/team-qa` returns APPROVED or APPROVED WITH CONDITIONS.
+Do not run `/gate-check` until `/smoke-check` returns APPROVED or APPROVED WITH CONDITIONS.
 ```
 
 If there are Should Have stories still unstarted, surface them alongside the close-out sequence so the user can choose: close the sprint now, or pull in more work first.
@@ -441,7 +430,7 @@ If no more stories are ready but Must Have stories are still In Progress (not Co
 ## Collaborative Protocol
 
 - **Never mark a story complete without user approval** — Phase 7 requires an
-  explicit "yes" before any file is edited.
+  explicit "May I update..." yes before any file is edited.
 - **Never auto-fix failing criteria** — report them and ask what to do.
 - **Deviations are facts, not judgments** — present them neutrally; the user
   decides if they are acceptable.
@@ -454,6 +443,8 @@ If no more stories are ready but Must Have stories are still In Progress (not Co
 
 ## Recommended Next Steps
 
-- Run `/story-readiness [next-story-path]` to validate the next story before starting implementation
-- If all Must Have stories are complete: run `/smoke-check sprint` → `/team-qa sprint` → `/gate-check`
-- If tech debt was logged: track it via `/tech-debt` to keep the register current
+- Run `/dev-story [next-story-path]` to validate the next story before starting implementation
+- If all Must Have stories are complete: run `/smoke-check sprint` → `/smoke-check sprint` → `/gate-check`
+- If tech debt was logged: track it via `/code-review` to keep the register current
+
+

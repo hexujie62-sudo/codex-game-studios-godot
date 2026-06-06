@@ -8,38 +8,72 @@ ROOT="$(repo_root)"
 cd "$ROOT" 2>/dev/null || exit 0
 
 {
-  echo "CCGS 会话上下文："
+  echo "CCGS session context:"
 
   BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-  [ -n "$BRANCH" ] && echo "- Git 分支: $BRANCH"
+  [ -n "$BRANCH" ] && echo "- Git branch: $BRANCH"
 
   if [ -f "production/stage.txt" ]; then
     STAGE=$(tr -d '[:space:]' < production/stage.txt 2>/dev/null)
-    [ -n "$STAGE" ] && echo "- 当前阶段: $STAGE"
+    [ -n "$STAGE" ] && echo "- Current stage: $STAGE"
   fi
 
   LATEST_SPRINT=$(ls -t production/sprints/sprint-*.md 2>/dev/null | head -1)
-  [ -n "$LATEST_SPRINT" ] && echo "- 活跃冲刺: $(basename "$LATEST_SPRINT" .md)"
+  [ -n "$LATEST_SPRINT" ] && echo "- Active sprint: $(basename "$LATEST_SPRINT" .md)"
 
   LATEST_MILESTONE=$(ls -t production/milestones/*.md 2>/dev/null | head -1)
-  [ -n "$LATEST_MILESTONE" ] && echo "- 活跃里程碑: $(basename "$LATEST_MILESTONE" .md)"
+  [ -n "$LATEST_MILESTONE" ] && echo "- Active milestone: $(basename "$LATEST_MILESTONE" .md)"
 
   STATE_FILE="production/session-state/active.md"
   if [ -f "$STATE_FILE" ]; then
     STATE_LINES=$(wc -l < "$STATE_FILE" 2>/dev/null | tr -d ' ')
-    echo "- 恢复文件: $STATE_FILE ($STATE_LINES 行)。继续重要任务前先读取它。"
+    echo "- State file: $STATE_FILE ($STATE_LINES lines). Read it before continuing important work."
+  fi
+
+  WINDOW_DIR="production/session-state/windows"
+  if [ -d "$WINDOW_DIR" ]; then
+    LANE_COUNT=0
+    for LANE_FILE in "$WINDOW_DIR"/*.md; do
+      [ -f "$LANE_FILE" ] || continue
+      LANE_COUNT=$((LANE_COUNT + 1))
+    done
+
+    if [ "$LANE_COUNT" -gt 0 ]; then
+      echo "- Registered window lanes:"
+      SHOWN=0
+      for LANE_FILE in "$WINDOW_DIR"/*.md; do
+        [ -f "$LANE_FILE" ] || continue
+        LANE_ID=$(basename "$LANE_FILE" .md)
+        echo "  - $LANE_ID: state=$LANE_FILE. Restore: /window-ccgs $LANE_ID"
+        SHOWN=$((SHOWN + 1))
+        [ "$SHOWN" -ge 8 ] && break
+      done
+      if [ "$LANE_COUNT" -gt "$SHOWN" ]; then
+        echo "  - $((LANE_COUNT - SHOWN)) more lane(s). Run /help for the full list."
+      fi
+    else
+      echo "- No window lane files found. First project entry: /start. Manual lane start: /window-ccgs <lane-id>."
+    fi
+  else
+    echo "- No window lane directory found. First project entry: /start."
   fi
 
   REMINDERS="production/session-state/hook-reminders.md"
   if [ -f "$REMINDERS" ]; then
-    echo "- Hook 提醒文件: $REMINDERS。若本轮涉及 Skill/资源/提交，请读取。"
+    echo "- Hook reminder file: $REMINDERS. Read it if this turn touches Skills, assets, or commits."
   fi
 
   CHANGED_COUNT=$(git status --short 2>/dev/null | wc -l | tr -d ' ')
+  STAGED_COUNT=$(git diff --cached --name-only 2>/dev/null | wc -l | tr -d ' ')
   if [ "$CHANGED_COUNT" -gt 0 ] 2>/dev/null; then
-    echo "- 工作树有 $CHANGED_COUNT 条变更；不要覆盖无关用户改动。"
+    echo "- Dirty worktree: $CHANGED_COUNT change(s). Do not overwrite unrelated user changes."
+    if [ "$STAGED_COUNT" -gt 0 ] 2>/dev/null; then
+      echo "- Checkpoint: $STAGED_COUNT staged file(s). Commit body should include Lane, Scope, Verification, and Rollback."
+    elif [ "$CHANGED_COUNT" -ge 20 ] 2>/dev/null; then
+      echo "- Checkpoint suggested: dirty worktree is large. Run /window-ccgs checkpoint <lane-id> before switching lanes or compacting."
+    fi
   else
-    echo "- 工作树无未提交变更。"
+    echo "- Worktree clean."
   fi
 } | emit_session_context
 

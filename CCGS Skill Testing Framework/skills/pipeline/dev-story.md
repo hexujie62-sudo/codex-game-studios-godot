@@ -3,58 +3,58 @@
 ## Skill Summary
 
 `/dev-story` reads a story file, loads all required context (referenced ADR,
-TR-ID from the registry, control manifest, engine preferences), implements the
-story, verifies that all acceptance criteria are met, and marks the story
-Complete. The skill routes implementation to the correct specialist agent based
-on the engine and file type — it does not write source code directly.
+TR-ID from the registry, control manifest, engine preferences), runs the
+readiness preflight, implements the story, and writes required tests. The skill
+routes implementation to the correct specialist agent based on the engine and
+file type — it does not write source code directly.
 
-In `full` review mode, an LP-CODE-REVIEW gate runs before marking the story
-Complete. In `lean` or `solo` mode, LP-CODE-REVIEW is skipped and the story is
-marked Complete after the user confirms all criteria are met. The skill asks
-"May I write" before updating story status and before writing code files.
+Review policy is fixed Lean. `/dev-story` does not run LP-CODE-REVIEW and does
+not mark the story Complete. It leaves closure to `/code-review` followed by
+`/story-done`.
 
 ---
 
 ## Static Assertions (Structural)
 
-Verified automatically by `/skill-test static` — no fixture needed.
+Verified automatically by `/skill-create-ccgs` internal static check — no fixture needed.
 
 - [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
 - [ ] Has ≥2 phase headings
 - [ ] Contains verdict keywords: COMPLETE, BLOCKED, IN PROGRESS, NEEDS CHANGES
 - [ ] Contains "May I write" collaborative protocol language (story status + code files)
-- [ ] Has a next-step handoff at the end (`/story-done`)
-- [ ] Documents LP-CODE-REVIEW gate: active in full mode, skipped in lean/solo
+- [ ] Has a next-step handoff at the end (`/code-review` then `/story-done`)
+- [ ] Documents fixed Lean policy: no `--review full|lean|solo`, no `production/review-mode.txt`, no LP-CODE-REVIEW gate
 - [ ] Notes that implementation is delegated to specialist agents (not done directly)
 
 ---
 
-## Director Gate Checks
+## Review Handoff
 
-In `full` mode: LP-CODE-REVIEW gate runs after implementation is complete and all
-criteria are verified, before marking the story Complete.
+LP-CODE-REVIEW is not a `/dev-story` phase gate. The skill implements the story,
+collects changed files and test evidence, updates session state, and recommends:
 
-In `lean` mode: LP-CODE-REVIEW is skipped. Output notes:
-"LP-CODE-REVIEW skipped — lean mode". Story is marked Complete after user confirms.
+```text
+/code-review [files]
+/story-done [story-path]
+```
 
-In `solo` mode: LP-CODE-REVIEW is skipped with equivalent notes.
+It must not read, create, or normalize `production/review-mode.txt`.
 
 ---
 
 ## Test Cases
 
-### Case 1: Happy Path — Story implemented and marked Complete (full mode)
+### Case 1: Happy Path — Story implemented with fixed Lean handoff
 
 **Fixture:**
 - A story file exists at `production/epics/[layer]/story-[name].md` with:
-  - `Status: Ready`
+- `Status: Ready`
   - A TR-ID referencing a registered requirement
   - At least 2 Given-When-Then acceptance criteria
   - A test evidence path
 - Referenced ADR has `Status: Accepted`
 - `docs/architecture/control-manifest.md` exists
 - `.codex/docs/technical-preferences.md` has engine and language configured
-- `production/session-state/review-mode.txt` contains `full`
 
 **Input:** `/dev-story production/epics/[layer]/story-[name].md`
 
@@ -62,19 +62,19 @@ In `solo` mode: LP-CODE-REVIEW is skipped with equivalent notes.
 1. Skill reads the story file and all referenced context
 2. Skill verifies the ADR is Accepted (no block)
 3. Skill routes implementation to the correct specialist agent
-4. All acceptance criteria are verified as met
-5. LP-CODE-REVIEW gate spawns and returns APPROVED
-6. Skill asks "May I update story status to Complete?"
-7. Story status is updated to Complete
+4. Required implementation files and tests are created or updated
+5. Skill summarizes acceptance criteria coverage and any deferred manual evidence
+6. Skill updates session state with changed files and next steps
+7. Skill recommends `/code-review [files]` then `/story-done [story-path]`
 
 **Assertions:**
 - [ ] Skill reads story before spawning any agent
 - [ ] ADR status is checked before implementation begins
 - [ ] Implementation is delegated to a specialist agent (not done inline)
-- [ ] All acceptance criteria are confirmed before LP-CODE-REVIEW
-- [ ] LP-CODE-REVIEW appears in output as a completed gate
-- [ ] Story status is updated to Complete only after gate approval and user consent
+- [ ] LP-CODE-REVIEW is not spawned
+- [ ] Story status is not marked Complete by `/dev-story`
 - [ ] Test file is written as part of implementation (not deferred)
+- [ ] Output recommends `/code-review` and `/story-done`
 
 ---
 
@@ -91,13 +91,13 @@ In `solo` mode: LP-CODE-REVIEW is skipped with equivalent notes.
 2. Skill resolves the TR-ID and reads the governing ADR
 3. ADR status is Proposed — skill outputs a BLOCKED message
 4. Skill names the specific ADR blocking the story
-5. Skill recommends running `/architecture-decision` to advance the ADR
+5. Skill recommends running `/create-architecture ADR: [title]` to advance the ADR
 6. Implementation does NOT begin
 
 **Assertions:**
 - [ ] Skill does NOT begin implementation with a Proposed ADR
 - [ ] BLOCKED message names the specific ADR number and title
-- [ ] Skill recommends `/architecture-decision` as the next action
+- [ ] Skill recommends `/create-architecture ADR: [title]` as the next action
 - [ ] Story status remains unchanged (not set to In Progress or Complete)
 
 ---
@@ -150,37 +150,25 @@ In `solo` mode: LP-CODE-REVIEW is skipped with equivalent notes.
 
 ---
 
-### Case 5: Director Gate — LP-CODE-REVIEW returns NEEDS CHANGES; lean mode skips gate
+### Case 5: Code Review Handoff — no gate automation
 
-**Fixture (full mode):**
-- Story is implemented and all criteria appear met
-- `production/session-state/review-mode.txt` contains `full`
-- LP-CODE-REVIEW gate returns NEEDS CHANGES with specific feedback
+**Fixture:**
+- Story implementation completes with changed source files and a test file
+- No `production/review-mode.txt` or `production/session-state/review-mode.txt`
+  exists
 
-**Full mode expected behavior:**
-1. LP-CODE-REVIEW gate spawns after implementation
-2. Gate returns NEEDS CHANGES with 2 specific issues
-3. Story status remains In Progress — NOT marked Complete
-4. User is shown the gate feedback and asked how to proceed
+**Expected behavior:**
+1. Implementation completes.
+2. No LP-CODE-REVIEW gate is spawned.
+3. Output lists the exact files that should be reviewed.
+4. Output recommends `/code-review [files]` before `/story-done [story-path]`.
+5. Story remains ready for closure by `/story-done`, not auto-completed here.
 
-**Assertions (full mode):**
-- [ ] Story is NOT marked Complete when LP-CODE-REVIEW returns NEEDS CHANGES
-- [ ] Gate feedback is shown to the user verbatim
-- [ ] Story status stays In Progress until issues are resolved and gate passes
-
-**Fixture (lean mode):**
-- Same story, `production/session-state/review-mode.txt` contains `lean`
-
-**Lean mode expected behavior:**
-1. Implementation completes
-2. LP-CODE-REVIEW gate is skipped — noted in output
-3. User is asked to confirm all criteria are met
-4. Story is marked Complete after user confirmation
-
-**Assertions (lean mode):**
-- [ ] "LP-CODE-REVIEW skipped — lean mode" appears in output
-- [ ] Story is marked Complete after user confirms criteria (no gate required)
-- [ ] Skill does NOT block on a gate that is skipped
+**Assertions:**
+- [ ] No review-mode file is read or required.
+- [ ] LP-CODE-REVIEW is not spawned, skipped, or treated as a gate.
+- [ ] Story status is not marked Complete by `/dev-story`.
+- [ ] Code review is presented as the next recommended command.
 
 ---
 
@@ -189,9 +177,9 @@ In `solo` mode: LP-CODE-REVIEW is skipped with equivalent notes.
 - [ ] Does NOT write source code directly — delegates to specialist agents
 - [ ] Reads all context (story, TR-ID, ADR, manifest, engine prefs) before implementation
 - [ ] "May I write" asked before updating story status and before writing code files
-- [ ] Skipped gates noted by name and mode in output
+- [ ] Does not read, create, or normalize review-mode state
 - [ ] Updates `production/session-state/active.md` after story completion
-- [ ] Ends with next-step handoff: `/story-done`
+- [ ] Ends with next-step handoff: `/code-review` then `/story-done`
 
 ---
 
@@ -203,3 +191,4 @@ In `solo` mode: LP-CODE-REVIEW is skipped with equivalent notes.
   evidence requirements and are not covered in these cases.
 - Integration story type follows the same pattern as Logic but with a different
   evidence path — not independently fixture-tested.
+

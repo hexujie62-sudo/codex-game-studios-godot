@@ -84,7 +84,7 @@ Before writing any code:
 If an ADR exists for this system:
 - Follow its Implementation Guidelines exactly
 - If the ADR's guidelines conflict with what seems better, flag the discrepancy rather than silently deviating: "The ADR says X, but I think Y would be better — proceed with ADR or flag for architecture review?"
-- If no ADR exists for a new system, surface this: "No ADR found for [system]. Consider running /architecture-decision first."
+- If no ADR exists for a new system, surface this: "No ADR found for [system]. Consider running /create-architecture first."
 
 ### Code Standards
 

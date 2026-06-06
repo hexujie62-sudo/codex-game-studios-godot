@@ -1,177 +1,220 @@
 # Skill Test Spec: /sprint-plan
 
+> **Category**: sprint
+> **Priority**: high
+> **Spec written**: 2026-06-06
+
 ## Skill Summary
 
-`/sprint-plan` reads the current milestone file and backlog stories, then
-generates a new numbered sprint with stories prioritized by implementation layer
-and priority score. In full mode the PR-SPRINT director gate runs after the
-sprint draft is compiled (producer reviews the plan). In lean and solo modes
-the gate is skipped. The skill asks "May I write to `production/sprints/sprint-NNN.md`?"
-before persisting. Verdicts: COMPLETE (sprint generated and written) or
-BLOCKED (cannot proceed due to missing data or gate failure).
+`/sprint-plan` is the planning core Skill. It creates epics, creates stories,
+plans or updates sprints, reports sprint status, checks scope, estimates work,
+and writes retrospectives. It absorbs the former `create-epics`,
+`create-stories`, `estimate`, `sprint-status`, `scope-check`, and
+`retrospective` routes; those names are aliases only, not separate active Skill
+specs.
 
 ---
 
-## Static Assertions (Structural)
+## Static Assertions
 
-Verified automatically by `/skill-test static` — no fixture needed.
-
-- [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
-- [ ] Has ≥2 phase headings
-- [ ] Contains verdict keywords: COMPLETE, BLOCKED
-- [ ] Contains "May I write" language (skill writes sprint file)
-- [ ] Has a next-step handoff (what to do after sprint is written)
+- [ ] Frontmatter has all required fields (`name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`)
+- [ ] 2+ phase headings found
+- [ ] Verdict keywords present (`COMPLETE`, `BLOCKED`, `CONCERNS`, `ON SCOPE`, `SCOPE CREEP DETECTED`, `AT RISK`)
+- [ ] `"May I write"` language present for epics, stories, sprint files, status files, and retrospectives
+- [ ] Next-step handoff section present
+- [ ] Argument hint accepts natural-language goals instead of forcing command parameters
+- [ ] Reference loading rules use direct `references/planning-epics-stories.md`, not `.agents/skills-archive/`
+- [ ] Fixed Lean policy present: no `--review full|lean|solo`, no `production/review-mode.txt`
 
 ---
 
 ## Director Gate Checks
 
-| Gate ID   | Trigger condition        | Mode guard         |
-|-----------|--------------------------|--------------------|
-| PR-SPRINT | After sprint draft built | full only (not lean/solo) |
+- **Phase gates**: Only `/gate-check` should spawn phase-gate directors.
+- **Inline gates**: `PR-SPRINT`, `PR-EPIC`, and `QL-STORY-READY` are not spawned
+  by `/sprint-plan`; internal feasibility/readiness checks are used instead.
+- **Absorbed legacy behavior**: old route names may map to internal task scopes,
+  but output should recommend `/sprint-plan`, not the old commands.
 
 ---
 
 ## Test Cases
 
-### Case 1: Happy Path — Backlog with stories generates sprint
+### Case 1: Happy Path — Create sprint plan and status file
 
-**Fixture:**
-- `production/milestones/milestone-02.md` exists with capacity `10 story points`
-- Backlog contains 5 unstarted stories across 2 epics, mixed priorities
-- `production/session-state/review-mode.txt` contains `full`
-- Next sprint number is `003` (sprints 001 and 002 already exist)
+**Fixture**:
+- Active milestone exists in `production/milestones/`
+- Previous sprint exists or no sprint exists yet
+- Backlog stories exist under `production/epics/**/story-*.md`
+- Control manifest and accepted ADR references exist for selected stories
 
-**Input:** `/sprint-plan`
+**Input**: `/sprint-plan next sprint`
 
-**Expected behavior:**
-1. Skill reads current milestone to obtain capacity and goals
-2. Skill reads all unstarted stories from backlog; sorts by layer + priority
-3. Skill drafts sprint-003 with stories fitting within capacity
-4. Skill presents draft to user before invoking gate
-5. Skill invokes PR-SPRINT gate (full mode); producer approves
-6. Skill asks "May I write to `production/sprints/sprint-003.md`?"
-7. User approves; file is written
+**Expected behavior**:
+1. Skill reads milestone, previous sprint, sprint status, epics, stories, risks, and QA context.
+2. Skill selects stories by dependency order, layer, priority, and capacity.
+3. Skill runs an internal feasibility pass for capacity, hidden dependencies, underestimated work, and milestone risk.
+4. Skill drafts `production/sprints/sprint-[N].md` and `production/sprint-status.yaml`.
+5. Skill checks whether a sprint QA plan exists and warns if missing.
+6. Skill asks before writing sprint markdown and status yaml together.
 
-**Assertions:**
-- [ ] Stories are sorted by implementation layer before priority
-- [ ] Sprint draft is shown before any write or gate invocation
-- [ ] PR-SPRINT gate is invoked in full mode after draft is ready
-- [ ] Skill asks "May I write" before writing the sprint file
-- [ ] Written file path matches `production/sprints/sprint-003.md`
-- [ ] Verdict is COMPLETE after successful write
+**Assertions**:
+- [ ] Draft is shown before write approval
+- [ ] `production/sprint-status.yaml` is the machine-readable status file
+- [ ] Existing story statuses are preserved during update mode
+- [ ] No `production/review-mode.txt` is read, created, or normalized
+- [ ] No producer gate is spawned
+- [ ] Verdict is `COMPLETE` after approved write or `BLOCKED` if required data is missing
 
----
-
-### Case 2: Blocked Path — Backlog is empty
-
-**Fixture:**
-- `production/milestones/milestone-02.md` exists
-- No unstarted stories exist in any epic backlog
-
-**Input:** `/sprint-plan`
-
-**Expected behavior:**
-1. Skill reads backlog — finds no unstarted stories
-2. Skill outputs "No unstarted stories in backlog"
-3. Skill suggests running `/create-stories` to populate the backlog
-4. No gate is invoked; no file is written
-
-**Assertions:**
-- [ ] Verdict is BLOCKED
-- [ ] Output contains "No unstarted stories" or equivalent message
-- [ ] Output recommends `/create-stories`
-- [ ] PR-SPRINT gate is NOT invoked
-- [ ] No write tool is called
+**Case Verdict**: PASS / FAIL / PARTIAL
 
 ---
 
-### Case 3: Gate returns CONCERNS — Sprint overloaded, revised before write
+### Case 2: Absorbed Epic Path — Create epics from GDD and architecture
 
-**Fixture:**
-- Backlog has 8 stories totalling 16 points; milestone capacity is 10 points
-- `review-mode.txt` contains `full`
+**Fixture**:
+- `design/gdd/systems-index.md` lists approved systems
+- Relevant GDD files exist
+- Architecture and accepted ADRs exist for the systems
 
-**Input:** `/sprint-plan`
+**Input**: `/sprint-plan create epics for approved systems`
 
-**Expected behavior:**
-1. Skill drafts sprint with all 8 stories (over capacity)
-2. PR-SPRINT gate runs; producer returns CONCERNS: sprint is overloaded
-3. Skill presents concern to user and asks which stories to defer
-4. User selects 3 stories to defer; sprint is revised to 5 stories / 10 points
-5. Skill asks "May I write" with revised sprint; writes on approval
+**Expected behavior**:
+1. Skill classifies the request as epic creation.
+2. Skill loads `references/planning-epics-stories.md`.
+3. Skill reads GDDs, architecture, ADRs, TR registry, and control manifest.
+4. Skill drafts epics in Foundation -> Core -> Feature -> Presentation order.
+5. Skill asks `May I write` per epic, not once for all epics.
+6. Skill updates `production/epics/index.md` after approved epic writes.
 
-**Assertions:**
-- [ ] CONCERNS from PR-SPRINT gate surfaces to user before any write
-- [ ] Skill allows sprint to be revised after gate feedback
-- [ ] Revised sprint (not original) is written to file
-- [ ] Verdict is COMPLETE after revision and write
+**Assertions**:
+- [ ] Each EPIC.md includes layer, source GDD, TR/GDD requirements, governing ADRs, scope, dependencies, risks, and Definition of Done
+- [ ] Existing epic files are not silently overwritten
+- [ ] User sees each epic draft before approval
+- [ ] Next step recommends `/sprint-plan create stories for [epic]`
 
----
-
-### Case 4: Lean Mode — PR-SPRINT gate skipped
-
-**Fixture:**
-- Backlog has 4 stories; milestone capacity is 8 points
-- `review-mode.txt` contains `lean`
-
-**Input:** `/sprint-plan`
-
-**Expected behavior:**
-1. Skill reads review mode — determines `lean`
-2. Skill drafts sprint and presents it to user
-3. PR-SPRINT gate is skipped; output notes "[PR-SPRINT] skipped — Lean mode"
-4. Skill asks user for direct approval of the sprint
-5. User approves; sprint file is written
-
-**Assertions:**
-- [ ] PR-SPRINT gate is NOT invoked in lean mode
-- [ ] Skip is explicitly noted in output
-- [ ] User approval is still required before write (gate skip ≠ approval skip)
-- [ ] Verdict is COMPLETE after write
+**Case Verdict**: PASS / FAIL / PARTIAL
 
 ---
 
-### Case 5: Edge Case — Previous sprint still has open stories
+### Case 3: Absorbed Story Path — Create stories with ADR/blocker handling
 
-**Fixture:**
-- `production/sprints/sprint-002.md` exists with 2 stories still `Status: In Progress`
-- Backlog has 5 new unstarted stories
-- `review-mode.txt` contains `full`
+**Fixture**:
+- `production/epics/[epic-slug]/EPIC.md` exists
+- Source GDD exists
+- TR registry and control manifest exist
+- One governing ADR is Accepted and one is Proposed
 
-**Input:** `/sprint-plan`
+**Input**: `/sprint-plan create stories for [epic-slug]`
 
-**Expected behavior:**
-1. Skill reads sprint-002 and detects 2 open (in-progress) stories
-2. Skill flags: "Sprint 002 has 2 open stories — confirm carry-over before planning sprint 003"
-3. Skill presents user with choice: carry stories over, defer them, or cancel
-4. User confirms carry-over; carried stories are prepended to new sprint with `[CARRY]` tag
-5. Sprint draft is built; PR-SPRINT gate runs; sprint is written on approval
+**Expected behavior**:
+1. Skill classifies the request as story creation.
+2. Skill reads EPIC, GDD, governing ADRs, TR registry, and control manifest.
+3. Skill drafts story files using `story-NNN-[slug].md`.
+4. Story covered by Accepted ADR is `Ready`.
+5. Story covered by Proposed ADR is `Blocked` and names the ADR.
+6. Skill asks `May I write` per story.
 
-**Assertions:**
-- [ ] Skill checks the most recent sprint file for open stories
-- [ ] User is asked to confirm carry-over before sprint planning continues
-- [ ] Carried stories appear in the new sprint draft with a distinguishing label
-- [ ] Skill does not silently ignore open stories from the previous sprint
+**Assertions**:
+- [ ] Story frontmatter includes title, epic, layer, priority, status, story type, TR-ID, ADR references, acceptance criteria, DoD, blockers, and test evidence path
+- [ ] Blocked story recommends `/create-architecture ADR: [title]`, not old `/architecture-decision`
+- [ ] Blocked stories may be written only as visibly blocked
+- [ ] Skill does not start implementation
+
+**Case Verdict**: PASS / FAIL / PARTIAL
+
+---
+
+### Case 4: Absorbed Read-Only Paths — Estimate, status, and scope
+
+**Fixture**:
+- A current sprint or story exists
+- Active milestone or parent epic exists
+- Sprint history may or may not exist
+
+**Input**: `/sprint-plan estimate and scope check this sprint`
+
+**Expected behavior**:
+1. Skill classifies the requested read-only planning checks.
+2. Estimate output uses S/M/L/XL or day-range with confidence and uncertainty drivers.
+3. Scope check maps stories to milestone or epic scope.
+4. Sprint status reports completed/in-progress/not-started/blocked counts, blockers, stale work, and health.
+5. Skill does not write files unless user explicitly asks to persist updates.
+
+**Assertions**:
+- [ ] Estimates include confidence (`High`, `Medium`, `Low`) and risk drivers
+- [ ] Scope verdict is one of `ON SCOPE`, `CONCERNS`, `SCOPE CREEP DETECTED`
+- [ ] Sprint health is one of `ON TRACK`, `AT RISK`, `BLOCKED`
+- [ ] Missing sprint history uses conservative defaults, not failure
+- [ ] No director gate is spawned
+
+**Case Verdict**: PASS / FAIL / PARTIAL
+
+---
+
+### Case 5: Absorbed Retrospective Path — Carry-over actions
+
+**Fixture**:
+- Sprint or milestone data exists
+- A previous retrospective exists with unchecked action items
+- Target retrospective does not exist yet, or exists and requires append/replace choice
+
+**Input**: `/sprint-plan retrospective for sprint 005`
+
+**Expected behavior**:
+1. Skill classifies the request as retrospective.
+2. Skill reads sprint/milestone data and prior retrospective.
+3. Skill carries unresolved action items forward.
+4. Skill drafts what worked, what did not, carry-over actions, new actions, owners, and due dates.
+5. Skill asks before creating, appending, or replacing the retrospective file.
+
+**Assertions**:
+- [ ] Existing retro is not silently overwritten
+- [ ] Prior unresolved action items appear in a carry-over section
+- [ ] Action items are concrete and have owner/due date
+- [ ] Verdict is `COMPLETE` after approved write
+
+**Case Verdict**: PASS / FAIL / PARTIAL
+
+---
+
+### Case 6: Policy Regression — Legacy planning commands are aliases
+
+**Fixture**:
+- Route index maps old planning names to `sprint-plan`
+- Old planning specs/archive dirs have been removed after absorption
+
+**Input**: User asks for old `/create-stories`
+
+**Expected behavior**:
+1. `/help` or route index maps the request to `/sprint-plan`.
+2. `/sprint-plan` runs the internal story creation path.
+3. Output does not ask the user to switch to the old command.
+4. No active spec exists for the old command.
+
+**Assertions**:
+- [ ] Route aliases exist for absorbed planning names
+- [ ] Old specs are not active coverage targets
+- [ ] Active Skill does not depend on `.agents/skills-archive/`
+- [ ] Fixed Lean policy remains intact
+
+**Case Verdict**: PASS / FAIL / PARTIAL
 
 ---
 
 ## Protocol Compliance
 
-- [ ] Shows draft sprint before invoking PR-SPRINT gate or asking to write
-- [ ] Always asks "May I write" before writing sprint file
-- [ ] PR-SPRINT gate only runs in full mode
-- [ ] Skip message appears in lean and solo mode output
-- [ ] Verdict is clearly stated at the end of the skill output
+- [ ] Presents findings or draft before requesting approval
+- [ ] Uses `"May I write"` before any file write
+- [ ] Keeps epics, stories, sprint planning, status, scope, estimate, and retro inside `/sprint-plan`
+- [ ] Does not auto-advance stage or commit changes
+- [ ] Ends with next step, blocker, or handoff
 
 ---
 
 ## Coverage Notes
 
-- The case where no milestone file exists is not explicitly tested; behavior
-  follows the BLOCKED pattern with a suggestion to run `/gate-check` for
-  milestone progression.
-- Solo mode behavior is equivalent to lean (gate skipped, user approval
-  required) and is not separately tested.
-- Parallel story selection algorithms are not tested here; those are unit
-  concerns for the sprint-plan subagent.
+- The exact wording of sprint/epic/story/retro documents is validated through
+  behavior and required-field assertions rather than fixture-locked prose.
+- Old standalone planning specs are intentionally deleted once their durable
+  behavior is covered here and in `references/planning-epics-stories.md`.

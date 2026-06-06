@@ -10,7 +10,7 @@ it belongs to.]
 
 ## Static Assertions (Structural)
 
-Verified automatically by `/skill-test static` — no fixture needed.
+Verified automatically by `/skill-create-ccgs` internal static check — no fixture needed.
 
 - [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
 - [ ] Has ≥2 phase headings (## Phase N or numbered ## sections)
@@ -94,3 +94,4 @@ No files exist in design/gdd/."]
   in a single spec — test each sub-mode individually."
 - "The database integration path is not covered as it requires a live environment."
 - "Edge cases involving corrupted YAML files are deferred to a future spec."]
+

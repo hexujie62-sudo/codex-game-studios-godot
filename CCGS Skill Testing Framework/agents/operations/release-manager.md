@@ -77,4 +77,5 @@
 - Case 3 (LAUNCH BLOCKED verdict) is the most critical test — this agent's primary safety output is blocking bad launches
 - Case 5 requires current date and release date context; verify the agent uses actual dates, not placeholder estimates
 - Certification requirements change over time — flag if the agent produces specific requirement IDs that may be outdated
-- No automated runner; review manually or via `/skill-test`
+- No automated runner; review manually or via `/skill-create-ccgs` internal verification
+

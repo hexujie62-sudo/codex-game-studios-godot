@@ -186,7 +186,7 @@ These are subjective targets stated precisely enough to get consistent verdicts.
 ## Cross-References
 
 [Declare every explicit dependency on another GDD's specific mechanic, value, or
-rule. This table is machine-checked by `/review-all-gdds` Phase 2c — it replaces
+rule. This table is machine-checked by `/design-system` Phase 2c — it replaces
 implicit prose references with verifiable declarations. If you reference another
 system's behaviour anywhere in this document, it must appear here.]
 
@@ -217,3 +217,4 @@ system's behaviour anywhere in this document, it must appear here.]
 
 | Question | Owner | Deadline | Resolution |
 |----------|-------|----------|-----------|
+

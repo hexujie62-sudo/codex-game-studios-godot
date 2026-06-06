@@ -40,7 +40,7 @@ with "(inferred)" in the system name.]
 | **UI** | Player-facing information displays | HUD, menus, inventory screen, dialogue UI, map, notifications |
 | **Audio** | Sound and music systems | Music manager, SFX bus, ambient audio, adaptive music, voice |
 | **Narrative** | Story and dialogue delivery | Dialogue system, quest tracking, cutscenes, journal, lore entries |
-| **Meta** | Systems outside the core game loop | Analytics, tutorials/onboarding, accessibility options, photo mode |
+| **Meta** | Systems outside the core game loop | Analytics, tutorials/helping, accessibility options, photo mode |
 
 [Not every game needs every category. Remove categories that don't apply.
 Add custom categories if needed.]
@@ -141,6 +141,7 @@ These should be prototyped early regardless of priority tier.]
 
 - [ ] Review and approve this systems enumeration
 - [ ] Design MVP-tier systems first (use `/design-system [system-name]`)
-- [ ] Run `/design-review` on each completed GDD
+- [ ] Run `/design-system` on each completed GDD
 - [ ] Run `/gate-check pre-production` when MVP systems are designed
-- [ ] Validate the highest-risk systems with `/vertical-slice` before committing to Production
+- [ ] Validate the highest-risk systems with `/sprint-plan` before committing to Production
+

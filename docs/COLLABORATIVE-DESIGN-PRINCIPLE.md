@@ -556,53 +556,42 @@ Agents should be:
 
 ---
 
-## 🎯 Applying This to Team Skills
+## 🎯 Applying This to Multi-Agent Core Skills
 
-Team skills (like `/team-combat`) orchestrate multiple agents, but still collaborative:
+The current Codex fork keeps a small core Skill set. Multi-agent work now enters
+through core commands such as `/dev-story`, `/art-bible`, `/smoke-check`, and
+`/release-checklist` rather than separate team slash commands. The orchestration
+can still involve several specialists, but the collaboration pattern is the
+same:
 
 ```
-User: "/team-combat 'grappling hook ability'"
+User: "/dev-story production/epics/combat/story-grappling-hook.md"
 
 Skill (Coordinator):
-"I'll coordinate the combat team to design and implement the grappling hook.
- Before we start, a few questions:
+"I'll load the story, GDD/TR reference, governing ADR, control manifest, and
+Godot preferences before implementation. Before I route this to the programmer
+agents, a few checks:
 
- 1. Is this a mobility tool, a combat tool, or both?
- 2. Should it pull enemies to the player, player to point, or both?
- 3. Any reference games? (Just Cause, Bionic Commando, Attack on Titan?)
+ 1. Are all acceptance criteria testable?
+ 2. Is the governing ADR Accepted?
+ 3. Is the test evidence path present?
 
  [User answers]
 
- Based on your answers, I'll have the team propose options.
-
- **Phase 1: Design (game-designer)**
- Starting design phase...
- [game-designer asks questions, presents options]
- [User makes decisions]
- game-designer: 'Design complete. Proceeding to architecture phase.'
-
- **Phase 2: Architecture (gameplay-programmer)**
- [gameplay-programmer proposes code structure]
- [User approves or requests changes]
-
- **Phase 3: Parallel Implementation**
- I'll now coordinate 4 agents to implement in parallel:
- - gameplay-programmer: Core grapple physics
- - technical-artist: Cable VFX
- - sound-designer: Whoosh + impact SFX
- - ai-programmer: Enemy reactions to being grappled
-
- Each will show you their work before writing files. Proceed?"
+ Based on the story type, I'll route implementation to:
+ - gameplay-programmer: core grapple behavior
+ - godot-gdscript-specialist: Godot API and node lifecycle review
+ - qa-tester: testability check for acceptance criteria
 
 User: "Yes"
 
-[Each agent shows their work, gets approval, then writes]
+[Each agent follows the file write approval protocol before editing]
 
 Skill (Coordinator):
-"All 4 subsystems implemented. Would you like me to:
- A) Have gameplay-programmer integrate them now
- B) Let you test each independently first
- C) Run /code-review before integration?"
+"Implementation summary is ready. Next steps:
+ A) Run /code-review on the changed files
+ B) Run /story-done to verify and close after review
+ C) Stop here and update the lane handoff"
 ```
 
 The orchestration is automated, but **decision points stay with the user**.

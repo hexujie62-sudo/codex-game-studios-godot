@@ -11,15 +11,42 @@ ACTIVE="production/session-state/active.md"
 REMINDERS="production/session-state/hook-reminders.md"
 
 {
-  echo "上下文压缩后恢复提醒："
+  echo "Post-compact restore reminder:"
   if [ -f "$ACTIVE" ]; then
     LINES=$(wc -l < "$ACTIVE" 2>/dev/null | tr -d ' ')
-    echo "- 请读取 $ACTIVE（$LINES 行）恢复任务、决策和待办。"
+    echo "- Read $ACTIVE ($LINES lines) to restore tasks, decisions, and open work."
   else
-    echo "- 未找到 $ACTIVE；如需恢复，请检查 production/session-logs/。"
+    echo "- Missing $ACTIVE. If recovery is needed, check production/session-logs/."
   fi
+
+  WINDOW_DIR="production/session-state/windows"
+  if [ -d "$WINDOW_DIR" ]; then
+    LANE_COUNT=0
+    for LANE_FILE in "$WINDOW_DIR"/*.md; do
+      [ -f "$LANE_FILE" ] || continue
+      LANE_COUNT=$((LANE_COUNT + 1))
+    done
+
+    if [ "$LANE_COUNT" -gt 0 ]; then
+      echo "- Registered window lanes can be restored:"
+      SHOWN=0
+      for LANE_FILE in "$WINDOW_DIR"/*.md; do
+        [ -f "$LANE_FILE" ] || continue
+        LANE_ID=$(basename "$LANE_FILE" .md)
+        echo "  - $LANE_ID: state=$LANE_FILE. Restore: /window-ccgs $LANE_ID"
+        SHOWN=$((SHOWN + 1))
+        [ "$SHOWN" -ge 8 ] && break
+      done
+      if [ "$LANE_COUNT" -gt "$SHOWN" ]; then
+        echo "  - $((LANE_COUNT - SHOWN)) more lane(s). Run /help for the full list."
+      fi
+    else
+      echo "- No window lane files found. For parallel work or recovery, run /window-ccgs <lane-id>."
+    fi
+  fi
+
   if [ -f "$REMINDERS" ]; then
-    echo "- 还有 Hook 提醒: $REMINDERS。"
+    echo "- Hook reminder file: $REMINDERS."
   fi
 } | emit_system_message
 

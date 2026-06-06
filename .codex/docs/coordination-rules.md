@@ -22,10 +22,10 @@ Skills and agents are assigned to model tiers based on task complexity:
 | **Sonnet** | `codex-sonnet-4-6` | Implementation, design authoring, analysis of individual systems — default for most work |
 | **Opus** | `codex-opus-4-6` | Multi-document synthesis, high-stakes phase gate verdicts, cross-system holistic review |
 
-Skills with `model: haiku`: `/help`, `/sprint-status`, `/story-readiness`, `/scope-check`,
-`/project-stage-detect`, `/changelog`, `/patch-notes`, `/onboard`
+Skills with `model: haiku`: `/help`, `/sprint-plan`, `/dev-story`, `/sprint-plan`,
+`/help`, `/release-checklist`, `/release-checklist`, `/help`
 
-Skills with `model: opus`: `/review-all-gdds`, `/architecture-review`, `/gate-check`
+Skills with `model: opus`: `/design-system`, `/create-architecture`, `/gate-check`
 
 All other skills default to Sonnet. When creating new skills, assign Haiku if the
 skill only reads and formats; assign Opus if it must synthesize 5+ documents with
@@ -42,7 +42,7 @@ sequentially or in parallel within the session, and return results to the parent
 
 **When to spawn in parallel**: If two subagents' inputs are independent (neither
 needs the other's output to begin), spawn both Task calls simultaneously rather
-than waiting. Example: `/review-all-gdds` Phase 1 (consistency) and Phase 2
+than waiting. Example: `/design-system` Phase 1 (consistency) and Phase 2
 (design theory) are independent — spawn both at the same time.
 
 ### Agent Teams (experimental — opt-in)
@@ -89,3 +89,4 @@ When an orchestration skill spawns multiple independent agents:
 2. Collect all results before proceeding to dependent phases
 3. If any agent is BLOCKED, surface it immediately — do not silently skip
 4. Always produce a partial report if some agents complete and others block
+

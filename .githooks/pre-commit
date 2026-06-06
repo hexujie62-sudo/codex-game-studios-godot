@@ -86,8 +86,53 @@ SKILL_FILES=$(echo "$STAGED" | grep -E '^\.agents/skills/[^/]+/SKILL\.md$')
 if [ -n "$SKILL_FILES" ]; then
   for file in $SKILL_FILES; do
     skill=$(echo "$file" | sed 's|^\.agents/skills/||; s|/SKILL.md$||')
-    WARNINGS="$WARNINGS\nSkill: $skill 已修改；建议运行 /skill-test static $skill。批量修改后运行 /skill-test audit。"
+    WARNINGS="$WARNINGS\nSkill: $skill 已修改；建议运行 /skill-create-ccgs 审查本次 Skill 改动、路由和测试覆盖。"
   done
+fi
+
+DOMAINS=$(
+  echo "$STAGED" | while IFS= read -r file; do
+    case "$file" in
+      .agents/skills/*|.codex/*|.githooks/*|docs/ccgs-*|CCGS\ Skill\ Testing\ Framework/*)
+        echo "Z-platform"
+        ;;
+      src/*|tests/*|production/epics/*)
+        echo "B-dev"
+        ;;
+      design/art/*|design/assets/*|assets/*)
+        echo "C-art"
+        ;;
+      production/qa/*)
+        echo "D-qa"
+        ;;
+      design/gdd/*|docs/architecture/*|production/sprints/*|production/session-state/active.md)
+        echo "A-producer"
+        ;;
+      production/session-state/windows/*)
+        echo "lane-state"
+        ;;
+      *)
+        echo "shared"
+        ;;
+    esac
+  done | sort -u | tr '\n' ' '
+)
+
+DOMAIN_COUNT=$(printf '%s\n' $DOMAINS | wc -w | tr -d ' ')
+if [ "$DOMAIN_COUNT" -gt 2 ] || { [ "$DOMAIN_COUNT" -eq 2 ] && ! printf '%s\n' $DOMAINS | grep -q 'lane-state'; }; then
+  WARNINGS="$WARNINGS\nCheckpoint: staged files span multiple owner domains:$(printf ' %s' $DOMAINS). 建议先运行 /window-ccgs checkpoint <lane-id>，或由 A-producer 确认这是一个跨 lane commit。"
+fi
+
+if printf '%s\n' $DOMAINS | grep -q 'Z-platform'; then
+  if ! echo "$STAGED" | grep -q '^production/session-state/windows/Z-platform.md$'; then
+    WARNINGS="$WARNINGS\nCheckpoint: staged framework paths belong to Z-platform；建议把 Z-platform lane 更新纳入同一 checkpoint，或在提交说明中写明 lane 已是最新。"
+  fi
+fi
+
+if printf '%s\n' $DOMAINS | grep -Eq 'B-dev|D-qa'; then
+  if ! echo "$STAGED" | grep -Eq '^production/session-state/windows/(B-dev|D-qa)\.md$'; then
+    WARNINGS="$WARNINGS\nCheckpoint: staged implementation/QA paths；建议同步对应 B-dev/D-qa lane，确保回滚时能恢复窗口状态。"
+  fi
 fi
 
 UNTRACKED_LANES=$(git ls-files --others --exclude-standard -- 'production/session-state/windows/*.md')
@@ -131,7 +176,7 @@ if [ -n "$LANE_FILES" ]; then
   if [ -n "$CONFLICTS" ]; then
     echo "阻止提交: 多窗口 lane 的 Active Files 存在重复占用。" >&2
     echo "$CONFLICTS" | sed 's/^/  - /' >&2
-    echo "请运行 /window-handoff-ccgs audit，并用 handoff/request/split 解决后再提交。" >&2
+    echo "请运行 /window-ccgs audit，并用 handoff/request/split 解决后再提交。" >&2
     exit 4
   fi
 fi

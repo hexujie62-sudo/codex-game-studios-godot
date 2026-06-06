@@ -16,7 +16,7 @@ navigator, suggesting 2-3 next skills based on the current project state.
 
 ## Static Assertions (Structural)
 
-Verified automatically by `/skill-test static` — no fixture needed.
+Verified automatically by `/skill-create-ccgs` internal static check — no fixture needed.
 
 - [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
 - [ ] Has ≥2 phase headings
@@ -46,8 +46,8 @@ None. `/help` is a read-only navigation skill. No director gates apply.
 **Expected behavior:**
 1. Skill reads stage.txt and active sprint
 2. Skill identifies current sprint number and in-progress story count
-3. Skill outputs: current stage, sprint summary, and 3 suggested next skills
-   (e.g., `/sprint-status`, `/dev-story`, `/story-done`)
+3. Skill outputs: current stage, sprint summary, and 2-3 suggested core skills
+   (e.g., `/sprint-plan`, `/dev-story`, `/story-done`)
 4. Suggestions are ranked by relevance to current sprint state
 5. Verdict is HELP COMPLETE
 
@@ -72,8 +72,8 @@ None. `/help` is a read-only navigation skill. No director gates apply.
 
 **Expected behavior:**
 1. Skill reads stage.txt — detects Concept stage
-2. Skill outputs the Concept-stage workflow: brainstorm → map-systems → design-system
-3. Suggested skills are: `/brainstorm`, `/map-systems` (if concept exists)
+2. Skill outputs the Concept-stage workflow: brainstorm → design-system
+3. Suggested skills are: `/brainstorm`, `/design-system` (if concept exists)
 4. Current progress is noted: "Engine configured, concept not yet created"
 
 **Assertions:**
@@ -95,7 +95,7 @@ None. `/help` is a read-only navigation skill. No director gates apply.
 
 **Expected behavior:**
 1. Skill cannot determine stage from stage.txt
-2. Skill runs project-stage-detect logic to infer stage from artifacts
+2. Skill runs absorbed stage-detection logic to infer stage from artifacts
 3. If stage cannot be inferred: outputs the full workflow overview from
    Concept through Release as a reference map
 4. Primary suggestion is `/start` to begin configuration
@@ -103,7 +103,7 @@ None. `/help` is a read-only navigation skill. No director gates apply.
 **Assertions:**
 - [ ] Skill does not crash when stage.txt is absent
 - [ ] Full workflow overview is shown when stage cannot be determined
-- [ ] `/start` or `/project-stage-detect` is a top suggestion
+- [ ] `/start` or `/help` stage-detection guidance is a top suggestion
 - [ ] Verdict is HELP COMPLETE
 
 ---
@@ -118,8 +118,8 @@ None. `/help` is a read-only navigation skill. No director gates apply.
 
 **Expected behavior:**
 1. Skill reads context query: "testing"
-2. Skill surfaces skills relevant to testing: `/qa-plan`, `/smoke-check`,
-   `/regression-suite`, `/test-setup`, `/test-evidence-review`
+2. Skill surfaces core skills relevant to testing: `/smoke-check`,
+   `/story-done`, `/setup-engine`, and `/bug-report` when defects are involved
 3. Output is focused on testing workflow, not general sprint navigation
 4. Currently in-review story is highlighted as a testing candidate
 
@@ -168,8 +168,8 @@ None. `/help` is a read-only navigation skill. No director gates apply.
 4. Output lists `Z-platform` because its lane file exists.
 5. Output does not claim A/B/C/D are registered when their lane files are missing.
 6. Output always includes the window command block:
-   - `/window-start-ccgs <lane-id>`
-   - `/window-handoff-ccgs <lane-id>`
+   - `/window-ccgs <lane-id>`
+   - `/window-ccgs update <lane-id>`
 
 **Assertions:**
 - [ ] Registered windows are based on actual lane files, not a fixed A/B/C/D/Z list.
@@ -192,7 +192,7 @@ None. `/help` is a read-only navigation skill. No director gates apply.
 1. Skill scans registered lane files.
 2. Skill extracts paths from each lane's `Active Files`.
 3. Output includes a `File conflicts` block.
-4. Output recommends `/window-handoff-ccgs audit` before continuing edits.
+4. Output recommends `/window-ccgs audit` before continuing edits.
 5. No files are written.
 
 **Assertions:**
@@ -216,13 +216,38 @@ None. `/help` is a read-only navigation skill. No director gates apply.
 2. Skill recommends the relevant Skill for the work.
 3. Skill outputs `Parallel routing`.
 4. Skill recommends `Z-platform` because the task is CCGS bottom-layer work.
-5. Skill includes `/window-handoff-ccgs Z` or `/window-start-ccgs Z` depending on lane state.
+5. Skill includes `/window-ccgs Z` or `/window-ccgs update Z` depending on lane state.
 
 **Assertions:**
 - [ ] `/help` does not only recommend a Skill; it also recommends a lane.
 - [ ] Registered lane is used when available.
-- [ ] Missing lane results in `/window-start-ccgs <lane-id>` guidance.
+- [ ] Missing lane results in `/window-ccgs <lane-id>` guidance.
 - [ ] Cross-lane tasks are routed to A-producer or a custom coordinating lane before implementation.
+
+---
+
+### Case 9: Checkpoint Readiness — 建议提交但不提交
+
+**Fixture:**
+- `production/session-state/windows/Z-platform.md` exists.
+- `git status --short` shows changes under `.agents/skills/`, `.codex/docs/`,
+  `.githooks/`, and `production/session-state/windows/Z-platform.md`.
+- The user asks: "现在可以提交了吗？"
+
+**Input:** `/help 可以提交了吗`
+
+**Expected behavior:**
+1. Skill reads `.codex/docs/git-checkpoint-workflow.md`.
+2. Skill reads registered lane files and checks for file conflicts.
+3. Output includes a `Checkpoint / 提交检查点` block.
+4. Output recommends `/window-ccgs checkpoint Z-platform`.
+5. Output explains that `/help` is read-only and does not stage or commit.
+
+**Assertions:**
+- [ ] Checkpoint recommendation is tied to a lane.
+- [ ] If dirty files span multiple owner domains, `/help` recommends
+  `/window-ccgs audit` or A-producer scope split first.
+- [ ] No files are written and no git command mutates the repository.
 
 ---
 
@@ -233,6 +258,7 @@ None. `/help` is a read-only navigation skill. No director gates apply.
 - [ ] Always displays `Registered Windows` and `Window commands`
 - [ ] Displays file conflicts when multiple lanes list the same Active File
 - [ ] Displays parallel routing with a recommended lane and window command
+- [ ] Displays checkpoint readiness when the worktree has a clear rollback-sized unit
 - [ ] Suggestions are specific to the current project state (not generic)
 - [ ] Context query (if provided) narrows the suggestion set
 - [ ] Does not write any files
@@ -246,5 +272,6 @@ None. `/help` is a read-only navigation skill. No director gates apply.
   separately tested; the skill would suggest `/sprint-plan` for the next sprint.
 - The `/help` skill does not validate whether suggested skills are available —
   it assumes standard skill catalog availability.
-- Stage detection fallback (when stage.txt is absent) delegates to the same
-  logic as `/project-stage-detect` and is not re-tested here in detail.
+- Stage detection fallback (when stage.txt is absent) uses the absorbed
+  project-stage-detect behavior and is not re-tested here in detail.
+

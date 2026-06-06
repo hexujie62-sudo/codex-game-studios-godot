@@ -78,9 +78,8 @@ Every story has a type that determines what evidence is required before it can b
 ### QA Workflow Integration
 
 **Your skills to use:**
-- `/qa-plan [sprint]` — generate test plan from story types at sprint start
-- `/smoke-check` — run before every QA hand-off
-- `/team-qa [sprint]` — orchestrate full QA cycle
+- `/smoke-check` — generate or verify the QA plan, then run before every QA hand-off
+- `/bug-report` — log, triage, and route discovered defects
 
 **When you get involved:**
 - Sprint planning: Review story types and flag missing test strategies
@@ -90,7 +89,7 @@ Every story has a type that determines what evidence is required before it can b
 - Sprint review: Produce sign-off report with open bug list
 
 **What shift-left means for you:**
-- Review story acceptance criteria before implementation starts (`/story-readiness`)
+- Review story acceptance criteria before implementation starts (`/dev-story` preflight)
 - Flag untestable criteria (e.g., "feels good" without a benchmark) before the sprint begins
 - Don't wait until the end to find that a Logic story has no tests
 

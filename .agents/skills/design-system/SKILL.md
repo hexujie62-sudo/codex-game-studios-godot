@@ -1,22 +1,89 @@
 ---
 name: design-system
-description: "针对单个游戏系统的引导式、逐章节 GDD 编写。从现有文档收集上下文，协作式遍历每个必需章节，交叉引用依赖关系，并增量写入文件。"
-argument-hint: "<system-name> [--review full|lean|solo]"
+description: "Godot 项目的系统设计/GDD 主入口。负责系统索引、完整 GDD、轻量设计补丁、设计审查、跨 GDD 一致性、平衡和设计变更影响。"
+argument-hint: "[system name | review/retrofit/current change]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Task, AskUserQuestion, TodoWrite
 model: sonnet
 ---
 
+# Design System
+
+## Absorbed Responsibilities
+
+This is now the single design/GDD entrypoint. It also covers the former
+`map-systems`, `quick-design`, `design-review`, `review-all-gdds`,
+`consistency-check`, `balance-check`, and `propagate-design-change` routes.
+
+Use the smallest mode that fits:
+
+- No systems index: create or update `design/gdd/systems-index.md` first.
+- Small tuning/change: produce a compact design patch instead of a full GDD.
+- Review request: run the relevant checklist inside this Skill and return
+  APPROVED / CONCERNS / NEEDS WORK.
+- Cross-document concern: scan only the affected GDD sections before reading
+  whole files.
+
+Preserved CCGS value:
+
+- Systems index output: `design/gdd/systems-index.md`.
+- System GDD output: `design/gdd/[system-name].md`.
+- Quick design output: `design/quick-specs/[name]-[date].md`.
+- Review log output: `design/gdd/reviews/[doc-name]-review-log.md`.
+- Change impact output, when architecture/stories may be stale:
+  `docs/architecture/change-impact-[date]-[system-slug].md`.
+- GDD status values should stay machine-readable: `Not Started`, `Designed`,
+  `In Review`, `Approved`, `Needs Revision`.
+- Review verdicts: `APPROVED`, `NEEDS REVISION`, `MAJOR REVISION NEEDED`.
+- Cross-GDD concerns to preserve: broken dependencies, duplicate entities with
+  conflicting attributes, formula variable mismatch, unresolved tuning ranges,
+  dominant strategies, economy/progression cliffs, and pillar drift.
+- Balance checks must read actual data/formulas/config before judging; do not
+  invent balance findings from taste.
+- If this same session authored the GDD, do not self-approve it. Record
+  `Designed` and route a later/fresh review pass through this same core Skill.
+
+## Reference Loading Rules
+
+Do not read `.agents/skills-archive/` during normal use. Old design Skill
+contents have been extracted into direct references:
+
+- For systems index creation, quick design patches, and design-change impact:
+  read `references/system-index-patch-impact.md`.
+- For single-GDD review, cross-GDD review, consistency registry checks, and
+  balance checks: read `references/review-consistency-balance.md`.
+- For checking what was absorbed during future governance work: read
+  `references/absorption-map.md`.
+
+Load only the reference matching the user's request. Full GDD authoring can run
+from this SKILL.md alone once `design/gdd/systems-index.md` exists and the target
+system is known.
+
 When this skill is invoked:
 
 ## 1. Parse Arguments & Validate
 
-Resolve the review mode (once, store for all gate spawns this run):
-1. If `--review [full|lean|solo]` was passed → use that
-2. Else read `production/review-mode.txt` → use that value
-3. Else → default to `lean`
+Do not parse review mode arguments and do not read or create
+`production/review-mode.txt`. Use the fixed review standard: internal checks
+here, fresh-session review through this Skill when needed, and phase-gate
+director review only in `/gate-check`.
 
-See `.codex/docs/director-gates.md` for the full check pattern.
+Mode routing:
+
+- No argument and no `design/gdd/systems-index.md`: read
+  `references/system-index-patch-impact.md` and run the Systems Index Flow.
+- Argument includes `map`, `systems`, `index`, or `next`: read
+  `references/system-index-patch-impact.md`.
+- Argument includes `quick`, `patch`, `tuning`, or `small`: read
+  `references/system-index-patch-impact.md` and use the Quick Design Patch Flow.
+- Argument includes `review`, `audit`, an existing `design/gdd/*.md` path, or
+  `current`: read `references/review-consistency-balance.md` and use the
+  relevant review flow before or instead of authoring.
+- Argument includes `all`, `cross`, `consistency`, `registry`, `balance`, or
+  `formula`: read `references/review-consistency-balance.md`.
+- Argument includes `change`, `impact`, `propagate`, `stale`, or `ADR`: read
+  `references/system-index-patch-impact.md` and use the Design Change Impact
+  Flow.
 
 A system name or retrofit path is **required**. If missing:
 
@@ -25,10 +92,10 @@ A system name or retrofit path is **required**. If missing:
    - Prompt: "The next system in your design order is **[system-name]** ([priority] | [layer]). Start designing it?"
    - Options: `[A] Yes — design [system-name]` / `[B] Pick a different system` / `[C] Stop here`
    - If [A]: proceed with that system name. If [B]: ask which system to design (plain text). If [C]: exit.
-3. If no systems index exists, fail with:
-   > "Usage: `/design-system <system-name>` — e.g., `/design-system movement`
-   > Or to fill gaps in an existing GDD: `/design-system retrofit design/gdd/[system-name].md`
-   > No systems index found. Run `/map-systems` first to map your systems and get the design order."
+3. If no systems index exists, run the Systems Index Flow from
+   `references/system-index-patch-impact.md` instead of failing. Ask before
+   writing `design/gdd/systems-index.md`, then offer the first system from the
+   resulting design order.
 
 **Detect retrofit mode:**
 If the argument starts with `retrofit` or the argument is a file path to an
@@ -76,7 +143,7 @@ primary advantage over ad-hoc design — it arrives informed.
 - **Game concept**: Read `design/gdd/game-concept.md` — fail if missing:
   > "No game concept found. Run `/brainstorm` first."
 - **Systems index**: Read `design/gdd/systems-index.md` — fail if missing:
-  > "No systems index found. Run `/map-systems` first to map your systems."
+  > "No systems index found. Run `/design-system` first to map your systems."
 - **Target system**: Find the system in the index. If not listed, warn:
   > "[system-name] is not in the systems index. Would you like to add it, or
   > design it as an off-index system?"
@@ -394,7 +461,7 @@ describes it. Flag discrepancies.
 level — what the system *does*, not *how it is built*. If implementation questions
 arise during the Overview (e.g., "Should this use an Autoload singleton or a signal
 bus?"), note them as "→ becomes an ADR" and move on. Implementation patterns belong
-in `/architecture-decision`, not the GDD. The GDD describes behavior; the ADR
+in `/create-architecture`, not the GDD. The GDD describes behavior; the ADR
 describes the technical approach used to achieve it.
 
 ---
@@ -424,10 +491,9 @@ Use the answer to frame the Player Fantasy section appropriately. Do NOT assume 
 **Cross-reference**: Must align with the game pillars. If the system serves a pillar,
 quote the relevant pillar text.
 
-**Review mode check** (apply before spawning):
-- `solo` → skip this agent spawn. Draft the section without the specialist. Add a note: "`creative-director` not consulted — Solo mode. Review manually before production."
-- `lean` → skip unless this is a section with HIGH implementation risk (Sections D and H only). For other sections, draft without the agent.
-- `full` → spawn as described below.
+**Specialist policy**: spawn the specialist only for HIGH implementation risk
+in Sections D and H. For other sections, draft without the agent and note the
+reason in the section draft.
 
 **Agent delegation (MANDATORY)**: After the framing answer is given but before drafting,
 spawn `creative-director` via Task:
@@ -459,10 +525,9 @@ This is usually the largest section. Break it into sub-sections:
 - What are the decision points the player faces?
 - What can the player NOT do? (Constraints are as important as capabilities)
 
-**Review mode check** (apply before spawning):
-- `solo` → skip this agent spawn. Draft the section without the specialist. Add a note: "Specialist agents not consulted — Solo mode. Review manually before production."
-- `lean` → skip unless this is a section with HIGH implementation risk (Sections D and H only). For other sections, draft without the agent.
-- `full` → spawn as described below.
+**Specialist policy**: spawn the specialist only for HIGH implementation risk
+in Sections D and H. For other sections, draft without the agent and note the
+reason in the section draft.
 
 **Agent delegation (MANDATORY)**: Before drafting Section C, spawn specialist agents via Task in parallel:
 - Look up the system category in the routing table (Section 6 of this skill)
@@ -509,10 +574,9 @@ table. A formula without defined variables cannot be implemented without guesswo
 - Should scaling be linear, logarithmic, or stepped?
 - What should the output ranges be at early/mid/late game?
 
-**Review mode check** (apply before spawning):
-- `solo` → skip this agent spawn. Draft the section without the specialist. Add a note: "`systems-designer` not consulted — Solo mode. Review manually before production."
-- `lean` → skip unless this is a section with HIGH implementation risk (Sections D and H only). For other sections, draft without the agent.
-- `full` → spawn as described below.
+**Specialist policy**: spawn the specialist only for HIGH implementation risk
+in Sections D and H. For other sections, draft without the agent and note the
+reason in the section draft.
 
 **Agent delegation (MANDATORY)**: Before proposing any formulas or balance values, spawn specialist agents via Task in parallel:
 - **Always spawn `systems-designer`**: provide Core Rules from Section C, tuning goals from user, balance context from dependency GDDs. Ask them to propose formulas with variable tables and output ranges.
@@ -546,10 +610,9 @@ design question, not a specification.
 - What happens when two rules apply at the same time?
 - What happens if a player finds an unintended interaction? (Identify degenerate strategies)
 
-**Review mode check** (apply before spawning):
-- `solo` → skip this agent spawn. Draft the section without the specialist. Add a note: "`systems-designer` not consulted — Solo mode. Review manually before production."
-- `lean` → skip unless this is a section with HIGH implementation risk (Sections D and H only). For other sections, draft without the agent.
-- `full` → spawn as described below.
+**Specialist policy**: spawn the specialist only for HIGH implementation risk
+in Sections D and H. For other sections, draft without the agent and note the
+reason in the section draft.
 
 **Agent delegation (MANDATORY)**: Spawn `systems-designer` via Task before finalising edge cases. Provide: the completed Sections C and D, and ask them to identify edge cases from the formula and rule space that the main session may have missed. For narrative systems, also spawn `narrative-director`. Present their findings and ask the user which to include.
 
@@ -607,10 +670,9 @@ Include at least: one criterion per core rule from Section C, and one per formul
 from Section D. Do NOT write "the system works as designed" — every criterion must
 be independently verifiable by a QA tester without reading the GDD.
 
-**Review mode check** (apply before spawning):
-- `solo` → skip this agent spawn. Draft the section without the specialist. Add a note: "`qa-lead` not consulted — Solo mode. Review manually before production."
-- `lean` → skip unless this is a section with HIGH implementation risk (Sections D and H only). For other sections, draft without the agent.
-- `full` → spawn as described below.
+**Specialist policy**: spawn the specialist only for HIGH implementation risk
+in Sections D and H. For other sections, draft without the agent and note the
+reason in the section draft.
 
 **Agent delegation (MANDATORY)**: Spawn `qa-lead` via Task before finalising acceptance criteria. Provide: the completed GDD sections C, D, E, and ask them to validate that the criteria are independently testable and cover all core rules and formulas. Surface any gaps or untestable criteria to the user.
 
@@ -649,7 +711,7 @@ Use `AskUserQuestion`:
 For **Visual/Audio** (non-required systems): Coordinate with `art-director` and `audio-director` if detail is needed. Often a brief note suffices at the GDD stage.
 
 > **Asset Spec Flag**: After the Visual/Audio section is written with real content, output this notice:
-> "📌 **Asset Spec** — Visual/Audio requirements are defined. After the art bible is approved, run `/asset-spec system:[system-name]` to produce per-asset visual descriptions, dimensions, and generation prompts from this section."
+> "📌 **Asset Spec** — Visual/Audio requirements are defined. After the art bible is approved, run `/art-bible system:[system-name]` to produce per-asset visual descriptions, dimensions, and generation prompts from this section."
 
 For **UI Requirements**: Coordinate with `ux-designer` for complex UI systems.
 After writing this section, check whether it contains real content (not just
@@ -657,7 +719,7 @@ After writing this section, check whether it contains real content (not just
 UI requirements, output this flag immediately:
 
 > **📌 UX Flag — [System Name]**: This system has UI requirements. In Phase 4
-> (Pre-Production), run `/ux-design` to create a UX spec for each screen or
+> (Pre-Production), run `/art-bible` to create a UX spec for each screen or
 > HUD element this system contributes to **before** writing epics. Stories that
 > reference UI should cite `design/ux/[screen].md`, not the GDD directly.
 >
@@ -684,17 +746,22 @@ the source of truth). Verify:
 
 ### 5a-bis: Creative Director Pillar Review
 
-**Review mode check** — apply before spawning CD-GDD-ALIGN:
-- `solo` → skip. Note: "CD-GDD-ALIGN skipped — Solo mode." Proceed to Step 5b.
-- `lean` → skip (not a PHASE-GATE). Note: "CD-GDD-ALIGN skipped — Lean mode." Proceed to Step 5b.
-- `full` → spawn as normal.
+`CD-GDD-ALIGN` is not invoked as a separate gate. Do not spawn the creative
+director here; run the internal GDD alignment checklist below and proceed to
+Step 5b.
 
-Before finalizing the GDD, spawn `creative-director` via Task using gate **CD-GDD-ALIGN** (`.codex/docs/director-gates.md`).
+Run an internal GDD alignment checklist instead:
 
-Pass: completed GDD file path, game pillars (from `design/gdd/game-concept.md` or `design/gdd/game-pillars.md`), MDA aesthetics target.
+- Each section supports at least one pillar or explicitly explains why it is
+  infrastructure.
+- Player fantasy and acceptance criteria are not contradicted by formulas or
+  dependencies.
+- New entity/item/formula facts are registered or listed as candidates.
+- Any conflict with upstream GDDs is surfaced before status updates.
 
-Handle verdict per the standard rules in `director-gates.md`. After resolution, record the verdict in the GDD Status header:
-`> **Creative Director Review (CD-GDD-ALIGN)**: APPROVED [date] / CONCERNS (accepted) [date] / REVISED [date]`
+If concerns remain, keep status `Designed` or `Needs Revision`; do not mark the
+GDD approved in the same authoring session. Record:
+`> **GDD Alignment Check**: COMPLETE [date] / CONCERNS [date] / REVISED [date]`
 
 ---
 
@@ -738,13 +805,13 @@ Present a completion summary:
 > - Cross-system conflicts found: [list or "none"]
 
 > **To validate this GDD, open a fresh Codex session and run:**
-> `/design-review design/gdd/[system-name].md`
+> `/design-system design/gdd/[system-name].md`
 >
-> **Never run `/design-review` in the same session as `/design-system`.** The reviewing
+> **Never run `/design-system` in the same session as `/design-system`.** The reviewing
 > agent must be independent of the authoring context. Running it here would inherit
 > the full design history, making independent critique impossible.
 
-**NEVER offer to run `/design-review` inline.** Always direct the user to a fresh window.
+**NEVER offer to run `/design-system` inline.** Always direct the user to a fresh window.
 
 ### 5d: Update Systems Index
 
@@ -752,9 +819,9 @@ After the GDD is complete (and optionally reviewed):
 
 - Read the systems index
 - Update the target system's row:
-  - If design-review was run and verdict is APPROVED: Status → "Approved"
-  - If design-review was run and verdict is NEEDS REVISION: Status → "In Review"
-  - If design-review was skipped: Status → "Designed" (pending review)
+  - If the fresh review flow was run and verdict is APPROVED: Status → "Approved"
+  - If the fresh review flow was run and verdict is NEEDS REVISION: Status → "In Review"
+  - If review was not requested or this same session authored the GDD: Status → "Designed" (pending review)
   - If the user chose "I'll review it myself first": Status → "Designed"
   - Design Doc: link to `design/gdd/[system-name].md`
 - Update the Progress Tracker counts
@@ -765,7 +832,7 @@ Ask: "May I update the systems index at `design/gdd/systems-index.md`?"
 
 Update `production/session-state/active.md` with:
 - Task: [system-name] GDD
-- Status: Complete (or In Review if design-review was run)
+- Status: Complete (or In Review if the fresh review flow was run)
 - File: design/gdd/[system-name].md
 - Sections: All 8 written
 - Next: [suggest next system from design order]
@@ -775,9 +842,9 @@ Update `production/session-state/active.md` with:
 Use `AskUserQuestion`:
 - "What's next?"
   - Options:
-    - "Run `/consistency-check` — verify this GDD's values don't conflict with existing GDDs (recommended before designing the next system)"
+    - "Run `/design-system` — verify this GDD's values don't conflict with existing GDDs (recommended before designing the next system)"
     - "Design next system ([next-in-order])" — if undesigned systems remain
-    - "Fix review findings" — if design-review flagged issues
+    - "Fix review findings" — if the review flow flagged issues
     - "Stop here for this session"
     - "Run `/gate-check`" — if enough MVP systems are designed
 
@@ -865,7 +932,9 @@ shows context at or above 70%. If so, append this notice to the response:
 
 ## Recommended Next Steps
 
-- Run `/design-review design/gdd/[system-name].md` in a **fresh session** to validate the completed GDD independently
-- Run `/consistency-check` to verify this GDD's values don't conflict with other GDDs
-- Run `/map-systems next` to move to the next highest-priority undesigned system
+- Run `/design-system design/gdd/[system-name].md` in a **fresh session** to validate the completed GDD independently
+- Run `/design-system` to verify this GDD's values don't conflict with other GDDs
+- Run `/design-system next` to move to the next highest-priority undesigned system
 - Run `/gate-check pre-production` when all MVP GDDs are authored and reviewed
+
+

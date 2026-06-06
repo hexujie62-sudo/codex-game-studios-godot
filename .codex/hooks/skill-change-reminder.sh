@@ -27,7 +27,7 @@ mkdir -p "$(dirname "$REMINDERS")" 2>/dev/null
 {
   echo "## Skill 修改提醒 — $(date)"
   while IFS= read -r skill; do
-    [ -n "$skill" ] && echo "- 已修改 Skill: $skill；建议运行 /skill-test static $skill，并在批量修改后运行 /skill-test audit。"
+    [ -n "$skill" ] && echo "- 已修改 Skill: $skill；建议使用 /skill-create-ccgs 进行内部验证、路由审计和必要修复。"
   done <<< "$SKILLS"
   echo ""
 } >> "$REMINDERS"
@@ -35,9 +35,9 @@ mkdir -p "$(dirname "$REMINDERS")" 2>/dev/null
 {
   echo "检测到 Skill 文件变更："
   while IFS= read -r skill; do
-    [ -n "$skill" ] && echo "- $skill：建议运行 /skill-test static $skill"
+    [ -n "$skill" ] && echo "- $skill：建议使用 /skill-create-ccgs 做内部验证和动线接入审计"
   done <<< "$SKILLS"
-  echo "批量修改后建议运行 /skill-test audit。提醒已写入 $REMINDERS。"
+  echo "批量修改后建议使用 /skill-create-ccgs 做 route/catalog/workflow insertion 审计。提醒已写入 $REMINDERS。"
 } | emit_system_message
 
 exit 0

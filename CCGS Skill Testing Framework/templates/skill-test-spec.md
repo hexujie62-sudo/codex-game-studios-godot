@@ -24,12 +24,11 @@ These should pass before any behavioral testing:
 
 ## Director Gate Checks
 
-[Describe which director gates this skill triggers (if any), and under what review mode conditions.]
+[Describe whether this skill references director gates under the fixed Lean policy.]
 
-- **Full mode**: [gates triggered — e.g., CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE, AD-PHASE-GATE]
-- **Lean mode**: [phase gates only — e.g., CD-PHASE-GATE only, or none]
-- **Solo mode**: [no gates — skill runs without director review]
-- **N/A**: [if this skill never triggers gates, explain why]
+- **Phase gates**: [only `/gate-check` should spawn CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE, AD-PHASE-GATE]
+- **Inline gates**: [skipped by default with "skipped — Lean policy", or replaced by internal checks]
+- **N/A**: [if this skill never references gates, explain why]
 
 ---
 
@@ -74,17 +73,17 @@ These should pass before any behavioral testing:
 
 ---
 
-### Case 3: Mode Variant — [brief name]
+### Case 3: Policy Variant — [brief name]
 
 **Fixture**:
 - [standard project state]
-- [specific mode or flag set]
+- [condition affected by fixed Lean policy]
 
 **Expected behavior**:
-1. [Behavior differs from happy path because of mode]
+1. [Behavior differs from happy path because of the policy condition]
 
 **Assertions**:
-- [ ] [Mode-specific assertion]
+- [ ] [Policy-specific assertion]
 - [ ] [Output differs correctly from Case 1]
 
 **Case Verdict**: PASS / FAIL / PARTIAL
@@ -111,16 +110,15 @@ These should pass before any behavioral testing:
 
 **Fixture**:
 - [project state that triggers a gate check]
-- Review mode: [full | lean | solo]
+- Fixed Lean policy is active
 
 **Expected behavior**:
-1. [Gate fires / does not fire based on mode]
+1. [Gate fires only if it is a phase gate inside `/gate-check`; otherwise it is skipped]
 2. [Correct director agents spawned or skipped]
 
 **Assertions**:
-- [ ] In full mode: [specific gates spawn]
-- [ ] In lean mode: [phase gates only, or skip]
-- [ ] In solo mode: no director gates spawn
+- [ ] `/gate-check` spawns all four phase-gate directors when applicable
+- [ ] Non-phase gates are skipped by default with a Lean policy note
 - [ ] Skill does not auto-advance past a CONCERNS or FAIL verdict
 
 **Case Verdict**: PASS / FAIL / PARTIAL

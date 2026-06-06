@@ -19,7 +19,7 @@ No director gates apply. The skill does NOT invoke any director agents.
 
 ## Static Assertions (Structural)
 
-Verified automatically by `/skill-test static` — no fixture needed.
+Verified automatically by `/skill-create-ccgs` internal static check — no fixture needed.
 
 - [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
 - [ ] Has ≥2 phase headings
@@ -191,3 +191,4 @@ None. `/smoke-check` is a pre-QA utility skill. No director gates apply.
   per-platform verdict table; not separately tested here.
 - The case where the engine binary is not on PATH (NOT RUN) follows the PASS WITH
   WARNINGS pattern and is covered by the protocol compliance assertions above.
+

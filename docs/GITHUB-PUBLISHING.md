@@ -355,7 +355,7 @@ This release includes:
 
 - Codex-first CCGS workflow conversion
 - Godot-focused technical defaults
-- 76 Skills and 49 agent definitions
+- 17 core Skills and 49 agent definitions
 - Lightweight Codex Hooks and Git hooks
 - Multi-window lane workflow
 - File-backed session state and handoff guidance
