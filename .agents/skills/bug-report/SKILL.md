@@ -163,11 +163,16 @@ After closing, check `production/qa/bug-report-*.md` — if the bug appears in a
 
 Present the completed bug report(s) to the user.
 
-Ask: "May I write this to `production/qa/bugs/BUG-[NNNN].md`?"
+For Description Mode and Analyze Mode, writing the bug report is the routine
+outcome of invoking `/bug-report`. Write the report directly to
+`production/qa/bugs/BUG-[NNNN].md`, creating the directory if needed. Do not ask
+a second "May I write..." confirmation for a new report.
 
-If yes, write the file, creating the directory if needed. Verdict: **COMPLETE** — bug report filed.
+Keep explicit confirmation for modifying an existing bug file, including
+duplicate-link updates, Verify Mode status updates, and Close Mode closure
+records.
 
-If no, stop here. Verdict: **BLOCKED** — user declined write.
+Verdict: **COMPLETE** — bug report filed.
 
 ---
 

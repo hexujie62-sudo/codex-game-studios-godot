@@ -5,8 +5,10 @@
 `/setup-engine` is the Godot-only technical setup entrypoint. It resolves the
 pinned Godot version, GDScript baseline, local console executable, engine
 reference, runtime check status, and minimal test foundation. It produces one
-Godot setup package and asks for one approval before writing all low-risk setup
-files in that package.
+routine Godot setup scope. Invoking `/setup-engine` is treated as the user's
+request to complete normal low-risk setup, so the Skill writes routine setup
+files directly and asks again only for missing required facts or work outside
+routine setup.
 
 The skill does not offer Unity or Unreal configuration in this fork.
 
@@ -18,7 +20,9 @@ The skill does not offer Unity or Unreal configuration in this fork.
   `user-invocable`, `allowed-tools`
 - [ ] Has at least two phase headings
 - [ ] Contains verdict keywords: `COMPLETE`, `CONCERNS`, and `BLOCKED`
-- [ ] Contains package-level approval language before writing setup files
+- [ ] Defines the routine setup execution boundary
+- [ ] Does not require a second write approval for normal setup files after the
+  user invokes `/setup-engine`
 - [ ] Describes Godot-only behavior and rejects multi-engine setup
 - [ ] Has a next-step handoff such as `/brainstorm`, `/design-system`,
   `/create-architecture`, or `/smoke-check`
@@ -27,7 +31,7 @@ The skill does not offer Unity or Unreal configuration in this fork.
 
 ## Test Cases
 
-### Case 1: Godot Setup Package
+### Case 1: Godot Setup Executes Without Low-Value Reconfirmation
 
 **Fixture:**
 
@@ -42,11 +46,12 @@ The skill does not offer Unity or Unreal configuration in this fork.
 
 1. Skill resolves Godot version from argument, `AGENTS.md`, technical
    preferences, or engine reference.
-2. Skill prepares one setup package covering technical preferences, engine
+2. Skill prepares the routine setup scope covering technical preferences, engine
    reference, test foundation, runtime check status, and concerns.
-3. Skill asks once to approve the package and planned writes.
-4. After approval, Skill writes all low-risk setup files in the package without
-   repeated per-file confirmations.
+3. Skill writes low-risk setup files directly because the user invoked
+   `/setup-engine`.
+4. Skill does not ask `May I update...` or require a second write approval for
+   routine setup files.
 5. Skill returns `COMPLETE` or `CONCERNS` depending on whether `project.godot`
    and console validation are available.
 
@@ -57,7 +62,7 @@ The skill does not offer Unity or Unreal configuration in this fork.
 - [ ] Godot command is recorded if known.
 - [ ] `tests/unit/`, `tests/integration/`, `tests/helpers/`, and `tests/README.md`
   are included when missing.
-- [ ] Approval is package-level, not one prompt per file.
+- [ ] No low-value setup confirmation is requested after `/setup-engine`.
 - [ ] Verdict is `COMPLETE` or `CONCERNS`.
 
 ---
@@ -86,7 +91,39 @@ The skill does not offer Unity or Unreal configuration in this fork.
 
 ---
 
-### Case 3: Multi-Engine Request
+### Case 3: Missing Console Path Is Asked Once Then Setup Continues
+
+**Fixture:**
+
+- Godot version is known.
+- `project.godot` may be missing or present.
+- Local Godot console executable is not discoverable from project docs.
+
+**Input:** `/setup-engine`
+
+**Expected behavior:**
+
+1. Skill may ask one short question for the local Godot console path if it is
+   needed for validation or accurate technical preferences.
+2. The question states that after the user provides the path, Skill will finish
+   routine setup.
+3. When the user provides the path, Skill records it, writes the routine setup
+   files, runs any safe read-only validation that can now run, and reports the
+   result.
+4. Skill does not ask a second `May I update...` confirmation after the path is
+   provided.
+
+**Assertions:**
+
+- [ ] Missing required setup facts are gathered once, not via repeated approval
+      loops.
+- [ ] The user's path answer is treated as enough to continue routine setup.
+- [ ] Runtime validation is skipped only when still blocked by `project.godot` or
+      missing executable.
+
+---
+
+### Case 4: Multi-Engine Request
 
 **Fixture:**
 
@@ -110,10 +147,10 @@ The skill does not offer Unity or Unreal configuration in this fork.
 
 ## Protocol Compliance
 
-- [ ] Presents the full Godot setup package before asking for approval.
-- [ ] Uses one approval for all low-risk setup writes inside the approved package.
+- [ ] Treats `/setup-engine` invocation as execution intent for routine low-risk
+  Godot setup.
+- [ ] Asks again only for missing required facts or work outside routine setup.
 - [ ] Runs read-only validation without extra approval when `project.godot` and
   Godot console are available.
 - [ ] Does not recommend old multi-engine commands.
 - [ ] Ends with a concise setup summary and next step.
-

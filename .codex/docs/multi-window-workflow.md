@@ -39,12 +39,13 @@ production/session-state/windows/*.md
 项目可以按当前工作流创建自定义 lane，例如 `systems-design`、`prototype-v3-dev`、
 `ui-pass`、`case-main`。
 
-`/help` 必须常驻展示当前已注册窗口，并常驻展示新建/恢复和更新窗口的命令：
+`/help` 必须常驻展示当前已注册窗口，并常驻展示新建/恢复/接手窗口的命令：
 
 ```text
 Window commands:
 - Start/create/recover: `/window-ccgs <lane-id>`
-- Update/handoff: `/window-ccgs update <lane-id>`
+- Lane state refresh: Codex handles this automatically when taking over,
+  finishing a meaningful unit, or switching windows.
 ```
 
 第一个窗口通常不需要用户手动创建。新项目第一次运行 `/start` 时，如果没有任何
@@ -59,7 +60,7 @@ lane，`/start` 会先引导创建最小 `A-producer`，再继续原本的 CCGS 
 | B-dev | 开发、测试、代码实现、故事推进 | `src/`、`tests/`、`production/epics/**` | `/dev-story`、`/code-review`、`/story-done` |
 | C-art | 美术、资源、视觉规格、资源审计 | `design/art/`、`design/assets/`、`assets/` | `/art-bible` |
 | D-qa | QA、缺陷、回归、测试证据 | `production/qa/`、`tests/`、test evidence | `/smoke-check`、`/story-done` |
-| Z-platform | 框架适配、Skill、Hook、路由、文档、工具链 | `.agents/skills/`、`.codex/`、`.githooks/`、`docs/ccgs-*` | `/window-ccgs Z`、`/window-ccgs update Z`、`/skill-create-ccgs` |
+| Z-platform | 框架适配、Skill、Hook、路由、文档、工具链 | `.agents/skills/`、`.codex/`、`.githooks/`、`docs/ccgs-*` | `/window-ccgs Z`、`/skill-create-ccgs` |
 
 当前这个 Codex 窗口默认登记为 `Z-platform`：负责把框架改得更好用、更符合当前用户、项目和团队习惯；不直接推进游戏设计、美术生产或玩法代码，除非用户明确切换职责。
 
@@ -97,7 +98,7 @@ Codex 多窗口后，动线变成：
 /help -> 当前阶段 + 当前问题类型 + Registered Windows
       -> 推荐 Skill + 推荐 lane
       -> 产物
-      -> /window-ccgs update <lane-id>
+      -> Codex refreshes lane state
       -> /window-ccgs audit
       -> review/gate
 ```
@@ -125,7 +126,7 @@ Codex 多窗口后，动线变成：
 - 下一步 Skill。
 - 建议在哪个 lane 做。
 - 如果 lane 不存在，给出 `/window-ccgs <lane-id>`。
-- 如果 lane 已存在，给出 `/window-ccgs update <lane-id>` 更新命令。
+- 如果 lane 已存在，给出 `/window-ccgs <lane-id>` 接手命令；状态更新由 Codex 在接手和阶段性完成时自行写回。
 
 ## 文件结构
 
@@ -294,7 +295,7 @@ A/B/C/D/Z 的默认职责。
 3. 每个窗口只修改自己拥有的路径。
 4. 如果需要跨窗口输入，在自己的 lane 文件写入 `Blockers / Needs From Other Windows`。
 5. A-producer 汇总 blocker，决定谁先处理。
-6. 每个窗口完成一个小阶段后运行 `/window-ccgs update <lane-id>`。
+6. 每个窗口完成一个小阶段后，Codex 自行刷新当前 lane state。
 7. A-producer 定期把全局变化写回 `active.md`。
 
 ## 什么时候创建新窗口
@@ -324,22 +325,22 @@ A/B/C/D/Z 的默认职责。
 
 不能假设窗口会“自觉一直记得更新”。本体系用三个机制降低风险：
 
-1. **短命令**：更新状态只需要 `/window-ccgs update B`，不需要手写模板。
+1. **自动记录**：接手、阶段性完成、切换窗口和上下文接近上限时，Codex 自行刷新 lane state。
 2. **固定时机**：在明确触发点必须更新。
 3. **可审计**：A-producer 可以运行 `/window-ccgs audit` 检查哪些 lane 缺失、过期或字段不完整。
 
-这不是魔法记忆。窗口如果完全不运行 handoff，文件当然不会更新。可靠性来自流程约束和审计，而不是聊天上下文。
+这不是魔法记忆。可靠性来自 Codex 在固定触发点写回 lane state，以及 A-producer 的审计。
 
 必须更新 lane 的时机：
 
 | 时机 | 命令 | 原因 |
 |---|---|---|
-| 刚启动并确认职责后 | `/window-ccgs update <id>` | 记录本窗口正式接手 |
-| 完成一个阶段性产物 | `/window-ccgs update <id>` | 防止成果只留在聊天里 |
-| 修改了本窗口 owner 路径 | `/window-ccgs update <id>` | 记录 active/changed files |
-| 产生跨窗口 blocker | `/window-ccgs update <id>` | 让 A-producer 能协调 |
-| 准备关窗口或开新窗口 | `/window-ccgs update <id>` | 生成恢复点 |
-| 上下文达到约 60-70% | `/window-ccgs update <id>` | 避免压缩卡死后丢状态 |
+| 刚启动并确认职责后 | Codex 自动刷新 lane state | 记录本窗口正式接手 |
+| 完成一个阶段性产物 | Codex 自动刷新 lane state | 防止成果只留在聊天里 |
+| 修改了本窗口 owner 路径 | Codex 自动刷新 lane state | 记录 active/changed files |
+| 产生跨窗口 blocker | Codex 自动刷新 lane state | 让 A-producer 能协调 |
+| 准备关窗口或开新窗口 | Codex 自动刷新 lane state | 生成恢复点 |
+| 上下文达到约 60-70% | Codex 自动刷新 lane state | 避免压缩卡死后丢状态 |
 | lane 文件超过 300 行 | `/window-ccgs compact <id>` | 控制 MD 长度 |
 | A-producer 检查全局状态 | `/window-ccgs audit` | 查漏、查过期、查 blocker |
 
@@ -379,7 +380,7 @@ lane 文件不是聊天记录，不保存所有过程。它只保存恢复所需
 
 ### Lane 主体与 Handoff
 
-`/window-ccgs update <id>` 不是把整份 lane 替换成一段最新摘要。
+刷新 lane state 不是把整份 lane 替换成一段最新摘要。
 
 lane 文件分两层：
 
@@ -394,7 +395,7 @@ lane 文件分两层：
 - 已经过期的旧 `Handoff` 信息可以丢弃，但更新草稿必须说明原因。
 - `Decisions` 只追加，不覆盖旧决定。
 
-因此，`/window-ccgs update <id>` 的草稿必须先声明：
+因此，Codex 写回 lane state 时必须先在输出中声明：
 
 ```text
 本次更新范围：
@@ -427,11 +428,7 @@ Restart prompt:
 推荐不用手写，直接运行：
 
 ```text
-/window-ccgs update A
-/window-ccgs update B
-/window-ccgs update C
-/window-ccgs update D
-/window-ccgs update Z
+Codex 自动刷新 A/B/C/D/Z 或当前自定义 lane 的 lane state。
 ```
 
 ## 文件冲突规则
@@ -493,7 +490,7 @@ checkpoint。详细规则见 `.codex/docs/git-checkpoint-workflow.md`。
 默认流程：
 
 1. 窗口完成一个阶段性产物。
-2. 运行 `/window-ccgs update <lane-id>` 写回 lane。
+2. Codex 写回当前 lane state。
 3. 运行 `/window-ccgs checkpoint <lane-id>` 生成提交建议。
 4. 只 stage checkpoint plan 中列出的文件。
 5. commit message 使用 Conventional Commits，并在正文写入 `Lane:`、`Scope:`、`Verification:`、`Rollback:`。
@@ -506,7 +503,7 @@ checkpoint。详细规则见 `.codex/docs/git-checkpoint-workflow.md`。
 | 时机 | 建议 |
 |---|---|
 | 写入或删除阶段产物 | 推荐 checkpoint |
-| 更新 lane handoff 后 | 如果本轮有实质改动，推荐 checkpoint |
+| 刷新 lane handoff 后 | 如果本轮有实质改动，推荐 checkpoint |
 | 修改 Skill、Hook、route、workflow、test spec | 推荐 checkpoint，并归属 Z-platform |
 | 完成 Story 实施、review、test evidence、bug triage | 推荐 checkpoint，并归属对应 lane |
 | 准备切换 lane、压缩上下文、开始 research | 先 checkpoint 或明确留下未提交原因 |
@@ -560,7 +557,7 @@ Research 创建前必须检查：
 1. 读取最少必要文件。
 2. 完成一个小产物。
 3. 写入产物文件。
-4. 更新窗口 lane 文件。
+4. Codex 刷新窗口 lane 文件。
 5. 清理上下文或开新窗口继续。
 
 当窗口卡住或压缩失败时：
@@ -613,7 +610,7 @@ lane 文件只应该是恢复索引，不应该变成第二份长文档。
 1. A-producer 读 `active.md` 和所有 lane 文件。
 2. A-producer 给每个窗口分配一个明确目标。
 3. B/C/D/Z 各自推进。
-4. 每个窗口完成后写 handoff。
+4. 每个窗口完成后由 Codex 写 handoff。
 5. 每个窗口运行 `/window-ccgs checkpoint <lane-id>`，决定是否提交本轮 checkpoint。
 6. A-producer 汇总全局状态。
 

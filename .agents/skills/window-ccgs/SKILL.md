@@ -1,7 +1,7 @@
 ---
 name: window-ccgs
-description: "CCGS 多窗口唯一入口。用于启动、恢复、创建、更新、交接、审计、压缩 lane 状态、生成 checkpoint 提交建议，以及创建/合并研究 worktree；支持默认 A/B/C/D/Z，也支持自定义 lane id。"
-argument-hint: "[lane-id|update lane-id|audit|compact lane-id|checkpoint lane-id|research lane-id slug|merge lane-id] [optional summary/objective]"
+description: "CCGS 多窗口唯一入口。用于启动、恢复、创建、登记 lane 状态、审计、压缩、生成 checkpoint 提交建议，以及创建/合并研究 worktree；支持默认 A/B/C/D/Z，也支持自定义 lane id。"
+argument-hint: "[lane-id|audit|compact lane-id|checkpoint lane-id|research lane-id slug|merge lane-id] [optional summary/objective]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Write, Edit
 model: haiku
@@ -18,7 +18,6 @@ model: haiku
 /window-ccgs A                 # 启动、恢复或接手 A lane
 /window-ccgs B                 # 启动、恢复或接手 B lane
 /window-ccgs Z                 # 启动、恢复或接手 Z lane
-/window-ccgs update B          # 更新/交接 B lane
 /window-ccgs checkpoint B      # 生成 checkpoint 提交建议
 /window-ccgs research B ai-nav # 创建研究 worktree 草案/执行
 /window-ccgs merge B           # 研究分支合并 preflight
@@ -27,7 +26,7 @@ model: haiku
 /window-ccgs systems-design    # 启动、恢复或创建自定义 lane
 ```
 
-用户也可以用自然语言，例如“记录一下 B 窗口”“检查窗口冲突”“压缩 Z”“给 Z 做一个 checkpoint”“开一个研究分支”。
+用户也可以用自然语言，例如“接手 B 窗口”“检查窗口冲突”“压缩 Z”“给 Z 做一个 checkpoint”“开一个研究分支”。
 
 ---
 
@@ -37,7 +36,7 @@ Do not read `.agents/skills-archive/` during normal use. Old
 `window-start-ccgs` and `window-handoff-ccgs` behavior has been extracted into
 `references/lane-protocol.md`.
 
-Read that reference only for lane creation/recovery, update/handoff, audit,
+Read that reference only for lane creation/recovery, lane state refresh, audit,
 compact, or when checking registry consistency.
 
 Also read `.codex/docs/git-checkpoint-workflow.md` for checkpoint, research, or
@@ -54,8 +53,10 @@ merge intents.
 - `checkpoint`、`提交建议`、`可以提交`：生成当前 lane 的 checkpoint plan。
 - `research`、`experiment`、`研究分支`：创建研究 branch/worktree。
 - `merge`、`合并研究`：对研究 branch 做 merge preflight，必要时执行 clean-only merge。
-- `update`、`handoff`、`记录`、`交接`：更新指定 lane。
 - 其他内容：视为启动、恢复或创建 lane。
+
+`update`、`handoff`、`记录`、`交接` 只作为兼容性自然语言处理：把它们视为
+“接手/刷新指定 lane 状态”，不要把它们作为用户需要记住的独立命令暴露出去。
 
 如果用户没有给参数，输出最小用法并停止：
 
@@ -67,7 +68,6 @@ Usage:
 /window-ccgs D                 # QA
 /window-ccgs Z                 # 框架适配/底层维护
 /window-ccgs <lane-id>         # 自定义窗口
-/window-ccgs update <lane-id>  # 更新/交接
 /window-ccgs checkpoint <lane-id> # 生成 checkpoint 提交建议
 /window-ccgs research <lane-id> <slug> # 创建研究 worktree
 /window-ccgs merge <lane-id>   # 合并研究 worktree
@@ -109,12 +109,12 @@ Verdict: `BLOCKED`。
 
 ---
 
-## Phase 3: Start / Recover / Create Lane
+## Phase 3: Start / Recover / Create / Refresh Lane
 
 当 intent 是 start/recover/create 时：
 
 1. 读取对应 lane 文件。
-2. 如果存在，输出接手摘要并继续：
+2. 如果存在，输出接手摘要，并把当前窗口接手记录写回 lane/active state：
 
 ```text
 Window: [lane-id]
@@ -127,7 +127,19 @@ Registry: registered / registry concern
 Verdict: READY
 ```
 
-3. 如果 lane 文件不存在，生成 lane 草稿。
+这是用户明确输入 `/window-ccgs <lane-id>` 后的低风险恢复点 bookkeeping。
+不要要求用户再运行 `/window-ccgs update`，也不要询问 `May I update...`。
+
+更新范围：
+
+- `production/session-state/active.md`：登记或刷新该 lane 的 registry/status。
+- lane 文件：刷新 `Handoff` 的 `Last updated`、`Next step`、`Restart prompt`，
+  并记录用户本次传入的 objective/summary（如果有）。
+- 如果旧 `Handoff` 里仍有效的 blocker、active files、决定或下一步会被覆盖，
+  先迁移到 Lane 主体区块；不要粗暴丢失长期状态。
+- 不覆盖 `Responsibility`、`Scope` 或旧 `Decisions`，除非用户明确要改职责。
+
+3. 如果 lane 文件不存在，生成并直接写入 lane 和 registry。
 
 默认 lane 职责：
 
@@ -138,28 +150,16 @@ Verdict: READY
 - `Z-platform`：框架适配和底层维护，让 Skill、Hook、路由、测试框架和体系文档更符合当前用户、项目和团队习惯。
 - 自定义 lane：按用户目标或当前请求生成，不套用 A/B/C/D/Z。
 
-新建 lane 时同步准备 `production/session-state/active.md` 的 registry 更新草稿。
-写入前必须询问：
-
-```text
-May I write the missing lane file to production/session-state/windows/<lane-id>.md and register it in production/session-state/active.md?
-```
-
-如果用户拒绝，输出手动恢复提示。Verdict: `CONCERNS`。
-
-接手成功后，建议在真正开始工作前运行：
-
-```text
-/window-ccgs update <lane-id>
-```
-
-这会记录本窗口已经接手。
+新建 lane 时同步更新 `production/session-state/active.md` 的 registry。用户明确输入
+`/window-ccgs <lane-id>` 就是创建/接手该 lane 的授权；这是低风险、可逆的框架
+bookkeeping，不需要额外确认。创建后输出 lane path、职责、当前目标和下一步。
 
 ---
 
-## Phase 4: Update / Handoff Lane
+## Phase 4: Lane State Refresh Contract
 
-在这些时机运行 update：
+`update` / `handoff` 不再是推荐给用户的独立命令。Codex 在这些时机应自行刷新
+当前 lane 状态：
 
 - 窗口刚完成一个阶段性产物。
 - 准备关闭窗口。
@@ -168,13 +168,10 @@ May I write the missing lane file to production/session-state/windows/<lane-id>.
 - 发现需要另一个窗口输入。
 - 用户说“记录一下”“交接一下”“更新窗口状态”。
 
-读取目标 lane 和 `active.md`。如果 lane 不存在，提示先运行：
+读取目标 lane 和 `active.md`。如果 lane 不存在，按 Phase 3 创建，不再要求用户先跑
+另一个命令。
 
-```text
-/window-ccgs <lane-id>
-```
-
-更新草稿必须分清：
+刷新时必须分清：
 
 - Lane 主体：长期状态，包括职责、范围、当前目标、活跃文件、进度、关键决定、跨窗口 blocker。
 - Handoff：最近恢复点，包括刚完成什么、改了哪些文件、跑了哪些检查、下一步怎么恢复。
@@ -185,8 +182,9 @@ May I write the missing lane file to production/session-state/windows/<lane-id>.
 - `Decisions` 只追加，不覆盖。
 - `Handoff` 可以替换，但替换前要检查旧内容；仍有效的信息迁移到主体区块。
 - 不写整段聊天记录、大段 diff、或和该 lane 无关的细节。
+- 直接写入低风险 lane state refresh；不要询问 `May I update...`。
 
-写入前先输出：
+输出时简要说明：
 
 ```text
 本次更新范围：
@@ -196,13 +194,7 @@ May I write the missing lane file to production/session-state/windows/<lane-id>.
 - 旧 Handoff 处理：[迁移 / 保留 / 过期丢弃]
 ```
 
-然后询问：
-
-```text
-May I update production/session-state/windows/<lane-id>.md with this handoff?
-```
-
-用户同意后写入。Verdict: `COMPLETE`。
+Verdict: `COMPLETE`。
 
 ---
 
@@ -267,7 +259,7 @@ Verdict: `COMPLETE` 或 `CONCERNS`。
 
 ## Phase 7: Checkpoint Plan
 
-Checkpoint 模式只在用户明确要求 `/window-ccgs checkpoint <lane-id>`、用户问“现在可以提交吗”、或 lane update 后需要建议时运行。默认只建议，不自动 commit。
+Checkpoint 模式只在用户明确要求 `/window-ccgs checkpoint <lane-id>`、用户问“现在可以提交吗”、或 lane refresh 后需要建议时运行。默认只建议，不自动 commit。
 
 必须读取：
 
@@ -394,7 +386,6 @@ Merge 成功后输出 merge SHA、rollback command `git revert -m 1 <merge-sha>`
 
 - 继续当前窗口：按 `Next step` 做。
 - 换窗口：运行 `/window-ccgs <lane-id>`。
-- 更新窗口：运行 `/window-ccgs update <lane-id>`。
 - 准备提交：运行 `/window-ccgs checkpoint <lane-id>`。
 - 开研究分支：运行 `/window-ccgs research <lane-id> <slug>`。
 - 检查所有窗口：运行 `/window-ccgs audit`。

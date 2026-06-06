@@ -52,11 +52,8 @@ Start or resume a lane:
 /window-ccgs Z
 ```
 
-Update a lane before closing, switching tasks, or compacting context:
-
-```text
-/window-ccgs update B
-```
+Codex refreshes the active lane state before closing, switching tasks, or
+compacting context. You do not need to run a separate update/handoff command.
 
 Create a checkpoint plan when the current work is a useful rollback unit:
 

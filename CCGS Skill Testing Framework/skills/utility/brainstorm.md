@@ -78,6 +78,9 @@ checks and package-level user approval before writing.
 - [ ] File is not written without package approval.
 - [ ] Does not jump from a strong user draft directly to final package writing
       while useful design interview topics remain unresolved.
+- [ ] Does not replace a strong-draft interview with one broad intake checklist
+      covering emotion, controls, structure, visual identity, constraints, and
+      developer experience before synthesis.
 
 ---
 
@@ -109,7 +112,42 @@ checks and package-level user approval before writing.
 
 ---
 
-### Case 3: Existing Concept Resume
+### Case 3: Strong Named Draft Uses Guided Co-Design
+
+**Fixture:**
+
+- The user invokes a named concept or provides enough facts to infer a strong
+  draft: core fantasy, platform/engine, scope, excluded mechanics, and primary
+  risk are mostly known.
+
+**Input:** `/brainstorm This Sword`
+
+**Expected behavior:**
+
+1. Skill summarizes the already locked facts.
+2. Skill chooses the next unresolved design phase, such as pacing structure,
+   pillars, visual identity anchor, control feel, or prototype validation
+   question.
+3. Skill writes the creative analysis in conversation first, then uses concise
+   options only to capture the decision.
+4. After the user answers, Skill synthesizes the answer into the developing
+   concept before asking the next topic.
+5. The interview can continue for as many turns as materially improve the
+   concept and landing package.
+
+**Assertions:**
+
+- [ ] The first interview turn does not ask five unrelated question groups at
+      once.
+- [ ] Each user answer receives synthesis before the next decision prompt.
+- [ ] Codex gives reasoning and recommendations in conversation text before
+      presenting concise choices.
+- [ ] Practical constraints such as developer experience are asked only when
+      they materially affect the current design or feasibility decision.
+
+---
+
+### Case 4: Existing Concept Resume
 
 **Fixture:**
 
@@ -132,7 +170,7 @@ checks and package-level user approval before writing.
 
 ---
 
-### Case 4: Missing Write Approval
+### Case 5: Missing Write Approval
 
 **Fixture:**
 
@@ -161,6 +199,7 @@ checks and package-level user approval before writing.
 - [ ] Uses `AskUserQuestion` selectively for constrained decisions, while free-form
   interview can continue in normal conversation.
 - [ ] Preserves long guided co-design while removing repeated micro-approval.
+- [ ] Writes creative analysis before using concise options to capture decisions.
 - [ ] Keeps prototype details in direct references and loads them conditionally.
 - [ ] Route aliases are compatibility labels only, not content dependencies.
 - [ ] Fixed Lean policy replaces old full/solo branching.

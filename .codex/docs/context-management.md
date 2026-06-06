@@ -75,9 +75,8 @@ Do not copy a full conversation into a new window. Start the new window by
 running `/window-ccgs [A|B|C|D|Z]`. If that Skill is unavailable, read
 `active.md`, the relevant lane file, and `multi-window-workflow.md` manually.
 
-After taking over a window, update the lane with
-`/window-ccgs update [A|B|C|D|Z]` at each milestone, before closing the
-window, and before context reaches the danger zone. Use
+After taking over a window, Codex refreshes the lane state at each milestone,
+before closing the window, and before context reaches the danger zone. Use
 `/window-ccgs audit` from A-producer to verify lanes are current. Use
 `/window-ccgs compact [A|B|C|D|Z]` when a lane grows too long.
 

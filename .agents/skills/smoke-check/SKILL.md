@@ -381,11 +381,10 @@ Any platform with one or more FAIL checks contributes to the overall FAIL verdic
 
 ## Phase 6: Write and Gate
 
-Present the full report in conversation, then ask:
-
-"May I write this smoke check report to `production/qa/smoke-[date].md`?"
-
-Write only after approval.
+Present the full report in conversation, then write it to
+`production/qa/smoke-[date].md`, creating the directory if needed. Invoking
+`/smoke-check` is the user's request to run the check and record the report, so
+do not ask a second "May I write..." confirmation.
 
 After writing, deliver the gate verdict:
 
@@ -429,6 +428,7 @@ agent to begin manual verification."
 - **`quick` argument** skips Phase 3 (coverage scan) and Phase 4 Batch 3.
   Use it for rapid re-checks after fixing a specific failure.
 - Use `AskUserQuestion` for all manual smoke check verification.
-- **Never write the report without asking** — Phase 6 requires explicit
-  approval before any file is created.
+- **Report write is routine** — `/smoke-check` writes its report after running
+  checks. Ask again only before editing source/test files, changing story status,
+  or doing work outside the smoke-check report.
 

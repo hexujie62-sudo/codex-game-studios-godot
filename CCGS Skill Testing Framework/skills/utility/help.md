@@ -169,7 +169,8 @@ None. `/help` is a read-only navigation skill. No director gates apply.
 5. Output does not claim A/B/C/D are registered when their lane files are missing.
 6. Output always includes the window command block:
    - `/window-ccgs <lane-id>`
-   - `/window-ccgs update <lane-id>`
+   - Codex refreshes lane state automatically; no user-facing update/handoff
+     command is required
 
 **Assertions:**
 - [ ] Registered windows are based on actual lane files, not a fixed A/B/C/D/Z list.
@@ -216,7 +217,7 @@ None. `/help` is a read-only navigation skill. No director gates apply.
 2. Skill recommends the relevant Skill for the work.
 3. Skill outputs `Parallel routing`.
 4. Skill recommends `Z-platform` because the task is CCGS bottom-layer work.
-5. Skill includes `/window-ccgs Z` or `/window-ccgs update Z` depending on lane state.
+5. Skill includes `/window-ccgs Z` for the lane handoff.
 
 **Assertions:**
 - [ ] `/help` does not only recommend a Skill; it also recommends a lane.

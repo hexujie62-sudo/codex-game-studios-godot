@@ -1,6 +1,6 @@
 ---
 name: setup-engine
-description: "Godot-only 技术设置入口。固定 Godot 版本、GDScript、工具路径、engine reference 和最小测试基础；不再提供 Unity/Unreal 多引擎选择。"
+description: "Godot-only technical setup entrypoint. Pin Godot version, GDScript, tool paths, engine reference, and minimal test foundation without low-value setup confirmations."
 argument-hint: "[godot-version | refresh | upgrade]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, AskUserQuestion
@@ -71,14 +71,31 @@ Which Godot 4.x version should this project pin?
 - Minimal `tests/` foundation if missing.
 - Runtime check plan and whether it can run now.
 
-Ask for one approval of the package:
+### Routine Setup Execution Boundary
 
-```text
-Approve this Godot setup package and write the planned files?
-```
+When the user invokes `/setup-engine`, treat that command as an explicit request
+to complete the routine low-risk Godot setup scope. Do not ask a separate
+package-approval question for normal setup bookkeeping.
 
-After approval, write all low-risk setup files in the package without asking
-again for each file or directory.
+Write the following directly when the needed facts are known or can be inferred:
+
+- `.codex/docs/technical-preferences.md` updates.
+- `docs/engine-reference/godot/VERSION.md` creation or refresh from local known
+  facts.
+- Minimal `tests/` directories and `tests/README.md`.
+- Recording setup concerns such as missing `project.godot`, missing local Godot
+  console path, or skipped runtime validation.
+- Read-only local version checks when a Godot console path exists.
+
+If a required fact is missing and materially affects the setup, ask one short
+question for that fact. State that after the user answers, Codex will finish the
+routine setup. When the user provides the missing fact, continue the setup
+directly; do not ask again with "May I update..." or another write approval.
+
+Ask again only before work outside routine setup, such as creating a new Godot
+project file, installing tools, changing branch/release strategy, deleting or
+overwriting existing project-specific configuration, or making broad
+architecture choices.
 
 ---
 

@@ -10,9 +10,11 @@ required field, the skill asks follow-up questions to fill the gaps before
 producing the draft.
 
 The skill checks for possibly duplicate reports (by comparing to existing files
-in `production/bugs/`) and offers to link rather than create a new report. Each
-report is written to `production/bugs/bug-[date]-[slug].md` after a "May I write"
-ask. No director gates are used — bug reporting is an operational utility.
+in `production/bugs/`) and offers to link rather than create a new report. New
+bug reports are written directly after the user invokes `/bug-report` and the
+required fields are complete. Updating existing bug files, linking duplicates,
+verifying fixes, or closing bugs still requires explicit confirmation. No
+director gates are used — bug reporting is an operational utility.
 
 ---
 
@@ -23,7 +25,8 @@ Verified automatically by `/skill-create-ccgs` internal static check — no fixt
 - [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
 - [ ] Has ≥2 phase headings
 - [ ] Contains verdict keyword: COMPLETE
-- [ ] Contains "May I write" collaborative protocol language before writing the report
+- [ ] Writes new bug reports without a second low-value write confirmation
+- [ ] Keeps confirmation before updating existing bug files or changing bug status
 - [ ] Has a next-step handoff (e.g., `/bug-triage` to reprioritize, `/hotfix` for critical)
 
 ---
@@ -50,14 +53,14 @@ None. `/bug-report` is an operational documentation skill. No director gates app
 3. Skill confirms repro steps, expected (no crash), actual (crash), affected system
    (arena/boss), and build version with the user
 4. Skill drafts the full structured report
-5. Skill asks "May I write to `production/bugs/bug-2026-04-06-game-crashes-boss-arena.md`?"
-6. File is written on approval; verdict is COMPLETE
+5. Skill writes `production/bugs/bug-2026-04-06-game-crashes-boss-arena.md`
+   directly; verdict is COMPLETE
 
 **Assertions:**
 - [ ] All 7 required fields are present in the report
 - [ ] Severity is CRITICAL for a crash report
 - [ ] Filename follows the `bug-[date]-[slug].md` convention
-- [ ] "May I write" is asked with the full file path
+- [ ] No second write confirmation is requested for the new report
 - [ ] Verdict is COMPLETE
 
 ---
@@ -77,7 +80,7 @@ None. `/bug-report` is an operational documentation skill. No director gates app
    or in a structured prompt)
 3. User provides answers
 4. Skill compiles complete report from answers
-5. Skill asks "May I write?" and writes on approval
+5. Skill writes the new report directly
 
 **Assertions:**
 - [ ] At least 3 follow-up questions are asked to fill missing fields
@@ -123,8 +126,7 @@ None. `/bug-report` is an operational documentation skill. No director gates app
 1. Skill identifies 2 affected systems from the description: Save System and UI
 2. Report is drafted with both systems listed under Affected System(s)
 3. Severity is assessed (likely HIGH — data loss risk from save freeze)
-4. Skill asks "May I write" with the appropriate filename
-5. Report is written with both systems tagged; verdict is COMPLETE
+4. Report is written with both systems tagged; verdict is COMPLETE
 
 **Assertions:**
 - [ ] Both affected systems are listed in the report
@@ -158,7 +160,8 @@ None. `/bug-report` is an operational documentation skill. No director gates app
 - [ ] Collects all 7 required fields before drafting the report
 - [ ] Asks follow-up questions for any missing required fields
 - [ ] Checks for similar existing reports before creating a new one
-- [ ] Asks "May I write to `production/bugs/bug-[date]-[slug].md`?" before writing
+- [ ] Writes new bug reports directly after required fields are complete
+- [ ] Asks before updating existing duplicate-linked, verified, or closed bug files
 - [ ] Verdict is COMPLETE when the report file is written
 
 ---

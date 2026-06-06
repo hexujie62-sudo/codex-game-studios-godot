@@ -55,7 +55,7 @@ core_skills:
     group: maintenance
     stage: support
     visibility: core
-    why: "多窗口唯一入口；启动、恢复、更新、交接、审计、压缩、checkpoint 建议、research worktree 和 clean-only merge。"
+    why: "多窗口唯一入口；启动、恢复、创建/登记 lane state、审计、压缩、checkpoint 建议、research worktree 和 clean-only merge。"
     absorbs: [window-start-ccgs, window-handoff-ccgs]
   - name: skill-create-ccgs
     group: maintenance

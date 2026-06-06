@@ -16,7 +16,7 @@ making the user manage Git details.
 
 ## Checkpoint Readiness
 
-`/help` and `/window-ccgs update <lane-id>` should recommend a checkpoint when
+`/help` and lane state refresh should recommend a checkpoint when
 one of these is true:
 
 - A phase artifact was written or deleted.

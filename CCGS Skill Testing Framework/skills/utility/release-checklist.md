@@ -9,7 +9,7 @@ and changelog readiness. It is an internal gate — not a platform/store checkli
 a delta of resolved and newly introduced issues.
 
 The skill writes its checklist report to `production/releases/release-checklist-[date].md`
-after a "May I write" ask. No director gates apply — `/gate-check` handles
+as the routine output of invoking `/release-checklist`. No director gates apply — `/gate-check` handles
 formal phase gate logic. Verdicts: RELEASE READY, RELEASE BLOCKED, or CONCERNS.
 
 ---
@@ -21,7 +21,7 @@ Verified automatically by `/skill-create-ccgs` internal static check — no fixt
 - [ ] Has required frontmatter fields: `name`, `description`, `argument-hint`, `user-invocable`, `allowed-tools`
 - [ ] Has ≥2 phase headings
 - [ ] Contains verdict keywords: RELEASE READY, RELEASE BLOCKED, CONCERNS
-- [ ] Contains "May I write" collaborative protocol language before writing the report
+- [ ] Writes the checklist report without a second low-value write confirmation
 - [ ] Has a next-step handoff (e.g., `/launch-checklist` for external or `/gate-check` for phase)
 
 ---
@@ -51,15 +51,15 @@ is managed by `/gate-check`.
 2. Skill reads bugs: no HIGH or CRITICAL open bugs
 3. Skill confirms QA plan has sign-off
 4. Skill confirms changelog entry exists
-5. All checks pass; skill asks "May I write to
-   `production/releases/release-checklist-2026-04-06.md`?"
-6. Report written; verdict is RELEASE READY
+5. All checks pass; skill writes
+   `production/releases/release-checklist-2026-04-06.md`
+6. Verdict is RELEASE READY
 
 **Assertions:**
 - [ ] All 4 check categories are evaluated (stories, bugs, QA, changelog)
 - [ ] All items appear with PASS markers
 - [ ] Verdict is RELEASE READY
-- [ ] "May I write" is asked before writing
+- [ ] No second write confirmation is requested for the checklist report
 
 ---
 
@@ -160,7 +160,7 @@ is managed by `/gate-check`.
 - [ ] Checks QA plan sign-off status
 - [ ] Checks changelog existence
 - [ ] Compares against previous checklist when one exists
-- [ ] Asks "May I write" before writing the report
+- [ ] Writes the checklist report as the routine output of `/release-checklist`
 - [ ] Verdict is RELEASE READY, RELEASE BLOCKED, or CONCERNS
 
 ---

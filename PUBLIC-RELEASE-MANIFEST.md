@@ -1,6 +1,6 @@
 # Public Release Manifest
 
-Generated: 2026-06-06 18:27:33 +08:00
+Generated: 2026-06-06 20:09:01 +08:00
 Source: local working tree (path omitted)
 Output: generated public release directory (path omitted)
 

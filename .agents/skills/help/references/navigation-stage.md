@@ -43,5 +43,6 @@ Optional output if the user explicitly wants a saved note:
 production/onboarding/onboard-[role]-[date].md
 ```
 
-In normal `/help`, do not write it; recommend `/window-ccgs update <lane>` if the
-handoff belongs in lane state.
+In normal `/help`, do not write it. If the handoff belongs in lane state,
+recommend `/window-ccgs <lane>` so Codex can take over that lane and refresh its
+state automatically.

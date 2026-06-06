@@ -201,9 +201,10 @@ resolution and estimated time to address them.]
 
 Present the checklist to the user with: total checklist items, number of known blockers (FIXME/HACK counts, known bugs).
 
-Ask: "May I write this to `production/releases/release-checklist-[version].md`?"
-
-If yes, write the file, creating the directory if needed.
+Write it to `production/releases/release-checklist-[version].md`, creating the
+directory if needed. Invoking `/release-checklist` is the user's request to
+generate and record this internal readiness checklist; do not ask a second
+"May I write..." confirmation for the report file.
 
 ---
 

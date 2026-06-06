@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: "引导式游戏概念构思与落地方案包 — 通过深入访谈、专业框架和结构化探索，把想法或草案收束到完整 concept package、首个完整范围、工具/资源/实现计划和验收标准。"
+description: "Guided game concept and landing package: use deep co-design interviews, professional design frameworks, and structured exploration to turn an idea or draft into a complete concept package, first complete scope, tool/resource plan, implementation plan, and acceptance criteria."
 argument-hint: "[genre/theme hint or open]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, WebSearch, Task, AskUserQuestion
@@ -71,6 +71,18 @@ must be defined before GDD work continues.
    around the draft. Summarize what is already locked, then guide the unresolved
    design and landing decisions. Do not jump straight to final package writing.
 
+   Ask conversationally, not as a checklist. `/brainstorm` should keep going as
+   long as the answers are improving the concept, but each turn should do design
+   work: write the creative analysis in conversation first, then use
+   `AskUserQuestion` only to capture the next meaningful decision with concise
+   labels.
+
+   For a named or already-formed concept, do not open with a broad intake form
+   covering emotion, controls, structure, visual identity, constraints, and dev
+   experience all at once. Summarize the locked facts, pick the next unresolved
+   design phase, propose concrete options with reasoning, capture the decision,
+   then synthesize it before moving on.
+
    **Use `AskUserQuestion` selectively** at decision points:
    - Open-ended idea discovery when the user has no direction.
    - Choosing between genuinely different concept directions.
@@ -133,6 +145,11 @@ shape is:
 5. A user decision or free-form response prompt.
 6. Repeat while the interview is still producing useful design decisions. Stop
    only when Codex can draft the complete package without guessing.
+
+For strong drafts, skip generic blank-slate discovery only when those facts are
+already answered. Continue through the normal phases by proposing concrete
+concept-specific choices, explaining trade-offs, capturing the user's decision,
+and synthesizing it into the draft before the next phase.
 
 For open-ended ideation, ask these questions conversationally (not as a checklist):
 

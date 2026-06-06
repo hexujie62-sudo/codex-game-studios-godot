@@ -5,6 +5,10 @@
 
 ## 变更记录
 
+- 2026-06-06 | 改进 | /bug-report、/smoke-check、/release-checklist 生成报告时直接落盘，减少重复写入确认
+- 2026-06-06 | 改进 | /window-ccgs 接手或创建 lane 时自动登记恢复状态，不再要求用户手动 update/handoff
+- 2026-06-06 | 修复 | /setup-engine 执行常规 Godot 设置时不再反复请求低价值写入确认
+- 2026-06-06 | 修复 | /brainstorm 强草案访谈改为逐题综合落地，禁止开局退化成多类问卷
 - 2026-06-06 | 修复 | /start 改为先问职能范围、再问项目状态 A/B/C/D，并禁止退化成一句开放题
 - 2026-06-06 | 改进 | GitHub public 仓库迁移到 ailess-lab/CodexForGodot，并更新本地发布默认目标
 - 2026-06-06 | 改进 | /brainstorm 保留深入设计访谈，去除琐碎写入确认，访谈充分后再生成完整方案包

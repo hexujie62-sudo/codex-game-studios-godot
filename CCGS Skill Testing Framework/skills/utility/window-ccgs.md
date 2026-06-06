@@ -7,11 +7,12 @@
 ## Skill Summary
 
 `/window-ccgs` is the single CCGS multi-window entrypoint. It starts, restores,
-creates, updates, audits, compacts, generates checkpoint plans, and manages
+creates, registers lane state, audits, compacts, generates checkpoint plans, and manages
 research worktree preflights for lane state files under
 `production/session-state/windows/`. It absorbs the old `window-start-ccgs` and
 `window-handoff-ccgs` routes so users do not need to remember separate window
-commands.
+commands. `update` and `handoff` are compatibility language only, not commands
+that users should be told to run.
 
 ---
 
@@ -22,8 +23,9 @@ commands.
 - [ ] 2+ phase headings found
 - [ ] At least one verdict keyword present (`PASS`, `FAIL`, `CONCERNS`,
   `BLOCKED`, `COMPLETE`, `READY`)
-- [ ] Because `allowed-tools` includes Write/Edit, `"May I write"`,
-  `"May I update"`, or `"May I archive"` language is present
+- [ ] `/window-ccgs <lane-id>` may create/register/refresh lane state without a
+  second write approval
+- [ ] `update` and `handoff` are not advertised as user-facing commands
 - [ ] If checkpoint/research behavior is present, shell/git use is constrained
   to non-destructive commands and does not permit `git add .`, force push, hard
   reset, or checkout discard
@@ -71,39 +73,41 @@ cannot advance project stage.
 
 **Expected behavior**:
 1. Maps `B` to `B-dev`.
-2. Drafts the missing lane file with default B-dev responsibility and scope.
-3. Drafts the matching `active.md` registry update.
-4. Asks: `May I write the missing lane file to production/session-state/windows/B-dev.md and register it in production/session-state/active.md?`
+2. Creates the missing lane file with default B-dev responsibility and scope.
+3. Updates the matching `active.md` registry.
+4. Reports the lane path, responsibility, current objective, and next step.
 
 **Assertions**:
-- [ ] Does not write without approval.
-- [ ] Registry update is prepared with the lane file.
-- [ ] If declined, outputs manual recovery guidance and `CONCERNS`.
+- [ ] Does not ask a second write approval after the user invoked `/window-ccgs B`.
+- [ ] Registry update is written with the lane file.
+- [ ] Creation is limited to lane state and registry bookkeeping.
 
 **Case Verdict**: PASS / FAIL / PARTIAL
 
 ---
 
-### Case 3: Update Lane Handoff
+### Case 3: Refresh Lane State Without User-Managed Update Command
 
 **Fixture**:
-- User invokes `/window-ccgs update Z`
+- User invokes `/window-ccgs Z` with optional summary text, or says to record the
+  Z window state
 - `production/session-state/windows/Z-platform.md` exists
 - The current window completed a Skill governance change
 
 **Expected behavior**:
 1. Reads the target lane and `active.md`.
-2. Shows update scope before writing:
+2. Refreshes lane state and handoff bookkeeping:
    - Lane body update / append / unchanged
    - Handoff replacement / unchanged
    - Sections intentionally not changed
    - Old handoff handling
-3. Asks: `May I update production/session-state/windows/Z-platform.md with this handoff?`
+3. Does not ask `May I update...` for low-risk lane state refresh.
 
 **Assertions**:
 - [ ] Does not overwrite `Responsibility` or `Scope` unless explicitly requested.
 - [ ] Preserves still-valid old handoff information by migrating it or naming it obsolete.
 - [ ] Does not write full chat logs or large diffs into lane state.
+- [ ] Does not tell the user to run `/window-ccgs update <lane-id>`.
 
 **Case Verdict**: PASS / FAIL / PARTIAL
 
@@ -240,10 +244,11 @@ cannot advance project stage.
 
 ## Protocol Compliance
 
-- [ ] Uses `"May I write"`, `"May I update"`, or `"May I archive"` before file writes
-- [ ] Presents draft/scope before requesting approval
+- [ ] Treats `/window-ccgs <lane-id>` as explicit intent to create/register/refresh
+  that lane state
+- [ ] Does not expose update/handoff as user-managed commands
 - [ ] Ends with a recommended next action
-- [ ] Does not auto-create, auto-register, or auto-compact lanes without approval
+- [ ] Does not auto-compact lanes without approval
 - [ ] Checkpoint commits stage only named files and include lane, scope,
   verification, and rollback information
 - [ ] Research work uses separate worktrees and clean-only auto-merge rules
