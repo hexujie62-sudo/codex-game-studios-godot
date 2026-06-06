@@ -181,6 +181,7 @@ $RootFiles = @(
     'CONTRIBUTING.md',
     'LICENSE',
     'NOTICE.md',
+    'OPS-CHANGELOG.md',
     'README.md',
     'SECURITY.md',
     'UPGRADING.md',

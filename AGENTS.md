@@ -40,6 +40,16 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 
 @.codex/docs/coordination-rules.md
 
+## Operations Changelog
+
+For user-visible functional changes, append one line to `OPS-CHANGELOG.md`:
+
+`- YYYY-MM-DD | Type | One-sentence description.`
+
+Use one of these Type values: `新增`, `改进`, `修复`, `移除`, `文档`.
+For public framework releases, describe framework-visible changes only and do
+not include private game-project details.
+
 ## Collaboration Protocol
 
 **User-driven collaboration, not autonomous execution.**
