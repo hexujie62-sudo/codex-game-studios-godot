@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: "游戏概念与落地方案包 — 从想法或草案收束到完整 concept package、验证范围、工具/资源/实现计划和验收标准。"
+description: "引导式游戏概念构思与落地方案包 — 通过深入访谈、专业框架和结构化探索，把想法或草案收束到完整 concept package、首个完整范围、工具/资源/实现计划和验收标准。"
 argument-hint: "[genre/theme hint or open]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, WebSearch, Task, AskUserQuestion
@@ -55,15 +55,26 @@ must be defined before GDD work continues.
    - Read `design/gdd/game-concept.md` if it exists (resume, don't restart)
    - Read `design/gdd/game-pillars.md` if it exists (build on established pillars)
 
-3. **Build a complete package, not a drip-feed interview.** Ask only the
-   questions needed to lock direction and scope. Do NOT ask at every minor
-   phase. The goal is collaborative design followed by Codex execution: the user
-   provides direction and feedback; Codex produces the detailed concept and
-   landing plan.
+3. **Run a deep guided design interview before the package.** Do NOT generate
+   everything silently — the goal is collaborative exploration where Codex acts
+   as a creative facilitator and production partner, not a replacement for the
+   human's vision.
 
-   **Use `AskUserQuestion` sparingly** at package-level decision points:
+   The interview may be long when the concept needs it. Keep asking while the
+   answers materially improve the design or landing plan. Each question should
+   advance direction, feel, controls, camera, loop, pillars, anti-pillars,
+   visual identity, production function coverage, first complete scope, tools,
+   resources, risks, or acceptance criteria.
+
+   If the user supplies a strong concept draft, do not force a generic personal
+   taste interview unless it is useful, but still run a focused deep interview
+   around the draft. Summarize what is already locked, then guide the unresolved
+   design and landing decisions. Do not jump straight to final package writing.
+
+   **Use `AskUserQuestion` selectively** at decision points:
    - Open-ended idea discovery when the user has no direction.
    - Choosing between genuinely different concept directions.
+   - Capturing structured choices during the design interview.
    - Approving the complete concept-and-landing package before writes.
    - Deciding a major scope pivot.
    Do not use it for every pillar, visual phrase, speed knob, file path, or
@@ -92,14 +103,36 @@ must be defined before GDD work continues.
    concept/prototype planning files in that scope without repeated per-file
    confirmations.
 
+   **Anti-drip-feed scope rule**: the first scope is not a tiny placeholder that
+   leaves key questions for later. It must be coherent enough to build end to
+   end: requirements, tools, resources, acceptance criteria, and validation are
+   all described before Codex starts implementation. Use throwaway prototypes
+   only to answer a specific risk, then fold the result back into the package.
+
 ---
 
 ## Phase 1: Creative Discovery
 
-Start by understanding the target experience and the production context. If the
-user already supplied a concept draft, do not run a full taste interview. Summarize
-what is already clear, identify the 1-3 missing package-level decisions, and ask
-only those.
+Start by understanding the person, the target experience, and the production
+context, not only the game mechanics.
+
+If the user already supplied a concept draft, start from the draft instead of
+pretending the project is blank. Still run a deep focused interview. The right
+shape is:
+
+1. "What is already locked" — core fantasy, platform, engine, scope, excluded
+   mechanics, player promise, or constraints.
+2. "What still needs human taste" — emotional anchors, reference games, genre
+   likes/dislikes, desired player feeling, or developer constraints that are not
+   already answered by the draft.
+3. "What is worth exploring next" — the design topics whose answers will improve
+   the package: rhythm, loop feel, controls, camera, visual anchor, pillars,
+   anti-pillars, first complete scope, tools, assets, risks, or acceptance.
+4. Codex recommendation for the current topic, with concise reasoning and
+   trade-offs.
+5. A user decision or free-form response prompt.
+6. Repeat while the interview is still producing useful design decisions. Stop
+   only when Codex can draft the complete package without guessing.
 
 For open-ended ideation, ask these questions conversationally (not as a checklist):
 
@@ -245,10 +278,13 @@ Then define **3+ anti-pillars** (what this game is NOT):
   be cool if..." features that don't serve the core vision
 - Frame as: "We will NOT do [thing] because it would compromise [pillar]"
 
-**Pillar handling**: Present pillars, anti-pillars, and visual anchor together
-inside the complete package. Ask for package approval once. If the user asks to
-revise a pillar, revise the package and ask for package approval again. Do not
-run a separate pillar approval loop.
+**Pillar handling**: Pillars, anti-pillars, and visual anchor are core interview
+topics, not clerical approval steps. If they are not already locked, present a
+proposed set with names, definitions, design tests, and why it fits the concept,
+then let the user lock, rename, reframe, swap, combine, or describe their own
+direction before drafting the final package. Do not ask for approval of each
+individual pillar as a file section, and do not repeat file-write confirmation
+after the complete package is approved.
 
 `CD-PILLARS` and `AD-CONCEPT-VISUAL` are not invoked as separate gates. Do not
 spawn director agents here; run the internal pillar/visual-anchor check below and
@@ -297,8 +333,9 @@ Ground the concept in reality:
   whether the concept needs a small prototype before full GDD work.
 - **Art pipeline**: What's the art style and how labor-intensive is it?
 - **Content scope**: Estimate level/area count, item count, gameplay hours
-- **MVP definition**: What's the absolute minimum build that tests "is the
-  core loop fun?"
+- **First complete playable/validation scope**: What coherent range can Codex
+  define fully enough to build end to end, including design, tools, assets,
+  tests, risks, and acceptance criteria?
 - **Biggest risks**: Technical risks, design risks, market risks
 - **Scope tiers**: What's the full vision vs. what ships if time runs out?
 
@@ -319,9 +356,10 @@ If risk is HIGH, offer to revisit scope or define a prototype question using
 `PR-SCOPE` is not invoked as a separate gate. Do not spawn a producer agent here;
 run the internal scope check below before document generation.
 
-Run an internal scope check: compare full vision, MVP, timeline, team size, and
-content count. If the plan is unrealistic, offer to adjust the MVP or document a
-scope risk before writing the concept.
+Run an internal scope check: compare full vision, first complete scope,
+timeline, team size, and content count. If the plan is unrealistic, offer to
+adjust the first complete scope or document a scope risk before writing the
+concept.
 
 ---
 

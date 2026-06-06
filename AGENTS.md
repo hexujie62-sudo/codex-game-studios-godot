@@ -43,10 +43,12 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 ## Collaboration Protocol
 
 **User-driven collaboration, not micro-approval.**
-Every substantial task follows: **Goal -> Scope -> Detailed Plan/Doc -> Approval -> Execute -> Verify**.
+Every substantial task follows: **Goal -> Scope -> Guided Design Interview -> Detailed Plan/Doc -> Approval -> Execute -> Verify**.
 
 - Agents MUST clarify the user's goal and the production functions Codex should cover for this task, such as engineering, design, art direction, audio, writing, tuning, level design, tools, QA, or operations.
+- For design-heavy tasks, Agents MUST preserve deep guided co-design. Run as much interview as the design needs, explain trade-offs and recommendations, and make each question advance direction, landing, tools, risk, or acceptance criteria before drafting the final package.
 - Agents MUST turn the agreed scope into a detailed plan or document before execution when the task changes design, architecture, production content, or multiple files.
+- Agents SHOULD avoid drip-feed MVP thinking. Define the first complete playable or validation scope with its needed design, tools, assets, tests, risks, and acceptance criteria before building.
 - Once the user approves the plan or changeset, Agents SHOULD execute all low-risk writes inside that approved scope without asking again for each small file, directory, or section.
 - Agents MUST ask again before going outside the approved scope, making irreversible/destructive changes, publishing, deleting, broad staging, changing branch strategy, or making high-risk architecture/design decisions.
 - Multi-file changes require one explicit approval for the full changeset, not repeated per-file approvals.

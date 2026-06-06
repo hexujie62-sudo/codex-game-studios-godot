@@ -5,8 +5,8 @@
 `/brainstorm` is the concept-and-landing-package entrypoint. It produces
 `design/gdd/game-concept.md` and a complete package covering pillars,
 anti-pillars, core loop, player motivation, scope tiers, Godot fit, Visual
-Identity Anchor, first playable/validation scope, implementation/tool/resource
-plan, risks, and acceptance criteria.
+Identity Anchor, first complete playable/validation scope,
+implementation/tool/resource plan, risks, and acceptance criteria.
 
 It also absorbs the concept-side value of the old `prototype` route. Prototype
 details live in `references/prototype-validation.md` and are loaded only when the
@@ -26,6 +26,11 @@ checks and package-level user approval before writing.
 - [ ] Has at least two phase headings
 - [ ] Contains verdict keyword `COMPLETE`
 - [ ] Contains package-level approval language for the concept-and-landing package
+- [ ] Requires deep guided design interview before direct package drafting when
+  major direction, rhythm, pillars, visual anchor, production coverage, tools,
+  risks, acceptance criteria, or first complete scope are unresolved
+- [ ] Describes first complete scope / validation build instead of defaulting to
+  drip-feed MVP language
 - [ ] Documents fixed Lean policy and does not ask the user to choose full,
   lean, or solo mode
 - [ ] Links `references/prototype-validation.md` and
@@ -53,12 +58,16 @@ checks and package-level user approval before writing.
    current clarity.
 2. Skill presents three distinct concept options.
 3. User selects or combines a concept.
-4. Skill develops core loop, pillars, anti-pillars, player type, scope, and
+4. Skill runs a deep guided design interview for the topics that materially
+   change the package, such as rhythm, loop feel, pillars, visual identity,
+   production coverage, tools, risks, acceptance criteria, or first complete
+   scope. The interview is not artificially capped by question count.
+5. Skill develops core loop, pillars, anti-pillars, player type, scope, and
    Godot fit.
-5. Skill runs internal pillar, visual-anchor, feasibility, and scope checks.
-6. Skill presents the complete concept-and-landing package before writing.
-7. Skill asks once before writing package files.
-8. Skill returns `COMPLETE` and recommends one current core next step.
+6. Skill runs internal pillar, visual-anchor, feasibility, and scope checks.
+7. Skill presents the complete concept-and-landing package before writing.
+8. Skill asks once before writing package files.
+9. Skill returns `COMPLETE` and recommends one current core next step.
 
 **Assertions:**
 
@@ -67,6 +76,8 @@ checks and package-level user approval before writing.
 - [ ] Visual Identity Anchor is included.
 - [ ] Scope table uses a concrete timeline/team-size estimate.
 - [ ] File is not written without package approval.
+- [ ] Does not jump from a strong user draft directly to final package writing
+      while useful design interview topics remain unresolved.
 
 ---
 
@@ -146,8 +157,10 @@ checks and package-level user approval before writing.
 
 ## Protocol Compliance
 
-- [ ] Uses Goal -> Scope -> Complete Package -> Approval -> Write.
-- [ ] Uses `AskUserQuestion` sparingly for package-level constrained decisions.
+- [ ] Uses Goal -> Scope -> Deep Design Interview -> Complete Package -> Approval -> Write.
+- [ ] Uses `AskUserQuestion` selectively for constrained decisions, while free-form
+  interview can continue in normal conversation.
+- [ ] Preserves long guided co-design while removing repeated micro-approval.
 - [ ] Keeps prototype details in direct references and loads them conditionally.
 - [ ] Route aliases are compatibility labels only, not content dependencies.
 - [ ] Fixed Lean policy replaces old full/solo branching.

@@ -19,17 +19,22 @@ Before proposing any design:
    - Which production functions should Codex cover here: design, art direction, audio/music direction, writing, tuning, level design, tools, QA?
    - *Use `AskUserQuestion` only for package-level constrained questions*
 
-2. **Present 2-4 options with reasoning:**
+2. **Run the guided design interview with options and reasoning:**
    - Explain pros/cons for each option
    - Reference game design theory (MDA, SDT, Bartle, etc.)
    - Align each option with the user's stated goals
    - Make a recommendation, but explicitly defer the final decision to the user
    - *After the full explanation, use `AskUserQuestion` to capture the decision*
+   - Continue the interview as long as it is improving direction, feel, scope,
+     tooling, risk, acceptance criteria, or production coverage
+   - Do not spend user attention on file paths or small section approvals
 
-3. **Draft the complete package based on user's choice:**
+3. **Draft and refine based on the interview:**
    - Include scope, design decisions, dependencies, files to write, risks, and acceptance criteria
    - Ask about ambiguities rather than assuming
    - Flag potential issues or edge cases for user input
+   - Define the first complete playable/validation scope, not a drip-feed MVP
+     slice that leaves the landing plan vague
 
 4. **Get one approval before executing the package:**
    - Show the complete draft/package or changeset
@@ -80,9 +85,9 @@ Does this match your intent? Should I continue to the Detailed Rules section, or
 
 User: "Looks good, continue"
 
-You: [drafts next section, shows it, iterates]
+You: [continues the guided interview and draft refinement for the next useful design topic]
 
-[After all sections complete]
+[After the design is sufficiently explored]
 
 You (request approval):
 "The complete crafting system design is ready. I've covered:

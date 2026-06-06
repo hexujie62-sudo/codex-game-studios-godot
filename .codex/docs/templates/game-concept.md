@@ -276,20 +276,22 @@ the medium.]
 
 ---
 
-## MVP Definition
+## First Complete Scope / Validation Build
 
-[The absolute minimum version that validates the core hypothesis. The MVP
-answers ONE question: "Is the core loop fun?"]
+[The first coherent range Codex can design and build end to end. This is not a
+drip-feed MVP placeholder. It should include the full requirement set, landing
+tools, assets/placeholders, tuning hooks, tests, risks, and acceptance criteria
+needed for this range.]
 
-**Core hypothesis**: [The single statement the MVP tests, e.g., "Players find
+**Core hypothesis**: [The single statement this scope tests, e.g., "Players find
 the combat-crafting loop engaging for 30+ minute sessions"]
 
-**Required for MVP**:
+**Required for this scope**:
 1. [Essential feature 1 — directly tests the hypothesis]
 2. [Essential feature 2]
 3. [Essential feature 3]
 
-**Explicitly NOT in MVP** (defer to later):
+**Explicitly NOT in this scope** (defer to later):
 - [Feature that's nice but doesn't test the hypothesis]
 - [Feature that adds scope without validating the core]
 
@@ -297,7 +299,7 @@ the combat-crafting loop engaging for 30+ minute sessions"]
 
 | Tier | Content | Features | Timeline |
 | ---- | ---- | ---- | ---- |
-| **MVP** | [Minimal] | [Core loop only] | [X weeks] |
+| **First Complete Scope** | [Coherent validation/playable range] | [Core loop + needed tools/assets/tests] | [X weeks] |
 | **Vertical Slice** | [One complete area] | [Core + progression] | [X weeks] |
 | **Alpha** | [All areas, placeholder] | [All features, rough] | [X weeks] |
 | **Full Vision** | [Complete content] | [All features, polished] | [X weeks] |

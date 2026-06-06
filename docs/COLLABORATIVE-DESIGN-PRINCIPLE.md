@@ -63,25 +63,68 @@ After the concern is stated, the user still decides the direction.
 
 Every substantial task should follow this pattern:
 
-### Pattern: Goal → Scope → Complete Plan → Approval → Execute → Verify
+### Pattern: Goal → Scope → Deep Design Interview → Complete Plan → Approval → Execute → Verify
 
 1. **Goal** — Understand what result the user wants.
 2. **Scope** — Confirm what production functions Codex should cover in this task:
    engineering, design, art direction, audio/music, writing, tuning, level
    design, tooling, QA, documentation, or operations.
-3. **Complete Plan** — Produce a detailed plan or document package for the
+3. **Deep Design Interview** — For design-heavy work, run as much guided
+   interview as the design needs. Ask questions that advance direction, feel,
+   scope, tools, risks, acceptance criteria, or production coverage. Explain
+   options, trade-offs, references, and Codex's recommendation, then let the user
+   lock direction before the final package is drafted. For creative work, this
+   includes understanding the user's taste, emotional anchors, and references,
+   not only the mechanics already written in the draft.
+4. **Complete Plan** — Produce a detailed plan or document package for the
    agreed scope. Include design decisions, implementation approach, required
    files/tools/assets, validation method, risks, and acceptance criteria.
-4. **Approval** — Ask for one approval of the package or changeset.
-5. **Execute** — Write all low-risk files and content inside the approved scope.
+5. **Approval** — Ask for one approval of the package or changeset.
+6. **Execute** — Write all low-risk files and content inside the approved scope.
    Do not stop for a separate yes/no on every small file or section.
-6. **Verify** — Run the relevant checks, compare the result to the approved
+7. **Verify** — Run the relevant checks, compare the result to the approved
    plan, and report differences clearly.
 
 Ask again only when the work goes outside the approved scope, hits a real
 directional ambiguity, requires destructive or irreversible action, changes
 branch/release strategy, publishes externally, commits, or makes a high-risk
 architecture/design decision.
+
+### Preserve Deep Interview, Remove Micro-Approval
+
+The goal is not fewer questions at any cost. Deep design interview is valuable:
+it helps the user think, compare, choose, and refine before Codex executes. The
+problem to remove is repetitive low-value confirmation.
+
+Keep:
+
+- design forks that decide the game's direction, feel, scope, tools, or risk;
+- long guided interviews when the concept benefits from them;
+- questions about the user's taste, references, and emotional target when those
+  answers will improve the result;
+- options with reasoning, examples, trade-offs, and a clear recommendation;
+- user decisions about pillars, anti-pillars, visual identity, loop structure,
+  production coverage, and first complete scope;
+- package approval before execution.
+
+Remove:
+
+- "May I write this section?" repeated after every paragraph;
+- file-by-file confirmations inside an already approved package;
+- generic checklists that make the user manage the process;
+- direct package generation when major design forks are still unresolved;
+- artificial question-count limits that cut off useful design exploration.
+
+### First Complete Scope, Not Drip-Feed MVP
+
+CCGS is intentionally not a "build the smallest thing and see" framework. The
+default is to frame one coherent delivery range, think through the design,
+landing tools, assets, tests, risks, and acceptance criteria for that range, then
+let Codex execute the approved range end to end.
+
+Small prototypes still exist, but only as throwaway validation for a specific
+risk such as feel, performance, readability, or feasibility. They should answer
+one falsifiable question and feed the result back into the complete package.
 
 ### Legacy Pattern To Avoid: Question → Options → Decision → Draft → Approval For Every Section
 
@@ -517,38 +560,37 @@ Every file write must follow:
           [Returns to step 1]
 ```
 
-### Incremental Section Writing (Design Documents)
+### Package-Approved Incremental Writing (Design Documents)
 
-For multi-section documents (design docs, lore entries, architecture docs), write
-each section to the file as it's approved instead of building the full document
-in conversation. This prevents context overflow during long iterative sessions.
+For large multi-section documents (design docs, lore entries, architecture
+docs), first approve the complete document package: purpose, section outline,
+design decisions, dependencies, risks, and acceptance criteria. After that
+package is approved, Codex may write sections incrementally to protect context
+without asking for a separate write approval for every section.
 
 ```
-1. Agent creates file with skeleton (all section headers, empty bodies)
-   Agent: "May I create design/gdd/crafting-system.md with the section skeleton?"
+1. Agent presents the complete document package
+   Agent: "The crafting system package is ready: scope, rules, formulas,
+          dependencies, tuning knobs, QA checks, and planned file writes.
+          Approve this package and write the planned files?"
    User: "Yes"
 
-2. For EACH section:
-   Agent: [Drafts section in conversation]
-   User: [Reviews, requests changes]
-   Agent: [Revises until approved]
-   Agent: "May I write this section to the file?"
-   User: "Yes"
-   Agent: [Edits section into file]
+2. Agent creates the file skeleton and writes sections inside the approved package
+   Agent: [Writes Overview, Player Fantasy, Rules, Formulas...]
    Agent: [Updates production/session-state/active.md with progress]
-   ─── Context for this section can now be safely compacted ───
-   ─── The decisions are IN THE FILE ───
+   --- Context for completed sections can now be safely compacted ---
+   --- The approved decisions are IN THE FILE ---
 
 3. If session crashes or compacts mid-document:
    Agent: [Reads the file — completed sections are all there]
    Agent: [Reads production/session-state/active.md — knows what's next]
-   Agent: "Sections 1-4 are complete. Ready to work on section 5?"
+   Agent: "Sections 1-4 are written from the approved package. Continuing section 5."
 ```
 
 Why this matters: A full design doc session with 8 sections and 2-3 revision
-cycles per section can accumulate 30-50k tokens of conversation. Incremental
-writing keeps the live context at ~3-5k tokens (only the current section's
-discussion), because completed sections are persisted to disk.
+cycles per section can accumulate 30-50k tokens of conversation. Package-approved
+incremental writing keeps the live context small because completed sections are
+persisted to disk, while the user still approves the meaningful scope once.
 
 ### Multi-File Writes
 
