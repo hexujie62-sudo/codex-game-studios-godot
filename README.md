@@ -30,7 +30,7 @@ AI tools have helped with code. But code is only a fraction of game development.
 
 CodexForGodot's goal: **one person + Codex, finish a commercial-quality game.** Not a demo, not a prototype — a shippable game.
 
-How? Codex's multi-modal capabilities go beyond code — it can generate and process art assets, understand design documents, execute test workflows, and orchestrate release checklists. 49 agents cover every game dev discipline: programming, art, audio, writing, game design, level design, QA, and release. 17 core skills chain from concept to ship. You're no longer a solo dev doing everything yourself — you're the creative director of a full AI team.
+How? Codex's multi-modal capabilities go beyond code — it can generate and process art assets, understand design documents, execute test workflows, and orchestrate release checklists. Role-based agents cover every game dev discipline: programming, art, audio, writing, game design, level design, QA, and release. 17 core skills chain from concept to ship. You're no longer a solo dev doing everything yourself — you're the creative director of a full AI team.
 
 <details>
 <summary><strong>Relationship with original CCGS</strong></summary>
@@ -88,13 +88,13 @@ Codex's multi-modal capabilities make this work — not just writing GDScript, b
 
 | Dimension | CCGS | CodexForGodot |
 |-----------|------|---------------|
-| **Goal** | AI-assisted game development | **One person ships a commercial-quality game** |
-| **AI Platform** | Claude Code | **Codex (requires Codex, leverages multi-modal)** |
-| **Engine** | Multi-engine template (Godot/Unity/UE) | **Godot 4.x + GDScript only** |
-| **Skills** | 73 commands | **17 core** (merged, old names auto-redirect) |
-| **Windows** | Single window | **Multi-window parallel lanes, independent state** |
-| **Confirmations** | Frequent write prompts | **Auto-save reports, auto-register lanes** |
-| **Skill addition** | Direct add | **Integration thinking (should it exist? merge or new?)** |
+| **Goal** | AI-assisted game development | One person ships a commercial-quality game |
+| **AI Platform** | Claude Code | Codex (requires Codex, leverages multi-modal) |
+| **Engine** | Multi-engine template (Godot/Unity/UE) | Godot 4.x + GDScript only |
+| **Skills** | 73 commands | 17 core (merged, old names auto-redirect) |
+| **Windows** | Single window | Multi-window parallel lanes, independent state |
+| **Confirmations** | Frequent write prompts | Auto-save reports, auto-register lanes |
+| **Skill addition** | Direct add | Integration thinking (should it exist? merge or new?) |
 
 ---
 
