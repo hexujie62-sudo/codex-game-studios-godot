@@ -20,6 +20,12 @@ Evolved from [Claude Code Game Studios](https://github.com/Donchitos/Claude-Code
   <em>Built from scratch in 30 minutes — Codex driving Godot development in real time</em>
 </p>
 
+<p align="center">
+  <img src="demo-v6.gif" alt="Latest progress — flying-sword traversal over a voxel world" width="100%">
+  <br>
+  <em>Latest build progress — flying-sword traversal over a voxel world (work in progress)</em>
+</p>
+
 ---
 
 ## Why This Exists
