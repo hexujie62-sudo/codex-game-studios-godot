@@ -26,6 +26,12 @@ Evolved from [Claude Code Game Studios](https://github.com/Donchitos/Claude-Code
   <em>Latest build progress — flying-sword traversal over a voxel world (work in progress)</em>
 </p>
 
+<p align="center">
+  <img src="demo-v7.gif" alt="Latest build - pure gameplay, built entirely by the pipeline" width="100%">
+  <br>
+  <em>Latest build - pure gameplay. I only talk to the pipeline; it builds everything else. (work in progress)</em>
+</p>
+
 ---
 
 ## Why This Exists
