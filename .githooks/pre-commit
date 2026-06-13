@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# CCGS local pre-commit checks. Enable with:
+# CFG local pre-commit checks. Enable with:
 #   git config core.hooksPath .githooks
 
 set +e
@@ -86,26 +86,37 @@ SKILL_FILES=$(echo "$STAGED" | grep -E '^\.agents/skills/[^/]+/SKILL\.md$')
 if [ -n "$SKILL_FILES" ]; then
   for file in $SKILL_FILES; do
     skill=$(echo "$file" | sed 's|^\.agents/skills/||; s|/SKILL.md$||')
-    WARNINGS="$WARNINGS\nSkill: $skill 已修改；建议运行 /skill-create-ccgs 审查本次 Skill 改动、路由和测试覆盖。"
+    WARNINGS="$WARNINGS\nSkill: $skill 已修改；建议运行 /skill-create-cfg 审查本次 Skill 改动、路由、生成物治理和测试覆盖。"
   done
+fi
+
+OLD_STATE_FILES=$(echo "$STAGED" | grep -E '^(production/epics/|production/sprints/|production/sprint-status\.yaml$)')
+if [ -n "$OLD_STATE_FILES" ]; then
+  echo "阻止提交: CFG 不使用 Epic/Story/Sprint 作为活跃生产状态源。" >&2
+  echo "$OLD_STATE_FILES" | sed 's/^/  - /' >&2
+  echo "请改用 production/work-orders/ 与 production/session-state/active.md 的 active work-order queue。" >&2
+  exit 5
 fi
 
 DOMAINS=$(
   echo "$STAGED" | while IFS= read -r file; do
     case "$file" in
-      .agents/skills/*|.codex/*|.githooks/*|docs/ccgs-*|CCGS\ Skill\ Testing\ Framework/*)
+      .agents/skills/*|.codex/*|.githooks/*|docs/ccgs-*)
         echo "Z-platform"
         ;;
-      src/*|tests/*|production/epics/*)
+      production/project-canon.md|production/work-orders/*)
+        echo "D-director"
+        ;;
+      src/*|tests/*|production/dev-tasks/*)
         echo "B-dev"
         ;;
       design/art/*|design/assets/*|assets/*)
         echo "C-art"
         ;;
       production/qa/*)
-        echo "D-qa"
+        echo "shared"
         ;;
-      design/gdd/*|docs/architecture/*|production/sprints/*|production/session-state/active.md)
+      design/gdd/*|docs/architecture/*|production/session-state/active.md)
         echo "A-producer"
         ;;
       production/session-state/windows/*)
@@ -120,7 +131,7 @@ DOMAINS=$(
 
 DOMAIN_COUNT=$(printf '%s\n' $DOMAINS | wc -w | tr -d ' ')
 if [ "$DOMAIN_COUNT" -gt 2 ] || { [ "$DOMAIN_COUNT" -eq 2 ] && ! printf '%s\n' $DOMAINS | grep -q 'lane-state'; }; then
-  WARNINGS="$WARNINGS\nCheckpoint: staged files span multiple owner domains:$(printf ' %s' $DOMAINS). 建议先运行 /window-ccgs checkpoint <lane-id>，或由 A-producer 确认这是一个跨 lane commit。"
+  WARNINGS="$WARNINGS\nCheckpoint: staged files span multiple owner domains:$(printf ' %s' $DOMAINS). 建议先运行 /window-cfg checkpoint <lane-id>，或由 A-producer 确认这是一个跨 lane commit。"
 fi
 
 if printf '%s\n' $DOMAINS | grep -q 'Z-platform'; then
@@ -129,9 +140,15 @@ if printf '%s\n' $DOMAINS | grep -q 'Z-platform'; then
   fi
 fi
 
-if printf '%s\n' $DOMAINS | grep -Eq 'B-dev|D-qa'; then
-  if ! echo "$STAGED" | grep -Eq '^production/session-state/windows/(B-dev|D-qa)\.md$'; then
-    WARNINGS="$WARNINGS\nCheckpoint: staged implementation/QA paths；建议同步对应 B-dev/D-qa lane，确保回滚时能恢复窗口状态。"
+if printf '%s\n' $DOMAINS | grep -Eq 'B-dev'; then
+  if ! echo "$STAGED" | grep -Eq '^production/session-state/windows/B-dev\.md$'; then
+    WARNINGS="$WARNINGS\nCheckpoint: staged implementation paths；建议同步对应 B-dev lane，确保回滚时能恢复窗口状态。"
+  fi
+fi
+
+if printf '%s\n' $DOMAINS | grep -Eq 'D-director'; then
+  if ! echo "$STAGED" | grep -Eq '^production/session-state/windows/D-director\.md$'; then
+    WARNINGS="$WARNINGS\nCheckpoint: staged D-director canon/work-order paths；建议同步 D-director lane，确保回滚时能恢复裁决状态。"
   fi
 fi
 
@@ -176,7 +193,7 @@ if [ -n "$LANE_FILES" ]; then
   if [ -n "$CONFLICTS" ]; then
     echo "阻止提交: 多窗口 lane 的 Active Files 存在重复占用。" >&2
     echo "$CONFLICTS" | sed 's/^/  - /' >&2
-    echo "请运行 /window-ccgs audit，并用 handoff/request/split 解决后再提交。" >&2
+    echo "请运行 /window-cfg audit，并用 handoff/request/split 解决后再提交。" >&2
     exit 4
   fi
 fi
@@ -192,7 +209,7 @@ if [ -n "$ASSET_FILES" ]; then
 fi
 
 if [ -n "$WARNINGS" ]; then
-  printf "=== CCGS pre-commit 提醒 ===%b\n===============================\n" "$WARNINGS" >&2
+  printf "=== CFG pre-commit 提醒 ===%b\n===============================\n" "$WARNINGS" >&2
 fi
 
 exit 0

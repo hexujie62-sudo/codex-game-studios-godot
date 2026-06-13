@@ -23,9 +23,9 @@ Prefer explicit state, then artifact evidence:
 7. `.codex/docs/technical-preferences.md`
 8. `docs/architecture/architecture.md`
 9. `docs/architecture/control-manifest.md`
-10. `production/epics/**`
-11. `production/sprints/**`
-12. `production/qa/**`
+10. `production/work-orders/**`
+11. `production/dev-tasks/**`
+12. `production/design-sync/**`
 13. `production/releases/**`
 
 If explicit state conflicts with artifacts, report the conflict and recommend
@@ -44,5 +44,5 @@ production/onboarding/onboard-[role]-[date].md
 ```
 
 In normal `/help`, do not write it. If the handoff belongs in lane state,
-recommend `/window-ccgs <lane>` so Codex can take over that lane and refresh its
+recommend `/window-cfg <lane>` so Codex can take over that lane and refresh its
 state automatically.

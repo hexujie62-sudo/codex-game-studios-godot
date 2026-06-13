@@ -1,5 +1,5 @@
 schema_version: 2
-purpose: "给 /help 和 /skill-create-ccgs 使用的精简 Skill 路由索引。当前体系只保留少量核心 Skill，旧 CCGS 细 Skill 作为别名和吸收职责存在。"
+purpose: "给 /help 和 /skill-create-cfg 使用的精简 Skill 路由索引。当前体系是 CFG；只保留真实核心 Skill，旧 CCGS 细 Skill 不能保留半活状态源。"
 
 stable_constraints:
   ecosystem: "Codex-only"
@@ -29,7 +29,7 @@ mutable_design_fields:
 
 routing_rules:
   - "只推荐 .agents/skills/ 中真实存在的核心 Skill。"
-  - "用户说旧命令名时，按 alias_routes 转译到核心 Skill。"
+  - "只有仍有真实用户价值的旧路由标签才可保留；没有当前 CFG 用途的旧命令不得保留入口。"
   - "推荐时只给一个 primary command；必要时最多给 1-2 个辅助 command。"
   - "Godot 是稳定约束；具体版本、2D/3D、输入方式和美术风格必须读取当前项目工件确认。"
   - "核心 Skill 可以更长，但必须保持用户入口少、动线清楚、职责边界明确。"
@@ -37,8 +37,25 @@ routing_rules:
 visibility_meaning:
   core: "可以作为 /help 的主推荐，也是 / 菜单中应保留的真实 Skill。"
   absorbed: "旧 Skill 已归并；不应作为用户入口出现。"
+  project-temporary: "项目专用或 lane 专用支持 Skill；只能在用户点名、对应 lane 接手或当前项目上下文明确需要时使用，不进入通用 CFG 主线。"
 
-core_skills:
+project_temporary_skills:
+  - name: director-review
+    group: direction
+    stage: support
+    lane: D-director
+    visibility: project-temporary
+    why: "D-director 的裁决方法手册。它负责怎么裁,不保存会滚动变化的项目事实。"
+    entry: "默认由 `/window-cfg D` / D-director 加载；用户点名总监评审、裁决、驳回、写窄工单、跨线表现力冲突时使用。"
+    not_core_because: "它是 D lane 的工作手册,不是普通执行窗口入口；执行窗口不应用它自证完成。"
+  - name: visual-dev-methodology
+    group: art
+    stage: pre-production
+    lane: C-art
+    visibility: project-temporary
+    why: "视觉执行纪律。凡验收标准是'看起来像不像/够不够好'时,执行窗口必须按它准备 compare grid、Diff 和自检。"
+    entry: "用户点名该 Skill,或 A/B/C 执行窗口处理视觉目标匹配、shader 调参、场景观感迭代时使用。"
+    not_core_because: "它约束视觉执行,不负责 D-director 裁决,也不取代 `/art-bible` 的正式规格产出。"
   - name: start
     group: orientation
     stage: support
@@ -51,17 +68,16 @@ core_skills:
     visibility: core
     why: "日常导航入口；读取 workflow catalog、route index 和窗口状态后给一个下一步。"
     absorbs: [onboard, project-stage-detect]
-  - name: window-ccgs
+  - name: window-cfg
     group: maintenance
     stage: support
     visibility: core
     why: "多窗口唯一入口；启动、恢复、创建/登记 lane state、审计、压缩、checkpoint 建议、research worktree 和 clean-only merge。"
-    absorbs: [window-start-ccgs, window-handoff-ccgs]
-  - name: skill-create-ccgs
+  - name: skill-create-cfg
     group: maintenance
     stage: support
     visibility: core
-    why: "Skill 新增、修改、合并、删除、测试和动线接入的唯一治理入口。"
+    why: "Skill 新增、修改、合并、删除、测试、动线接入和生成物安全审计的唯一治理入口。"
     absorbs: [skill-test, skill-improve, skill-creator]
 
   - name: setup-engine
@@ -95,36 +111,12 @@ core_skills:
     why: "Godot 架构、ADR、架构审查和控制清单入口。"
     absorbs: [architecture-decision, architecture-review, create-control-manifest]
 
-  - name: sprint-plan
-    group: planning
-    stage: production
-    visibility: core
-    why: "Epic、Story、Sprint、估算、范围、状态和复盘入口。"
-    absorbs: [create-epics, create-stories, estimate, sprint-status, scope-check, retrospective]
-  - name: dev-story
-    group: implementation
-    stage: production
-    visibility: core
-    why: "读取 Story、执行实施，并在实施前做最小 readiness preflight。"
-    absorbs: [story-readiness, team-combat, team-level, team-narrative]
-  - name: story-done
-    group: implementation
-    stage: production
-    visibility: core
-    why: "故事完成验证、验收标准、偏差和测试证据收口。"
-    absorbs: [test-evidence-review]
   - name: code-review
     group: implementation
     stage: production
     visibility: core
     why: "代码质量、架构偏差、技术债、安全和性能轻审入口。"
     absorbs: [tech-debt, perf-profile, security-audit]
-  - name: smoke-check
-    group: qa
-    stage: production
-    visibility: core
-    why: "QA、冒烟、回归、测试证据、长测和试玩反馈入口。"
-    absorbs: [qa-plan, regression-suite, test-helpers, test-flakiness, playtest-report, soak-test, team-qa, team-polish]
   - name: bug-report
     group: qa
     stage: production
@@ -149,8 +141,7 @@ alias_routes:
   project-stage-detect: help
   reverse-document: start
   onboard: help
-  window-start-ccgs: window-ccgs
-  window-handoff-ccgs: window-ccgs
+  art-director-review: director-review
 
   prototype: brainstorm
   map-systems: design-system
@@ -173,33 +164,12 @@ alias_routes:
   architecture-review: create-architecture
   create-control-manifest: create-architecture
 
-  create-epics: sprint-plan
-  create-stories: sprint-plan
-  estimate: sprint-plan
-  sprint-status: sprint-plan
-  scope-check: sprint-plan
-  retrospective: sprint-plan
   vertical-slice: gate-check
-
-  story-readiness: dev-story
-  team-combat: dev-story
-  team-level: dev-story
-  team-narrative: dev-story
-
-  test-evidence-review: story-done
   tech-debt: code-review
   perf-profile: code-review
   security-audit: code-review
 
-  qa-plan: smoke-check
-  regression-suite: smoke-check
   test-setup: setup-engine
-  test-helpers: smoke-check
-  test-flakiness: smoke-check
-  playtest-report: smoke-check
-  soak-test: smoke-check
-  team-qa: smoke-check
-  team-polish: smoke-check
 
   bug-triage: bug-report
   hotfix: bug-report

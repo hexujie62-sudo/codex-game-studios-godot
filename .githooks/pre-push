@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# CCGS local pre-push branch protection. Enable with:
+# CFG local pre-push branch protection. Enable with:
 #   git config core.hooksPath .githooks
 
 set +e

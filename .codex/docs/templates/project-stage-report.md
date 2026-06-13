@@ -53,7 +53,8 @@
 ### Production Management
 - **Status**: [X%] complete
 - **Found**:
-  - Sprint plans: [N] in `production/sprints/`
+  - Work orders: [N] in `production/work-orders/`
+  - Lane state files: [N] in `production/session-state/windows/`
   - Milestones: [N] in `production/milestones/`
   - Roadmap: [Exists | Missing]
 - **Key Gaps**:
@@ -131,7 +132,7 @@
    - Suggested skill: `/[skill-name]`
    - Estimated effort: [S/M/L]
 
-### Short-Term (This Sprint/Week)
+### Short-Term (Current Work Order / Week)
 3. **[Action 3]** — [Why it's important soon]
 4. **[Action 4]** — [Why it's important soon]
 
@@ -160,7 +161,7 @@ Based on gaps identified, consider running:
 
 - `/start [type] [path]` — [For which gap]
 - `/create-architecture` — [For which gap]
-- `/sprint-plan` — [If production planning missing]
+- `/window-cfg A` — [If production queue/scope routing is missing]
 - `/gate-check` — [If approaching deadline]
 - `/help [role]` — [If new contributor joining]
 
@@ -185,7 +186,8 @@ docs/
   architecture/  [N] ADRs
 
 production/
-  sprints/       [N] plans
+  work-orders/   [N] work orders
+  session-state/ [N] lane state files
   milestones/    [N] definitions
 
 tests/           [N] test files

@@ -308,13 +308,13 @@ the combat-crafting loop engaging for 30+ minute sessions"]
 
 ## Next Steps
 
-- [ ] Get concept approval from creative-director
+- [ ] Get concept approval from D-director or the human producer
 - [ ] Fill in AGENTS.md technology stack based on engine choice (`/setup-engine`)
 - [ ] Create game pillars document (`/design-system` to validate)
 - [ ] **Prototype core idea** (`/brainstorm [core-mechanic]`) — before writing GDDs, validate the concept is worth designing
 - [ ] If prototype PROCEEDS: Decompose concept into systems (`/design-system`)
 - [ ] Design each system (`/design-system [system-name]`) — use prototype learnings in Tuning Knobs and Formulas sections
-- [ ] Build vertical slice in Pre-Production (`/sprint-plan`) — validate full game loop before committing to Production
-- [ ] Validate core loop with playtest (`/smoke-check`)
-- [ ] Plan first milestone (`/sprint-plan new`)
+- [ ] If a playable validation build is needed, create a bounded work order through `A-producer` (`/window-cfg A`)
+- [ ] Validate core loop with B-dev runtime evidence, C-art/player-facing evidence, and D-director verdict when relevant
+- [ ] Use `/gate-check pre-production` before committing to Production
 

@@ -1,9 +1,9 @@
 ---
 name: art-bible
-description: "Guided, chapter-by-chapter art bible authoring. Creates unified production standards for visual identity, asset specifications, asset checks, and UX specs. Run after /brainstorm approval."
+description: "引导式、逐章节的美术圣经编写。创建视觉识别、资源规格、资产检查和 UX 规格的统一生产标准。在 /brainstorm 获批后运行。"
 argument-hint: "[visuals | assets | ux | audit]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Edit, Task, AskUserQuestion
+allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion
 model: sonnet
 ---
 
@@ -39,8 +39,10 @@ Preserved CCGS value:
   accessibility notes. Do not hard-code a permanent genre, camera, art style,
   or input scheme.
 
-If a request is only about implementing UI code, route to `/dev-story` or
-`/code-review`. This Skill owns specs and evidence, not gameplay implementation.
+If a request is only about implementing UI code, route through the active work
+order queue (`A-producer` if it needs splitting, `B-dev` if already scoped) or
+use `/code-review` for read-only review. This Skill owns specs and evidence,
+not gameplay implementation.
 
 ## Reference Loading Rules
 
@@ -57,6 +59,15 @@ have been extracted into these references:
 Load only the reference that matches the user's request. Full art bible authoring
 can run from this SKILL.md alone unless the user asks for assets, UX, audit, or
 audio.
+
+## CFG Specialist Policy
+
+The inherited 49 CCGS agent files are not active project architecture. Do not
+invoke legacy agents and do not read `.codex/agents/`. Labels such as
+`art-direction`, `UX`, or `technical-art` are professional lenses that this
+Skill applies in-session, using project files and user decisions. If a future
+task truly needs an external specialist view, add it back through CFG governance
+as a Skill or narrow agent with a concrete artifact boundary.
 
 ## Phase 0: Parse Arguments and Context Check
 
@@ -78,7 +89,7 @@ Extract from game-concept.md:
 - Game title (working title)
 - Core fantasy and elevator pitch
 - Game pillars (all of them)
-- **Visual Identity Anchor** section if present (from brainstorm Phase 4 art-director output)
+- **Visual Identity Anchor** section if present (from brainstorm Phase 4 visual-direction output)
 - Target platform (if noted)
 
 **Retrofit mode detection**: Glob `design/art/art-bible.md`. If the file exists:
@@ -138,11 +149,11 @@ If a visual anchor exists from game-concept.md: present it and ask:
 - "Revise it before expanding?"
 - "Start fresh with new options?"
 
-**Agent delegation (MANDATORY)**: Spawn `art-director` via Task:
+**CFG art-direction pass (mandatory)**:
 - Provide: game concept (elevator pitch, core fantasy), full pillar set, platform target, any reference games/art from Phase 1 framing, the visual anchor if it exists
-- Ask: "Draft a Visual Identity Statement for this game. Provide: (1) a one-line visual rule that could resolve any visual decision ambiguity, (2) 2–3 supporting visual principles, each with a one-sentence design test ('when X is ambiguous, this principle says choose Y'). Anchor all principles directly in the stated pillars — each principle must serve a specific pillar."
+- Draft: "(1) a one-line visual rule that could resolve any visual decision ambiguity, (2) 2–3 supporting visual principles, each with a one-sentence design test ('when X is ambiguous, this principle says choose Y'). Anchor all principles directly in the stated pillars — each principle must serve a specific pillar."
 
-Present the art-director's draft to the user. Use `AskUserQuestion`:
+Present the art-direction draft to the user. Use `AskUserQuestion`:
 - Options: `[A] Lock this in` / `[B] Revise the one-liner` / `[C] Revise a supporting principle` / `[D] Describe my own direction`
 
 Write the approved section to file immediately.
@@ -157,7 +168,12 @@ For each major game state (e.g., exploration, combat, victory, defeat, menus —
 - Atmospheric descriptors (3–5 adjectives)
 - Energy level (frenetic / measured / contemplative / etc.)
 
-**Agent delegation**: Spawn `art-director` via Task with the Visual Identity Statement and pillar set. Ask: "Define mood and atmosphere targets for each major game state in this game. Be specific — 'dark and foreboding' is not enough. Name the exact emotional target, the lighting character (warm/cool, high/low contrast, time of day direction), and at least one visual element that carries the mood. Each game state must feel visually distinct from the others."
+**CFG art-direction pass**: With the Visual Identity Statement and pillar set,
+define mood and atmosphere targets for each major game state in this game. Be
+specific: name the exact emotional target, the lighting character
+(warm/cool, high/low contrast, time of day direction), and at least one visual
+element that carries the mood. Each game state must feel visually distinct from
+the others.
 
 Write the approved section to file immediately.
 
@@ -171,7 +187,10 @@ Cover:
 - UI shape grammar (does UI echo the world aesthetic, or is it a distinct HUD language?)
 - Hero shapes vs. supporting shapes (what draws the eye, what recedes?)
 
-**Agent delegation**: Spawn `art-director` via Task with Visual Identity Statement and mood targets. Ask: "Define the shape language for this game. Connect each shape principle back to the visual identity statement and a specific game pillar. Explain what these shape choices communicate to the player emotionally."
+**CFG art-direction pass**: With the Visual Identity Statement and mood targets,
+define the shape language for this game. Connect each shape principle back to
+the visual identity statement and a specific game pillar. Explain what these
+shape choices communicate to the player emotionally.
 
 Write the approved section to file immediately.
 
@@ -186,7 +205,11 @@ Cover:
 - UI palette (may differ from world palette — define the divergence explicitly)
 - Colorblind safety: which semantic colors need shape/icon/sound backup
 
-**Agent delegation**: Spawn `art-director` via Task with Visual Identity Statement and mood targets. Ask: "Design the color system for this game. Every semantic color assignment must be explained — why does this color mean danger/safety/reward in this world? Identify which color pairs might fail colorblind players and specify what backup cues are needed."
+**CFG art-direction pass**: With the Visual Identity Statement and mood targets,
+design the color system for this game. Every semantic color assignment must be
+explained: why this color means danger/safety/reward in this world. Identify
+which color pairs might fail colorblind players and specify what backup cues
+are needed.
 
 Write the approved section to file immediately.
 
@@ -198,33 +221,43 @@ These sections translate the visual identity into concrete production rules. The
 
 ### Section 5: Character Design Direction
 
-**Agent delegation**: Spawn `art-director` via Task with sections 1–4. Ask: "Define character design direction for this game. Cover: visual archetype for the player character (if any), distinguishing feature rules per character type (how do players tell enemies/NPCs/allies apart at a glance?), expression/pose style targets (stiff/expressive/realistic/exaggerated), and LOD philosophy (how much detail is preserved at game camera distance?)."
+**CFG art-direction pass**: With sections 1-4, define character design direction
+for this game. Cover: visual archetype for the player character (if any),
+distinguishing feature rules per character type (how players tell enemies/NPCs/
+allies apart at a glance), expression/pose style targets, and LOD philosophy.
 
 Write the approved section to file.
 
 ### Section 6: Environment Design Language
 
-**Agent delegation**: Spawn `art-director` via Task with sections 1–4. Ask: "Define the environment design language for this game. Cover: architectural style and its relationship to the world's culture/history, texture philosophy (painted vs. PBR vs. stylized — why this choice for this game?), prop density rules (sparse/dense — what drives the choice per area type?), and environmental storytelling guidelines (what visual details should tell the story without text?)."
+**CFG art-direction pass**: With sections 1-4, define the environment design
+language for this game. Cover: architectural style and its relationship to the
+world's culture/history, texture philosophy, prop density rules, and
+environmental storytelling guidelines.
 
 Write the approved section to file.
 
 ### Section 7: UI/HUD Visual Direction
 
-**Agent delegation**: Spawn in parallel:
-- **`art-director`**: Visual style for UI — diegetic vs. screen-space HUD, typography direction (font personality, weight, size hierarchy), iconography style (flat/outlined/illustrated/photorealistic), animation feel for UI elements
-- **`ux-designer`**: UX alignment check — does the visual direction support the interaction patterns this game requires? Flag any conflicts between art direction and readability/accessibility needs.
+**CFG combined visual/UX pass**:
+- **Art-direction lens**: Visual style for UI, including diegetic vs. screen-space HUD, typography direction, iconography style, and animation feel for UI elements.
+- **UX lens**: Alignment check: does the visual direction support the interaction patterns this game requires? Flag conflicts between art direction and readability/accessibility needs.
 
-Collect both. If they conflict (e.g., art-director wants elaborate diegetic UI but ux-designer flags it would reduce combat readability), surface the conflict explicitly with both positions. Do NOT silently resolve — use `AskUserQuestion` to let the user decide.
+Collect both lenses. If they conflict, surface the conflict explicitly with both
+positions. Do not silently resolve; use `AskUserQuestion` to let the user
+decide.
 
 Write the approved section to file.
 
 ### Section 8: Asset Standards
 
-**Agent delegation**: Spawn in parallel:
-- **`art-director`**: File format preferences, naming convention direction, texture resolution tiers, LOD level expectations, export settings philosophy
-- **`technical-artist`**: Engine-specific hard constraints — poly count budgets per asset category, texture memory limits, material slot counts, importer constraints, anything from the performance budgets in `.codex/docs/technical-preferences.md`
+**CFG combined art/technical pass**:
+- **Art-direction lens**: File format preferences, naming convention direction, texture resolution tiers, LOD level expectations, export settings philosophy.
+- **Technical-art lens**: Engine-specific hard constraints: poly count budgets per asset category, texture memory limits, material slot counts, importer constraints, and anything from the performance budgets in `.codex/docs/technical-preferences.md`.
 
-If any art preference conflicts with a technical constraint (e.g., art-director wants 4K textures but performance budget requires 2K for mobile), resolve the conflict explicitly — note both the ideal and the constrained standard, and explain the tradeoff. Ambiguity in asset standards is where production costs are born.
+If any art preference conflicts with a technical constraint, resolve the conflict
+explicitly: note both the ideal and the constrained standard, and explain the
+tradeoff. Ambiguity in asset standards is where production costs are born.
 
 Write the approved section to file.
 
@@ -234,7 +267,11 @@ Write the approved section to file.
 
 **Goal**: A curated reference set that is specific about what to take and what to avoid from each source.
 
-**Agent delegation**: Spawn `art-director` via Task with the completed sections 1–8. Ask: "Compile a reference direction for this game. Provide 3–5 reference sources (games, films, art styles, or specific artists). For each: name it, specify exactly what visual element to draw from it (not 'the general aesthetic' — a specific technique, color choice, or compositional rule), and specify what to explicitly avoid or diverge from (to prevent the 'trying to copy X' reading). References should be additive — no two references should be pointing in exactly the same direction."
+**CFG art-direction pass**: With the completed sections 1-8, compile a reference
+direction for this game. Provide 3-5 reference sources. For each: name it,
+specify exactly what visual element to draw from it, and specify what to avoid
+or diverge from. References should be additive: no two references should point in
+exactly the same direction.
 
 Write the approved section to file.
 
@@ -242,8 +279,9 @@ Write the approved section to file.
 
 ## Phase 5: Art Director Sign-Off
 
-`AD-ART-BIBLE` is not invoked as a separate gate. Do not spawn the art director
-here; run the internal sign-off checklist below and proceed to Phase 6.
+`AD-ART-BIBLE` is not invoked as a separate gate. Do not invoke a standalone
+art-direction gate here; run the internal sign-off checklist below and proceed
+to Phase 6.
 
 After all sections are complete (or the scoped set from Phase 1 is complete),
 run an internal sign-off checklist:
@@ -292,12 +330,13 @@ Assign letters A, B, C… only to the options actually included. Mark the most l
 
 Every art bible run follows: **Goal → Scope → Complete Art/Asset/UX Package → Approval → Incremental Write**
 
-- Never draft a section without first spawning the relevant agent(s)
+- Never draft a section without first applying the relevant CFG professional lenses
 - Present one complete package covering visual identity, asset implications, UX/audio direction when relevant, file writes, risks, and acceptance criteria
 - Ask once to approve the package and planned writes
 - Write sections incrementally after package approval to protect context; do not ask again for every section inside the approved package
 - Ask again only for out-of-scope, destructive, publishing, commit, or high-risk visual/technical direction changes
-- Surface all agent disagreements to the user — never silently resolve conflicts between art-director and technical-artist
+- Surface all professional-lens disagreements to the user. Never silently
+  resolve conflicts between art-direction, UX, and technical-art concerns.
 - The art bible is a constraint document: it restricts future decisions in exchange for visual coherence. Every section should feel like it narrows the solution space productively.
 
 ---

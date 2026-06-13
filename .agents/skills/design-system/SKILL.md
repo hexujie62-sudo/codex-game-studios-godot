@@ -1,9 +1,9 @@
 ---
 name: design-system
-description: "Godot systems design and GDD entrypoint for system indexes, full GDDs, lightweight design patches, design review, consistency, balance, and change impact."
+description: "Godot 项目的系统设计/GDD 主入口。负责系统索引、完整 GDD、轻量设计补丁、设计审查、跨 GDD 一致性、平衡和设计变更影响。"
 argument-hint: "[system name | review/retrofit/current change]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Edit, Task, AskUserQuestion, TodoWrite
+allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, TodoWrite
 model: sonnet
 ---
 
@@ -42,6 +42,16 @@ Preserved CCGS value:
   invent balance findings from taste.
 - If this same session authored the GDD, do not self-approve it. Record
   `Designed` and route a later/fresh review pass through this same core Skill.
+
+## CFG Specialist Policy
+
+The inherited 49 CCGS agent files are not active project architecture. Do not
+invoke legacy agents and do not read `.codex/agents/`. The role names preserved
+below are professional lenses inside this Skill: game design, systems/balance,
+economy, narrative, UX, art direction, audio, implementation feasibility, and
+QA/testability. If one of these lenses becomes a recurring standalone need, add
+it back through CFG governance as a Skill or narrow agent with a concrete
+artifact boundary.
 
 ## Reference Loading Rules
 
@@ -495,19 +505,18 @@ Use the answer to frame the Player Fantasy section appropriately. Do NOT assume 
 **Cross-reference**: Must align with the game pillars. If the system serves a pillar,
 quote the relevant pillar text.
 
-**Specialist policy**: spawn the specialist only for HIGH implementation risk
-in Sections D and H. For other sections, draft without the agent and note the
-reason in the section draft.
+**CFG specialist policy**: apply the implementation-risk lenses only for HIGH
+implementation risk in Sections D and H. For other sections, draft without
+extra feasibility analysis and note the reason in the section draft.
 
-**Agent delegation (MANDATORY)**: After the framing answer is given but before drafting,
-spawn `creative-director` via Task:
+**CFG creative-framing pass (mandatory)**: After the framing answer is given but before drafting:
 - Provide: system name, framing answer (direct/indirect/both), game pillars, any reference games the user mentioned, the game concept summary
-- Ask: "Shape the Player Fantasy for this system. What emotion or power fantasy should it serve? What player moment should we anchor to? What tone and language fits the game's established feeling? Be specific — give me 2-3 candidate framings."
-- Collect the creative-director's framings and present them to the user alongside the draft.
+- Shape the Player Fantasy for this system. What emotion or power fantasy should it serve? What player moment should anchor it? What tone and language fits the game's established feeling? Be specific: give 2-3 candidate framings.
+- Present the candidate framings to the user alongside the draft.
 
-**Do NOT draft Section B without first consulting `creative-director`.** The framing
-answer tells us *what kind* of fantasy it is; the creative-director shapes *how it's
-described* — tone, language, the specific player moment to anchor to.
+**Do not draft Section B without first running the creative-framing pass.** The
+framing answer tells us *what kind* of fantasy it is; the creative lens shapes
+*how it is described*: tone, language, and the specific player moment to anchor.
 
 ---
 
@@ -529,19 +538,22 @@ This is usually the largest section. Break it into sub-sections:
 - What are the decision points the player faces?
 - What can the player NOT do? (Constraints are as important as capabilities)
 
-**Specialist policy**: spawn the specialist only for HIGH implementation risk
-in Sections D and H. For other sections, draft without the agent and note the
-reason in the section draft.
+**CFG specialist policy**: apply the implementation-risk lenses only for HIGH
+implementation risk in Sections D and H. For other sections, draft without
+extra feasibility analysis and note the reason in the section draft.
 
-**Agent delegation (MANDATORY)**: Before drafting Section C, spawn specialist agents via Task in parallel:
-- Look up the system category in the routing table (Section 6 of this skill)
-- Spawn the Primary Agent AND Supporting Agent(s) listed for this category
-- Provide each agent: system name, game concept summary, pillar set, dependency GDD excerpts, the specific section being worked on
-- Collect their findings before drafting
-- Surface any disagreements between agents to the user via `AskUserQuestion`
-- Draft only after receiving specialist input
+**CFG specialist-lens pass (mandatory)**: Before drafting Section C:
+- Look up the system category in the routing table (Section 6 of this Skill).
+- Apply the primary lens and supporting lenses listed for this category.
+- Use: system name, game concept summary, pillar set, dependency GDD excerpts,
+  and the specific section being worked on.
+- Collect the findings before drafting.
+- Surface disagreements between lenses to the user via `AskUserQuestion`.
+- Draft only after the lens pass is complete.
 
-**Do NOT draft Section C without first consulting the appropriate specialists.** A `systems-designer` reviewing rules and mechanics will catch design gaps the main session cannot.
+**Do not draft Section C without the appropriate specialist-lens pass.** A
+systems/balance review of rules and mechanics catches design gaps the main
+session can miss.
 
 **Cross-reference**: For each interaction listed, verify it matches what the
 dependency GDD specifies. If a dependency defines a value or formula and this
@@ -578,16 +590,22 @@ table. A formula without defined variables cannot be implemented without guesswo
 - Should scaling be linear, logarithmic, or stepped?
 - What should the output ranges be at early/mid/late game?
 
-**Specialist policy**: spawn the specialist only for HIGH implementation risk
-in Sections D and H. For other sections, draft without the agent and note the
-reason in the section draft.
+**CFG specialist policy**: apply the implementation-risk lenses only for HIGH
+implementation risk in Sections D and H. For other sections, draft without
+extra feasibility analysis and note the reason in the section draft.
 
-**Agent delegation (MANDATORY)**: Before proposing any formulas or balance values, spawn specialist agents via Task in parallel:
-- **Always spawn `systems-designer`**: provide Core Rules from Section C, tuning goals from user, balance context from dependency GDDs. Ask them to propose formulas with variable tables and output ranges.
-- **For economy/cost systems, also spawn `economy-designer`**: provide placement costs, upgrade cost intent, and progression goals. Ask them to validate cost curves and ratios.
-- Present the specialists' proposals to the user for review via `AskUserQuestion`
-- The user decides; the main session writes to file
-- **Do NOT invent formula values or balance numbers without specialist input.** A user without balance design expertise cannot evaluate raw numbers — they need the specialists' reasoning.
+**CFG balance pass (mandatory)**: Before proposing formulas or balance values:
+- **Always apply the systems/balance lens**: use Core Rules from Section C,
+  tuning goals from the user, and balance context from dependency GDDs. Propose
+  formulas with variable tables and output ranges.
+- **For economy/cost systems, also apply the economy lens**: use placement
+  costs, upgrade cost intent, and progression goals. Validate cost curves and
+  ratios.
+- Present the proposals to the user for review via `AskUserQuestion`.
+- The user decides; the main session writes to file.
+- **Do not invent formula values or balance numbers without the balance pass.**
+  A user without balance design expertise cannot evaluate raw numbers without
+  the reasoning behind them.
 
 **Cross-reference**: If a dependency GDD defines a formula whose output feeds into
 this system, reference it explicitly. Don't reinvent — connect.
@@ -614,11 +632,14 @@ design question, not a specification.
 - What happens when two rules apply at the same time?
 - What happens if a player finds an unintended interaction? (Identify degenerate strategies)
 
-**Specialist policy**: spawn the specialist only for HIGH implementation risk
-in Sections D and H. For other sections, draft without the agent and note the
-reason in the section draft.
+**CFG specialist policy**: apply the implementation-risk lenses only for HIGH
+implementation risk in Sections D and H. For other sections, draft without
+extra feasibility analysis and note the reason in the section draft.
 
-**Agent delegation (MANDATORY)**: Spawn `systems-designer` via Task before finalising edge cases. Provide: the completed Sections C and D, and ask them to identify edge cases from the formula and rule space that the main session may have missed. For narrative systems, also spawn `narrative-director`. Present their findings and ask the user which to include.
+**CFG edge-case pass (mandatory)**: Before finalising edge cases, use completed
+Sections C and D to identify edge cases from the formula and rule space that the
+main session may have missed. For narrative systems, also apply the narrative
+lens. Present the findings and ask the user which to include.
 
 **Cross-reference**: Check edge cases against dependency GDDs. If a dependency
 defines a floor, cap, or resolution rule that this system could violate, flag it.
@@ -651,8 +672,8 @@ system]". Flag any one-directional dependencies for correction.
 - For each knob, what breaks if it's set too high? Too low?
 - Which knobs interact with each other? (Changing A makes B irrelevant)
 
-**Agent delegation**: If formulas are complex, delegate to `systems-designer`
-to derive tuning knobs from the formula variables.
+**CFG balance pass**: If formulas are complex, use the systems/balance lens to
+derive tuning knobs from the formula variables.
 
 **Cross-reference**: If a dependency GDD lists tuning knobs that affect this system,
 reference them here. Don't create duplicate knobs — point to the source of truth.
@@ -674,11 +695,14 @@ Include at least: one criterion per core rule from Section C, and one per formul
 from Section D. Do NOT write "the system works as designed" — every criterion must
 be independently verifiable by a QA tester without reading the GDD.
 
-**Specialist policy**: spawn the specialist only for HIGH implementation risk
-in Sections D and H. For other sections, draft without the agent and note the
-reason in the section draft.
+**CFG specialist policy**: apply the implementation-risk lenses only for HIGH
+implementation risk in Sections D and H. For other sections, draft without
+extra feasibility analysis and note the reason in the section draft.
 
-**Agent delegation (MANDATORY)**: Spawn `qa-lead` via Task before finalising acceptance criteria. Provide: the completed GDD sections C, D, E, and ask them to validate that the criteria are independently testable and cover all core rules and formulas. Surface any gaps or untestable criteria to the user.
+**CFG testability pass (mandatory)**: Before finalising acceptance criteria, use
+completed GDD sections C, D, and E to validate that the criteria are
+independently testable and cover all core rules and formulas. Surface gaps or
+untestable criteria to the user.
 
 **Questions to ask**:
 - What's the minimum set of tests that prove this works?
@@ -703,7 +727,12 @@ These sections are included in the template. Visual/Audio is **REQUIRED** for vi
 - Dialogue, quests, lore
 - Level/world systems
 
-For required systems: **spawn `art-director` via Task** before drafting this section. Provide: system name, game concept, game pillars, art bible sections 1–4 if they exist. Ask them to specify: (1) VFX and visual feedback requirements for this system's events, (2) any animation or visual style constraints, (3) which art bible principles most directly apply to this system. Present their output; do NOT leave this section as `[To be designed]` for visual systems.
+For required systems: **apply the art-direction lens** before drafting this
+section. Use: system name, game concept, game pillars, and art bible sections
+1-4 if they exist. Specify: (1) VFX and visual feedback requirements for this
+system's events, (2) any animation or visual style constraints, (3) which art
+bible principles most directly apply to this system. Present the output; do not
+leave this section as `[To be designed]` for visual systems.
 
 For **all other system categories** (Foundation/Infrastructure, Economy, AI/pathfinding, Camera/input), offer the optional sections after the required sections:
 
@@ -712,20 +741,23 @@ Use `AskUserQuestion`:
   requirements, UI requirements, or capture open questions?"
   - Options: "Yes, all three", "Just open questions", "Skip — I'll add these later"
 
-For **Visual/Audio** (non-required systems): Coordinate with `art-director` and `audio-director` if detail is needed. Often a brief note suffices at the GDD stage.
+For **Visual/Audio** (non-required systems): coordinate with art-direction and
+audio-direction lenses if detail is needed. Often a brief note suffices at the
+GDD stage.
 
 > **Asset Spec Flag**: After the Visual/Audio section is written with real content, output this notice:
 > "📌 **Asset Spec** — Visual/Audio requirements are defined. After the art bible is approved, run `/art-bible system:[system-name]` to produce per-asset visual descriptions, dimensions, and generation prompts from this section."
 
-For **UI Requirements**: Coordinate with `ux-designer` for complex UI systems.
+For **UI Requirements**: use the UX lens for complex UI systems.
 After writing this section, check whether it contains real content (not just
 `[To be designed]` or a note that this system has no UI). If it does have real
 UI requirements, output this flag immediately:
 
 > **📌 UX Flag — [System Name]**: This system has UI requirements. In Phase 4
 > (Pre-Production), run `/art-bible` to create a UX spec for each screen or
-> HUD element this system contributes to **before** writing epics. Stories that
-> reference UI should cite `design/ux/[screen].md`, not the GDD directly.
+> HUD element this system contributes to **before** writing production work
+> orders. Work orders that reference UI should cite `design/ux/[screen].md`,
+> not the GDD directly.
 >
 > Note this in the systems index for this system if you update it.
 
@@ -750,9 +782,9 @@ the source of truth). Verify:
 
 ### 5a-bis: Creative Director Pillar Review
 
-`CD-GDD-ALIGN` is not invoked as a separate gate. Do not spawn the creative
-director here; run the internal GDD alignment checklist below and proceed to
-Step 5b.
+`CD-GDD-ALIGN` is not invoked as a separate gate. Do not invoke a standalone
+creative-direction gate here; run the internal GDD alignment checklist below and
+proceed to Step 5b.
 
 Run an internal GDD alignment checklist instead:
 
@@ -854,34 +886,35 @@ Use `AskUserQuestion`:
 
 ---
 
-## 6. Specialist Agent Routing
+## 6. CFG Specialist Lens Routing
 
-This skill delegates to specialist agents for domain expertise. The main session
-orchestrates the overall flow; agents provide expert content.
+This Skill uses professional lenses for domain expertise. The main session
+orchestrates the overall flow; the lenses provide expert checks and proposals.
 
-| System Category | Primary Agent | Supporting Agent(s) |
+| System Category | Primary Lens | Supporting Lenses |
 |----------------|---------------|---------------------|
-| **Foundation/Infrastructure** (event bus, save/load, scene mgmt, service locator) | `systems-designer` | `gameplay-programmer` (feasibility), `engine-programmer` (engine integration) |
-| Combat, damage, health | `game-designer` | `systems-designer` (formulas), `ai-programmer` (enemy AI), `art-director` (hit feedback visual direction, VFX intent) |
-| Economy, loot, crafting | `economy-designer` | `systems-designer` (curves), `game-designer` (loops) |
-| Progression, XP, skills | `game-designer` | `systems-designer` (curves), `economy-designer` (sinks) |
-| Dialogue, quests, lore | `game-designer` | `narrative-director` (story), `writer` (content), `art-director` (character visual profiles, cinematic tone) |
-| UI systems (HUD, menus) | `game-designer` | `ux-designer` (flows), `ui-programmer` (feasibility), `art-director` (visual style direction), `technical-artist` (render/shader constraints) |
-| Audio systems | `game-designer` | `audio-director` (direction), `sound-designer` (specs) |
-| AI, pathfinding, behavior | `game-designer` | `ai-programmer` (implementation), `systems-designer` (scoring) |
-| Level/world systems | `game-designer` | `level-designer` (spatial), `world-builder` (lore) |
-| Camera, input, controls | `game-designer` | `ux-designer` (feel), `gameplay-programmer` (feasibility) |
-| Animation, character movement | `game-designer` | `art-director` (animation style, pose language), `technical-artist` (rig/blend constraints), `gameplay-programmer` (feel) |
-| Visual effects, particles, shaders | `game-designer` | `art-director` (VFX visual direction), `technical-artist` (performance budget, shader complexity), `systems-designer` (trigger/state integration) |
-| Character systems (stats, archetypes) | `game-designer` | `art-director` (character visual archetype), `narrative-director` (character arc alignment), `systems-designer` (stat formulas) |
+| **Foundation/Infrastructure** (event bus, save/load, scene mgmt, service locator) | Systems design | Gameplay feasibility, engine integration |
+| Combat, damage, health | Game design | Systems/balance, AI behavior, art direction for hit feedback and VFX intent |
+| Economy, loot, crafting | Economy design | Systems/balance curves, game-loop design |
+| Progression, XP, skills | Game design | Systems/balance curves, economy sinks |
+| Dialogue, quests, lore | Game design | Narrative, writing/content, art direction for character visual profiles and cinematic tone |
+| UI systems (HUD, menus) | Game design | UX flows, UI implementation feasibility, art direction, technical-art constraints |
+| Audio systems | Game design | Audio direction, sound spec |
+| AI, pathfinding, behavior | Game design | AI implementation feasibility, systems scoring |
+| Level/world systems | Game design | Level design, world/lore |
+| Camera, input, controls | Game design | UX feel, gameplay implementation feasibility |
+| Animation, character movement | Game design | Art direction for animation/pose language, technical-art rig/blend constraints, gameplay feel |
+| Visual effects, particles, shaders | Game design | Art direction for VFX, technical-art performance/shader constraints, systems trigger/state integration |
+| Character systems (stats, archetypes) | Game design | Art direction for archetypes, narrative arc alignment, systems/stat formulas |
 
-**When delegating via Task tool**:
-- Provide: system name, game concept summary, dependency GDD excerpts, the specific
-  section being worked on, and what question needs expert input
-- The agent returns analysis/proposals to the main session
-- The main session presents the agent's output to the user via `AskUserQuestion`
-- The user decides; the main session writes to file
-- Agents do NOT write to files directly — the main session owns all file writes
+**When applying lenses**:
+- Use: system name, game concept summary, dependency GDD excerpts, the specific
+  section being worked on, and what question needs expert input.
+- The main session records analysis/proposals before writing.
+- The main session presents conflicts or consequential choices to the user via
+  `AskUserQuestion`.
+- The user decides; the main session writes to file.
+- Lenses do not write to files directly; the main session owns all file writes.
 
 ---
 

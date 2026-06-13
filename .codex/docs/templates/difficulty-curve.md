@@ -1,7 +1,7 @@
 # Difficulty Curve: [Game Title]
 
 > **Status**: Draft | In Review | Approved
-> **Author**: [game-designer / systems-designer]
+> **Author**: [game-design lens / systems-balance lens]
 > **Last Updated**: [Date]
 > **Links To**: `design/gdd/game-concept.md`
 > **Relevant GDDs**: [e.g., `design/gdd/combat.md`, `design/gdd/progression.md`]
@@ -324,7 +324,7 @@ trigger it? How does the game communicate that they have succeeded?]
 
 | Question | Owner | Deadline | Resolution |
 |----------|-------|----------|-----------|
-| [Is the onboarding ramp correctly calibrated for players without prior genre experience?] | [game-designer] | [Date] | [Unresolved — schedule genre-naive playtester sessions] |
-| [Does the first boss represent the correct difficulty spike or is it a wall?] | [game-designer, systems-designer] | [Date] | [Unresolved — requires 5+ playtester sessions to establish average attempt count] |
+| [Is the onboarding ramp correctly calibrated for players without prior genre experience?] | [game-design lens] | [Date] | [Unresolved — schedule genre-naive playtester sessions] |
+| [Does the first boss represent the correct difficulty spike or is it a wall?] | [game-design lens, systems-balance lens] | [Date] | [Unresolved — requires 5+ playtester sessions to establish average attempt count] |
 | [Do any cross-system interactions produce unrecoverable states?] | [systems-designer] | [Date] | [Unresolved — requires targeted playtest with resource-constrained starting conditions] |
 | [Add question] | [Owner] | [Date] | [Resolution] |

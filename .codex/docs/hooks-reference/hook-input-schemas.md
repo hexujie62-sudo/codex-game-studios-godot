@@ -1,6 +1,6 @@
 # Codex Hook Input/Output Schemas
 
-This file documents the schema shapes used by the current CCGS Codex-native
+This file documents the schema shapes used by the current CFG Codex-native
 hooks. Codex hook behavior is defined by OpenAI Codex, not by the legacy CCGS
 Claude Code hook model.
 
@@ -154,7 +154,7 @@ Expected output:
 
 ## Events Not Used By Default
 
-These events are supported by Codex but not used by the active CCGS default
+These events are supported by Codex but not used by the active CFG default
 configuration:
 
 - `PreCompact`: previous CC behavior depended on dumping text into the

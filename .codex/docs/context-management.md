@@ -9,9 +9,9 @@ will be compacted or lost. Files on disk persist across compactions and session 
 
 ## Shell Command Hygiene
 
-All windows use PowerShell 7 from:
+All windows use PowerShell 7 from the project-pinned path:
 
-`pwsh`
+`C:\tmp\pwsh-7.6.2-msix-extracted\x64\pwsh.exe`
 
 Do not use WindowsApps/MSIX `pwsh.exe` launch targets.
 
@@ -34,7 +34,7 @@ messages, multi-window commit conflict rules, and research worktree handling.
 
 Natural checkpoint points are the same places as natural compaction points:
 after writing a phase artifact, after updating a lane handoff, after completing
-a story/review/test unit, before switching lanes, and before starting research
+a work-order/review/evidence unit, before switching lanes, and before starting research
 work.
 
 Default policy is to recommend a checkpoint, not silently commit. Automatic
@@ -66,19 +66,26 @@ file under `production/session-state/windows/<window-id>.md`.
 Default windows:
 
 - `A-producer` — project control, scope, phase, cross-window coordination
-- `B-dev` — implementation, tests, story execution
+- `B-dev` — implementation, tests, runtime evidence
 - `C-art` — art direction, asset specs, asset audit
-- `D-qa` — QA, bugs, smoke/regression, test evidence
-- `Z-platform` — CCGS bottom layer: Skills, Hooks, route index, test framework, docs
+- `D-director` — project-level verdicts, work orders, canon
+- `Z-platform` — CFG bottom layer: Skills, Hooks, route index, test framework, docs
+
+`D` is the shortcut for `D-director`. `qa` is not a default shortcut. B-dev and
+C-art keep their current smoke/validation duties until a formal independent QA
+lane is explicitly created.
 
 Do not copy a full conversation into a new window. Start the new window by
-running `/window-ccgs [A|B|C|D|Z]`. If that Skill is unavailable, read
+running `/window-cfg [A|B|C|D|Z]`. If that Skill is unavailable, read
 `active.md`, the relevant lane file, and `multi-window-workflow.md` manually.
+
+D-director must also read `production/project-canon.md` and
+`.agents/skills/director-review/SKILL.md` before verdict work.
 
 After taking over a window, Codex refreshes the lane state at each milestone,
 before closing the window, and before context reaches the danger zone. Use
-`/window-ccgs audit` from A-producer to verify lanes are current. Use
-`/window-ccgs compact [A|B|C|D|Z]` when a lane grows too long.
+`/window-cfg audit` from A-producer to verify lanes are current. Use
+`/window-cfg compact [A|B|C|D|Z]` when a lane grows too long.
 
 ### Status Line Block (Production+ only)
 
@@ -87,15 +94,15 @@ status block in `active.md` that the status line script can parse:
 
 ```markdown
 <!-- STATUS -->
-Epic: Combat System
-Feature: Melee Combat
+WorkOrder: GA06-START
+Owner: B-dev
 Task: Implement hitbox detection
 <!-- /STATUS -->
 ```
 
-- All three fields (Epic, Feature, Task) are optional — include only what applies
+- All fields are optional — include only what applies
 - Update this block when switching focus areas
-- The status line displays it as a breadcrumb: `Combat System > Melee Combat > Hitboxes`
+- The status line displays it as a breadcrumb such as `GA06-START > B-dev > Hitboxes`
 - Remove or empty the block when no active work focus exists
 
 After any disruption (compaction, crash, `/clear`), read the state file first.
@@ -151,7 +158,7 @@ When context is compacted, preserve the following in the summary:
 - Reference to `production/session-state/active.md` (read it to recover state)
 - List of files modified in this session and their purpose
 - Any architectural decisions made and their rationale
-- Active sprint tasks and their current status
+- Active work orders and their current status
 - Agent invocations and their outcomes (success/failure/blocked)
 - Test results (pass/fail counts, specific failures)
 - Unresolved blockers or questions awaiting user input
@@ -170,5 +177,3 @@ If a session dies ("prompt too long") or you start a new session to continue wor
 2. Read the full state file for context
 3. Read the partially-completed file(s) listed in the state
 4. Continue from the next incomplete section or task
-
-

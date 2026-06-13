@@ -239,8 +239,9 @@ Minimum sections:
 - Asset list and status.
 - Open questions and implementation handoff.
 
-If gameplay code, mixer setup, or runtime integration is requested, hand off to
-`/dev-story`. `/art-bible` owns specs and evidence, not implementation.
+If gameplay code, mixer setup, or runtime integration is requested, hand off
+through the active work order queue to `B-dev`. `/art-bible` owns specs and
+evidence, not implementation.
 
 Verdict: `COMPLETE` when the design document is produced, `BLOCKED` when required
 GDD/art context is missing and the user declines to provide it.

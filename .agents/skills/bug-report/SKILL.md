@@ -1,6 +1,6 @@
 ---
 name: bug-report
-description: "Create a structured bug report from a description, or analyze code for likely bugs. Ensures reproduction steps, severity, and context are complete."
+description: "根据描述创建结构化错误报告，或分析代码以识别潜在错误。确保每个错误报告都有完整的复现步骤、严重性评估和上下文。"
 argument-hint: "[description] | analyze [path-to-file]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write
@@ -12,7 +12,7 @@ model: sonnet
 This Skill now also covers the former `bug-triage` and `hotfix` routes.
 
 Use it to log a new bug, analyze a suspected bug, verify a fix, close a bug, or
-triage the open bug backlog into sprint/release work. If the issue is truly
+triage the open bug backlog into work-order/release work. If the issue is truly
 release-blocking, escalate the release side to `/release-checklist`.
 
 Preserved CCGS value:
@@ -27,7 +27,7 @@ Preserved CCGS value:
   to address it. Do not collapse them into one field.
 - Hotfix path is only for release-blocking or production-breaking issues. It
   must include audit trail, affected version, rollback note, verification plan,
-  and whether the fix returns to the normal sprint backlog afterward.
+  and whether the fix returns to the normal work-order queue afterward.
 - P1/open security or crash bugs should be surfaced to `/gate-check` or
   `/release-checklist` before any release decision.
 
@@ -59,7 +59,7 @@ If no argument is provided, ask the user for a bug description before proceeding
 **Title**: [Concise, descriptive title]
 **ID**: BUG-[NNNN]
 **Severity**: [S1-Critical / S2-Major / S3-Minor / S4-Trivial]
-**Priority**: [P1-Immediate / P2-Next Sprint / P3-Backlog / P4-Wishlist]
+**Priority**: [P1-Immediate / P2-Next Work Order / P3-Backlog / P4-Wishlist]
 **Status**: Open
 **Reported**: [Date]
 **Reporter**: [Name]
@@ -145,7 +145,8 @@ Append a closure record to the bug file:
 **Closed**: [date]
 **Resolution**: Fixed — [one-line description of what was changed]
 **Fix commit / PR**: [if known]
-**Verified by**: qa-tester
+**Verified by**: B-dev / C-art domain owner, or D-director when the bug affects
+canon-level player experience
 **Closed by**: [user]
 **Regression test**: [test file path, or "Manual verification"]
 **Status**: Closed

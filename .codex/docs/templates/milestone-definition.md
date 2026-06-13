@@ -5,7 +5,7 @@
 - **Target Date**: [Date]
 - **Type**: [Prototype | Vertical Slice | Alpha | Beta | Gold | Post-Launch]
 - **Duration**: [N weeks]
-- **Number of Sprints**: [N]
+- **Work Order Count / Window Count**: [N]
 
 ## Milestone Goal
 
@@ -28,12 +28,12 @@ these are met.]
 
 ### Must Ship (Milestone Fails Without These)
 
-| Feature | Design Doc | Owner | Sprint Target | Status |
+| Feature | Design Doc | Owner | Work Order Target | Status |
 |---------|-----------|-------|--------------|--------|
 
 ### Should Ship (Planned but Cuttable)
 
-| Feature | Design Doc | Owner | Sprint Target | Cut Impact | Status |
+| Feature | Design Doc | Owner | Work Order Target | Cut Impact | Status |
 |---------|-----------|-------|--------------|-----------|--------|
 
 ### Stretch Goals (Only if Ahead of Schedule)
@@ -73,7 +73,7 @@ these are met.]
 
 | Date | Review Type | Attendees |
 |------|-----------|-----------|
-| [Week 2] | Early progress check | Producer, Directors |
-| [Midpoint] | Mid-milestone review | Full team |
-| [Week N-1] | Pre-milestone review | Full team |
-| [Target Date] | Milestone review | Full team |
+| [Week 2] | Early progress check | A-producer + relevant lanes |
+| [Midpoint] | Mid-milestone review | A-producer + D-director if player-facing |
+| [Week N-1] | Pre-milestone review | Relevant owner lanes |
+| [Target Date] | Milestone review | A-producer + D-director if needed |

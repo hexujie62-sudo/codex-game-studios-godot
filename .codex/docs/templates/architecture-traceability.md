@@ -46,7 +46,7 @@ Requirements with no ADR coverage, prioritised by layer (Foundation first):
 ### Core Layer Gaps (must resolve before relevant system is built)
 - [ ] TR-[id]: [requirement] — GDD: [file] — Suggested ADR: "[title]"
 
-### Feature Layer Gaps (should resolve before feature sprint)
+### Feature Layer Gaps (should resolve before dependent work orders)
 - [ ] TR-[id]: [requirement] — GDD: [file] — Suggested ADR: "[title]"
 
 ### Presentation Layer Gaps (can defer to implementation)

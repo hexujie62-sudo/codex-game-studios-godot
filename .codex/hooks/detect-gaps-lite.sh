@@ -23,13 +23,9 @@ if [ ! -f "design/gdd/systems-index.md" ]; then
   MESSAGES="$MESSAGES\n- 缺少系统索引: 概念明确后运行 /design-system。"
 fi
 
-if [ -d ".agents/skills" ] && [ ! -f "CCGS Skill Testing Framework/catalog.yaml" ]; then
-  MESSAGES="$MESSAGES\n- Skill 存在但缺少测试 catalog: 需要恢复 CCGS Skill Testing Framework/catalog.yaml。"
-fi
-
 if [ -n "$MESSAGES" ]; then
   {
-    echo "CCGS 明显缺口提醒："
+    echo "CFG 明显缺口提醒："
     printf '%b\n' "$MESSAGES"
     echo "轻量下一步请运行 /help；阶段推进判断请运行 /gate-check。"
   } | emit_session_context

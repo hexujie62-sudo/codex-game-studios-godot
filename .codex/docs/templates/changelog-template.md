@@ -54,7 +54,7 @@
 ### Deferred Items
 - [Features or fixes originally planned for this release but moved to next]
   - Reason: [why deferred]
-  - New target: [version or sprint]
+  - New target: [version or work-order batch]
 
 ---
 

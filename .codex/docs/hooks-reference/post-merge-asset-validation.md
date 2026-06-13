@@ -79,7 +79,7 @@ exit $EXIT_CODE
 ## Agent Integration
 
 When this hook reports issues:
-1. For naming violations: fix manually or invoke `art-director` for guidance
-2. For size violations: invoke `technical-artist` for optimization advice
+1. For naming violations: route to C-art for guidance or write a D-director work order if the issue affects visual direction
+2. For size violations: route to C-art/B-dev depending on whether the issue is asset production or runtime performance
 3. For a full audit: run `/art-bible` skill
 

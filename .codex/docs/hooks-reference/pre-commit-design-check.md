@@ -65,6 +65,5 @@ exit $EXIT_CODE
 ## Agent Integration
 
 When this hook fails, the committer should:
-1. For missing design sections: invoke the `game-designer` agent to complete
-   the document
-2. For invalid JSON: invoke the `tools-programmer` agent or fix manually
+1. For missing design sections: route to A-producer or the owning design lane
+2. For invalid JSON: route to the owning execution lane or fix manually

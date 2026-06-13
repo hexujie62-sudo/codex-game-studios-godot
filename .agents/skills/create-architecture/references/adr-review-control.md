@@ -4,16 +4,15 @@ Use this reference for `/create-architecture` ADR authoring, architecture review
 traceability review, stale-ADR checks, RTM output, and control-manifest
 generation. Do not read archived old Skills.
 
-## Absorption Map
+## Capability Areas
 
-| Old Skill | Core value preserved |
+| Area | Core value |
 |---|---|
-| `architecture-decision` | ADR numbering, status values, duplicate/supersede handling, Godot compatibility checks, TR registry updates |
-| `architecture-review` | TR coverage, RTM, conflicting/stale ADR detection, dependency ordering, PASS/CONCERNS/FAIL verdict |
-| `create-control-manifest` | flat implementation control list, accepted-ADR filtering, story readiness input, forbidden/required patterns |
+| ADR authoring | ADR numbering, status values, duplicate/supersede handling, Godot compatibility checks, TR registry updates |
+| Architecture review | TR coverage, RTM, conflicting/stale ADR detection, dependency ordering, PASS/CONCERNS/FAIL verdict |
+| Control manifest | flat implementation control list, accepted-ADR filtering, work-order/B-dev implementation input, forbidden/required patterns |
 
-Legacy names are route aliases only. Do not tell the user to run the old command
-as the next step; report `/create-architecture` as the active entry.
+Report `/create-architecture` as the active entry.
 
 ## Shared Inputs
 
@@ -31,6 +30,7 @@ Read the smallest set needed for the requested architecture task:
 - `docs/architecture/tr-registry.yaml`
 - `docs/architecture/architecture-traceability.md`
 - `docs/architecture/control-manifest.md`
+- `.codex/docs/generated-artifact-governance.md`
 
 Stable constraints:
 
@@ -104,7 +104,7 @@ Review modes are internal task scopes, not user-facing commands:
 - `consistency`: cross-ADR contradictions and dependency cycles.
 - `engine`: Godot version/API compatibility.
 - `single-gdd`: narrow review for one GDD.
-- `rtm`: requirements traceability matrix including Story and Test links.
+- `rtm`: requirements traceability matrix including work-order and test/evidence links when those consumers exist.
 - `full`: all applicable checks above.
 
 Extract technical requirements from GDDs into stable TR IDs. A technical
@@ -151,7 +151,8 @@ Review outputs may include:
 - `docs/architecture/tr-registry.yaml`
 
 Ask before writing any review report, traceability index, RTM, TR registry
-change, GDD revision flag, or session-state summary.
+change, GDD revision flag, or session-state summary. Only write these durable
+indexes when a named consumer and maintenance trigger exist.
 
 ## Control Manifest
 
@@ -175,7 +176,7 @@ Minimum fields:
 - forbidden pattern, if any
 - implementation owner/path
 - dependency order
-- story readiness notes
+- implementation/work-order readiness notes
 - test evidence expectation
 - status
 
@@ -191,8 +192,12 @@ If `control-manifest.md` already exists:
 3. Draft the regenerated manifest.
 4. Ask before overwriting.
 
-Use the manifest as `/dev-story` readiness input. Story authors should not have
-to read all ADRs to learn required and forbidden implementation patterns.
+Use the manifest as an implementation constraint input for B-dev, code-review,
+gate-check, or named work orders. Implementers should not have to read all ADRs
+to learn required and forbidden implementation patterns.
+
+Do not create a manifest for completeness. If no named consumer exists, return
+`CONCERNS` and describe which lane or work order would need it.
 
 ## Handoff
 

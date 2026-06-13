@@ -4,7 +4,7 @@
 - **Version**: 1.0
 - **Last Updated**: [Date]
 - **Author**: [Agent/Person]
-- **Reviewer**: lead-programmer
+- **Reviewer**: B-dev / architecture lens
 - **Related ADR**: [ADR-XXXX if applicable]
 - **Related Design Doc**: [Link to game design doc this implements]
 

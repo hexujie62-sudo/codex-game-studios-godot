@@ -55,6 +55,6 @@ exit $EXIT_CODE
 ## Agent Integration
 
 When this hook fails:
-1. For style violations: auto-fix with your formatter or invoke `lead-programmer`
-2. For hardcoded values: invoke `gameplay-programmer` to externalize the values
-3. For test failures: invoke `qa-tester` to diagnose and `gameplay-programmer` to fix
+1. For style violations: auto-fix with the project formatter or route to B-dev
+2. For hardcoded values: route to B-dev and, if the value is canon-level, request D-director canon review
+3. For test failures: route to B-dev for diagnosis and evidence

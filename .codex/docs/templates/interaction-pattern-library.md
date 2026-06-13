@@ -1,7 +1,7 @@
 # Interaction Pattern Library: [Game Title]
 
 > **Status**: Draft | Stable | Under Revision
-> **Author**: [ux-designer]
+> **Author**: [UX lens / C-art]
 > **Last Updated**: [Date]
 > **Version**: [1.0]
 > **Engine**: [Godot 4.6 / Unity 6 / Unreal Engine 5]
@@ -21,7 +21,7 @@
 >
 > This is a living document. Patterns are added as new screens are designed —
 > do not design a new interaction without checking here first. If a new pattern
-> is needed, add it here (or propose it to the ux-designer) before writing the
+> is needed, add it here (or propose it to the UX lens owner) before writing the
 > first screen spec that uses it.
 >
 > **Status definitions**:
@@ -50,7 +50,7 @@ specification. "Standard button" or "the usual way" is not a valid reference.
 
 **If you are updating a pattern**: Changing a Stable pattern affects every screen
 that uses it. Before changing, audit all usages (search screen specs for the
-pattern name), determine the impact, get approval from the ux-designer, and
+pattern name), determine the impact, get approval from the UX lens owner, and
 update this document before or simultaneously with any implementation change.
 
 ---
@@ -1065,8 +1065,8 @@ Store the "return focus" element reference before pushing so it can be restored 
 
 | Question | Owner | Deadline | Resolution |
 |----------|-------|----------|-----------|
-| [Does the engine's accessibility node system support screen reader announcements for toast notifications without requiring focus? Verify against engine-reference/godot/ for Godot 4.6.] | [ux-designer] | [Before first menu implementation] | [Unresolved] |
-| [What is the platform-correct confirm/cancel button mapping for Nintendo Switch release? Nintendo first-party convention differs from Xbox/PlayStation.] | [producer] | [Before platform certification submission] | [Unresolved] |
-| [Should damage numbers be pooled as Label3D nodes or rendered in a SubViewport? Verify performance budget in coordination with technical-director.] | [lead-programmer, ux-designer] | [Before combat HUD implementation] | [Unresolved] |
-| [What is the maximum number of simultaneous toast notifications before the queue becomes visually overwhelming? Needs playtesting.] | [ux-designer] | [First playtesting session] | [Unresolved] |
+| [Does the engine's accessibility node system support screen reader announcements for toast notifications without requiring focus? Verify against engine-reference/godot/ for Godot 4.6.] | [UX lens / B-dev] | [Before first menu implementation] | [Unresolved] |
+| [What is the platform-correct confirm/cancel button mapping for Nintendo Switch release? Nintendo first-party convention differs from Xbox/PlayStation.] | [A-producer] | [Before platform certification submission] | [Unresolved] |
+| [Should damage numbers be pooled as Label3D nodes or rendered in a SubViewport? Verify performance budget in coordination with architecture lens.] | [B-dev, UX lens] | [Before combat HUD implementation] | [Unresolved] |
+| [What is the maximum number of simultaneous toast notifications before the queue becomes visually overwhelming? Needs playtesting.] | [UX lens] | [First playtesting session] | [Unresolved] |
 | [Add question] | [Owner] | [Deadline] | [Resolution] |

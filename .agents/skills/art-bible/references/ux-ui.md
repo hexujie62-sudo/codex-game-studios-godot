@@ -154,7 +154,8 @@ Interaction Map:
 Events Fired:
 
 - Name events/signals the UI emits.
-- Do not implement them here; hand off to `/dev-story`.
+- Do not implement them here; hand off through the active work order queue to
+  `B-dev`.
 
 Accessibility:
 
@@ -200,7 +201,7 @@ the reviewed document without approval.
 
 `/art-bible` owns UX and visual specs. It does not implement UI code.
 
-When implementation is needed, hand off to `/dev-story` with:
+When implementation is needed, hand off to `A-producer`/`B-dev` with:
 
 - UX spec path.
 - Art bible path.
@@ -209,8 +210,8 @@ When implementation is needed, hand off to `/dev-story` with:
 - Godot UI notes: Control hierarchy, Theme resource expectations, focus order,
   input actions, and CanvasLayer usage if needed.
 
-If implementation introduces a new interaction pattern, require the implementation
-story to update `design/ux/interaction-patterns.md`.
+If implementation introduces a new interaction pattern, require the owning work
+order to update `design/ux/interaction-patterns.md`.
 
 Verdict: `COMPLETE` when the UX spec/review/handoff is complete, `BLOCKED` when
 required upstream design context is missing and the user declines to provide it.

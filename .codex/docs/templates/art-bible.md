@@ -3,7 +3,7 @@
 ## Document Status
 - **Version**: 1.0
 - **Last Updated**: [Date]
-- **Owned By**: art-director
+- **Owned By**: C-art / art-direction lens
 - **Status**: [Draft / Under Review / Approved]
 
 ## Visual Identity Summary

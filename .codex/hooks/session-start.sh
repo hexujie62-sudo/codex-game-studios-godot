@@ -8,7 +8,7 @@ ROOT="$(repo_root)"
 cd "$ROOT" 2>/dev/null || exit 0
 
 {
-  echo "CCGS session context:"
+  echo "CFG session context:"
 
   BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
   [ -n "$BRANCH" ] && echo "- Git branch: $BRANCH"
@@ -18,8 +18,11 @@ cd "$ROOT" 2>/dev/null || exit 0
     [ -n "$STAGE" ] && echo "- Current stage: $STAGE"
   fi
 
-  LATEST_SPRINT=$(ls -t production/sprints/sprint-*.md 2>/dev/null | head -1)
-  [ -n "$LATEST_SPRINT" ] && echo "- Active sprint: $(basename "$LATEST_SPRINT" .md)"
+  WORK_ORDER_COUNT=$(ls production/work-orders/*.md 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$WORK_ORDER_COUNT" -gt 0 ] 2>/dev/null; then
+    LATEST_WORK_ORDER=$(ls -t production/work-orders/*.md 2>/dev/null | head -1)
+    [ -n "$LATEST_WORK_ORDER" ] && echo "- Work orders: $WORK_ORDER_COUNT total; latest=$(basename "$LATEST_WORK_ORDER")"
+  fi
 
   LATEST_MILESTONE=$(ls -t production/milestones/*.md 2>/dev/null | head -1)
   [ -n "$LATEST_MILESTONE" ] && echo "- Active milestone: $(basename "$LATEST_MILESTONE" .md)"
@@ -44,7 +47,7 @@ cd "$ROOT" 2>/dev/null || exit 0
       for LANE_FILE in "$WINDOW_DIR"/*.md; do
         [ -f "$LANE_FILE" ] || continue
         LANE_ID=$(basename "$LANE_FILE" .md)
-        echo "  - $LANE_ID: state=$LANE_FILE. Restore: /window-ccgs $LANE_ID"
+        echo "  - $LANE_ID: state=$LANE_FILE. Restore: /window-cfg $LANE_ID"
         SHOWN=$((SHOWN + 1))
         [ "$SHOWN" -ge 8 ] && break
       done
@@ -52,7 +55,7 @@ cd "$ROOT" 2>/dev/null || exit 0
         echo "  - $((LANE_COUNT - SHOWN)) more lane(s). Run /help for the full list."
       fi
     else
-      echo "- No window lane files found. First project entry: /start. Manual lane start: /window-ccgs <lane-id>."
+      echo "- No window lane files found. First project entry: /start. Manual lane start: /window-cfg <lane-id>."
     fi
   else
     echo "- No window lane directory found. First project entry: /start."
@@ -70,7 +73,7 @@ cd "$ROOT" 2>/dev/null || exit 0
     if [ "$STAGED_COUNT" -gt 0 ] 2>/dev/null; then
       echo "- Checkpoint: $STAGED_COUNT staged file(s). Commit body should include Lane, Scope, Verification, and Rollback."
     elif [ "$CHANGED_COUNT" -ge 20 ] 2>/dev/null; then
-      echo "- Checkpoint suggested: dirty worktree is large. Run /window-ccgs checkpoint <lane-id> before switching lanes or compacting."
+      echo "- Checkpoint suggested: dirty worktree is large. Run /window-cfg checkpoint <lane-id> before switching lanes or compacting."
     fi
   else
     echo "- Worktree clean."

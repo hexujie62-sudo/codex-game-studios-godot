@@ -1,6 +1,6 @@
 # Git Checkpoint Workflow
 
-This document defines how CCGS Codex windows decide when to commit, how they
+This document defines how CFG Codex windows decide when to commit, how they
 avoid cross-window conflicts, and how research work gets isolated without
 making the user manage Git details.
 
@@ -23,7 +23,7 @@ one of these is true:
 - A lane handoff was updated after meaningful work.
 - A core Skill, Hook, route index, workflow catalog, test spec, or architecture
   document changed.
-- A story implementation, review, test evidence, or bug triage unit completed.
+- A work-order implementation, review, evidence, or bug triage unit completed.
 - The dirty worktree is large enough that recovery would be unclear.
 - The user is about to switch lanes, compact context, or start research work.
 
@@ -91,7 +91,7 @@ Automatic commits are allowed only when all conditions are true:
 
 - The lane or user instruction explicitly enables `auto_checkpoint: true`.
 - The checkpoint contains files from a single lane owner.
-- `/window-ccgs audit` has no file conflicts.
+- `/window-cfg audit` has no file conflicts.
 - The staged file list is explicit and contains no broad glob.
 - The commit message includes lane, scope, verification, and rollback fields.
 - The worktree has no unrelated unstaged changes in the same owner path.
@@ -109,15 +109,29 @@ They also warn on suspicious states:
 
 - Staged files span multiple owner domains.
 - Staged files include core framework paths without an updated Z-platform lane.
-- Staged files include code/story/test paths without a matching B-dev or D-qa
-  lane update.
+- Staged files include code/test/evidence paths without a matching B-dev lane
+  update.
+- Staged files include D-director canon or work-order paths without a matching
+  D-director lane update.
 
 Warnings do not replace human judgment. They are prompts to run:
 
 ```text
-/window-ccgs audit
-/window-ccgs checkpoint <lane-id>
+/window-cfg audit
+/window-cfg checkpoint <lane-id>
 ```
+
+## D-director Checkpoints
+
+D-director owns:
+
+- `production/project-canon.md`
+- `production/work-orders/`
+- `production/session-state/windows/D-director.md`
+
+Work order files and canon changes should checkpoint with D-director. Execution
+artifacts created because of a work order checkpoint with the execution lane
+that owns those artifacts.
 
 ## Research Worktrees
 
@@ -127,14 +141,14 @@ other windows.
 Use:
 
 ```text
-/window-ccgs research <lane-id> <slug>
+/window-cfg research <lane-id> <slug>
 ```
 
 The command drafts or creates:
 
 ```text
 Branch: codex/research/<normalized-lane-id>-<slug>-YYYYMMDD
-Worktree: ../ccgs-worktrees/<normalized-lane-id>-<slug>
+Worktree: ../cfg-worktrees/<normalized-lane-id>-<slug>
 Base SHA: <current-head>
 Merge target: <current-branch>
 ```
@@ -156,7 +170,7 @@ The research lane records:
 Use:
 
 ```text
-/window-ccgs merge <lane-id>
+/window-cfg merge <lane-id>
 ```
 
 The merge preflight checks:

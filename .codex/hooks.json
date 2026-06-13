@@ -37,7 +37,7 @@
             "command": "bash -lc 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$ROOT/.codex/hooks/session-start.sh\"'",
             "commandWindows": "\"C:\\Program Files\\Git\\bin\\bash.exe\" -lc 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$ROOT/.codex/hooks/session-start.sh\"'",
             "timeout": 10,
-            "statusMessage": "Loading CCGS session context"
+            "statusMessage": "Loading CFG session context"
           },
           {
             "type": "command",

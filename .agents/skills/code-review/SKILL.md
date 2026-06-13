@@ -1,210 +1,118 @@
 ---
 name: code-review
-description: "Review specified files or folders for architecture and code quality, covering standards, patterns, SOLID principles, testability, and performance risks."
-argument-hint: "[path-to-file-or-directory]"
+description: "对指定文件或文件集执行架构和质量的代码审查。检查编码标准合规性、架构模式遵守情况、可测试性、性能和安全风险。"
+argument-hint: "[path-to-file-or-directory] [optional work-order-or-ADR path]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, Task, AskUserQuestion
+allowed-tools: Read, Glob, Grep, Bash, AskUserQuestion
 model: sonnet
-agent: lead-programmer
 ---
 
-## Absorbed Responsibilities
+# Code Review
 
-This is now the code quality entrypoint. It also covers the former `tech-debt`,
-`perf-profile`, and `security-audit` routes when the concern is tied to code or
-architecture changes.
+`/code-review` 是 CFG 的代码质量入口。它是只读审查，不修改文件。
 
-For broad release security or certification concerns, route to
-`/release-checklist`; for failing runtime paths, route to `/smoke-check`.
+It also covers former technical-debt, perf-profile, and security-audit concerns when the concern is tied to code or architecture changes.
 
-Preserved CCGS value:
+For broad release readiness, route to `/release-checklist`. For runtime evidence failures, route to `B-dev` through the active work order and lane state. Do not route to removed sprint/story/smoke commands.
 
-- Review findings should be ordered by severity and tied to file/line evidence.
-- Architecture checks must compare implementation against Accepted ADRs and
-  `docs/architecture/control-manifest.md` when present.
-- Godot-specific checks: node lifecycle misuse, signal ownership confusion,
-  autoload overuse, scene/resource coupling, `_process` vs `_physics_process`,
-  input handling, save data validation, and generated/imported asset boundaries.
-- Performance checks stay evidence-based: only flag likely hotspots when there
-  is code evidence, measurement, or a clear Godot runtime pattern.
-- Security checks focus on relevant game risks: save tampering, unsafe file IO,
-  network trust, cheat vectors, and unvalidated external data.
-- Technical debt output should identify owner, affected subsystem, payoff, and
-  suggested sprint/backlog placement; do not create debt lists from style taste.
+## Required Context
 
-## Phase 1: Load Target Files
+Read:
 
-Read the target file(s) in full. Read AGENTS.md for project coding standards.
+- target files in full
+- `AGENTS.md`
+- `.codex/docs/technical-preferences.md`
+- relevant `docs/architecture/*.md`
+- relevant `production/work-orders/*.md` if the user provided one or the touched paths clearly belong to one
+- relevant B-dev evidence/report if present
 
----
+If a work order path is supplied, read it first to extract:
 
-## Phase 2: Identify Engine Specialists
+- scope and non-scope
+- delivery spec
+- stop conditions
+- evidence requirements
+- ADR/canon references
 
-Read `.codex/docs/technical-preferences.md`, section `## Engine Specialists`. Note:
+If no work order or ADR is found, say so and continue with a code-only review.
 
-- The **Primary** specialist (used for architecture and broad engine concerns)
-- The **Language/Code Specialist** (used when reviewing the project's primary language files)
-- The **Shader Specialist** (used when reviewing shader files)
-- The **UI Specialist** (used when reviewing UI code)
+## CFG Specialist Policy
 
-If the section reads `[TO BE CONFIGURED]`, no engine is pinned — skip engine specialist steps.
+The inherited 49 CCGS agent files are not active. Do not read `.codex/agents/`. Apply engine, shader, UI, architecture, security, performance, and testability lenses directly in-session.
 
----
+## Review Checklist
 
-## Phase 3: ADR Compliance Check
+### Work Order Compliance
 
-**Argument:** `/code-review [file(s)]` may optionally include a story file path as the last argument (e.g., `/code-review src/combat/attack.gd production/epics/combat/story-001.md`). If a story path is provided, read it to extract the governing ADR reference.
+- implementation stays inside Scope and Non-scope
+- delivery spec is satisfied or gaps are named
+- stop conditions were not ignored
+- evidence hooks or validation paths exist
 
-Search for ADR references in, in priority order:
-1. The story file (if provided as argument)
-2. Header comments at the top of the implementation files
-3. Commit messages referencing these files (`git log --oneline -- [file]`)
+### ADR And Architecture Compliance
 
-Look for patterns like `ADR-NNN` or `docs/architecture/ADR-`.
+- referenced ADRs are followed
+- implementation does not contradict accepted architecture
+- Godot node/resource/autoload ownership is clear
+- signals/events do not create hidden circular dependencies
+- save/load, input, physics, and scene lifecycle obey project rules
 
-If no ADR references found, note: "No ADR references found — ADR compliance check skipped. For full ADR compliance review, provide the story path: `/code-review [files] [story-path]`."
+### Standards
 
-For each referenced ADR: read the file, extract the **Decision** and **Consequences** sections, then classify any deviation:
+- methods/classes have appropriate names and comments where useful
+- complexity is reasonable
+- dependencies are explicit
+- configuration values are data/config driven when appropriate
+- generated/imported assets are not treated as source logic
 
-- **ARCHITECTURAL VIOLATION** (BLOCKING): Uses a pattern explicitly rejected in the ADR
-- **ADR DRIFT** (WARNING): Meaningfully diverges from the chosen approach without using a forbidden pattern
-- **MINOR DEVIATION** (INFO): Small difference from ADR guidance that doesn't affect overall architecture
+### Testability And Evidence
 
----
+- B-dev can validate the change with an available command, scene, test, capture, or manual step
+- important behavior has an observable runtime path
+- acceptance criteria from the work order are testable
+- no new edge case is introduced without evidence or follow-up owner
 
-## Phase 4: Standards Compliance
+### Performance And Safety
 
-Identify the system category (engine, gameplay, AI, networking, UI, tools) and evaluate:
+- no avoidable allocations in hot paths
+- frame-rate and physics timing are handled correctly
+- file IO, save data, networking, and external data are validated
+- error states fail clearly rather than silently corrupting state
 
-- [ ] Public methods and classes have doc comments
-- [ ] Cyclomatic complexity under 10 per method
-- [ ] No method exceeds 40 lines (excluding data declarations)
-- [ ] Dependencies are injected (no static singletons for game state)
-- [ ] Configuration values loaded from data files
-- [ ] Systems expose interfaces (not concrete class dependencies)
+## Output
 
----
+Findings first, ordered by severity. Use file/line references.
 
-## Phase 5: Architecture and SOLID
+```text
+## Code Review: [target]
 
-**Architecture:**
-- [ ] Correct dependency direction (engine <- gameplay, not reverse)
-- [ ] No circular dependencies between modules
-- [ ] Proper layer separation (UI does not own game state)
-- [ ] Events/signals used for cross-system communication
-- [ ] Consistent with established patterns in the codebase
+Findings:
+- [P0/P1/P2/P3] [file:line] [issue, impact, required fix]
 
-**SOLID:**
-- [ ] Single Responsibility: Each class has one reason to change
-- [ ] Open/Closed: Extendable without modification
-- [ ] Liskov Substitution: Subtypes substitutable for base types
-- [ ] Interface Segregation: No fat interfaces
-- [ ] Dependency Inversion: Depends on abstractions, not concretions
+Open Questions:
+- [only if needed]
 
----
+Work Order / ADR Compliance:
+- [COMPLIANT / DRIFT / VIOLATION / NOT PROVIDED]
 
-## Phase 6: Game-Specific Concerns
+Testability:
+- [TESTABLE / GAPS / BLOCKING / N/A]
 
-- [ ] Frame-rate independence (delta time usage)
-- [ ] No allocations in hot paths (update loops)
-- [ ] Proper null/empty state handling
-- [ ] Thread safety where required
-- [ ] Resource cleanup (no leaks)
+Summary:
+- [short change/context summary]
 
----
-
-## Phase 7: Specialist Reviews (Parallel)
-
-Spawn all applicable specialists simultaneously via Task — do not wait for one before starting the next.
-
-### Engine Specialists
-
-If an engine is configured, determine which specialist applies to each file and spawn in parallel:
-
-- Primary language files (`.gd`, `.cs`, `.cpp`) → Language/Code Specialist
-- Shader files (`.gdshader`, `.hlsl`, shader graph) → Shader Specialist
-- UI screen/widget code → UI Specialist
-- Cross-cutting or unclear → Primary Specialist
-
-Also spawn the **Primary Specialist** for any file touching engine architecture (scene structure, node hierarchy, lifecycle hooks).
-
-### QA Testability Review
-
-For Logic and Integration stories, also spawn `qa-tester` via Task in parallel with the engine specialists. Pass:
-- The implementation files being reviewed
-- The story's `## QA Test Cases` section (the pre-written test specs from qa-lead)
-- The story's `## Acceptance Criteria`
-
-Ask the qa-tester to evaluate:
-- [ ] Are all test hooks and interfaces exposed (not hidden behind private/internal access)?
-- [ ] Do the QA test cases from the story's `## QA Test Cases` section map to testable code paths?
-- [ ] Are any acceptance criteria untestable as implemented (e.g., hardcoded values, no seam for injection)?
-- [ ] Does the implementation introduce any new edge cases not covered by the existing QA test cases?
-- [ ] Are there any observable side effects that should have a test but don't?
-
-For Visual/Feel and UI stories: qa-tester reviews whether the manual verification steps in `## QA Test Cases` are achievable with the implementation as written — e.g., "is the state the manual checker needs to reach actually reachable?"
-
-Collect all specialist findings before producing output.
-
----
-
-## Phase 8: Output Review
-
-```
-## Code Review: [File/System Name]
-
-### Engine Specialist Findings: [N/A — no engine configured / CLEAN / ISSUES FOUND]
-[Findings from engine specialist(s), or "No engine configured." if skipped]
-
-### Testability: [N/A — Visual/Feel or Config story / TESTABLE / GAPS / BLOCKING]
-[qa-tester findings: test hooks, coverage gaps, untestable paths, new edge cases]
-[If BLOCKING: implementation must expose [X] before tests in ## QA Test Cases can run]
-
-### ADR Compliance: [NO ADRS FOUND / COMPLIANT / DRIFT / VIOLATION]
-[List each ADR checked, result, and any deviations with severity]
-
-### Standards Compliance: [X/6 passing]
-[List failures with line references]
-
-### Architecture: [CLEAN / MINOR ISSUES / VIOLATIONS FOUND]
-[List specific architectural concerns]
-
-### SOLID: [COMPLIANT / ISSUES FOUND]
-[List specific violations]
-
-### Game-Specific Concerns
-[List game development specific issues]
-
-### Positive Observations
-[What is done well -- always include this section]
-
-### Required Changes
-[Must-fix items before approval — ARCHITECTURAL VIOLATIONs always appear here]
-
-### Suggestions
-[Nice-to-have improvements]
-
-### Verdict: [APPROVED / APPROVED WITH SUGGESTIONS / CHANGES REQUIRED]
+Verdict: APPROVED / APPROVED WITH CONCERNS / CHANGES REQUIRED
 ```
 
-This skill is read-only — no files are written.
+If no issues are found, say that clearly and mention residual risk or unrun tests.
 
----
+## Next Step
 
-## Phase 9: Next Steps
+After the review:
 
-Use `AskUserQuestion`:
-- Prompt: "Code review complete — verdict: [APPROVED / CHANGES REQUIRED / MAJOR REVISION]. How would you like to proceed?"
-- Options (adjust based on verdict):
-  - If APPROVED:
-    - `[A] Run /story-done to mark the story complete`
-    - `[B] Stop here`
-  - If CHANGES REQUIRED or MAJOR REVISION:
-    - `[A] Fix the issues and re-run /code-review`
-    - `[B] Run /story-done anyway with noted exceptions`
-    - `[C] Stop here`
+- If approved and tied to an active work order, hand back to the owning lane for delivery/verdict.
+- If changes are required, route to `B-dev` for code fixes.
+- If architecture is wrong or missing, route to `/create-architecture`.
+- If the issue affects player-facing feel, visual quality, or canon, request `D-director` verdict.
 
-If an ARCHITECTURAL VIOLATION is found:
-- If the violation contradicts an **existing ADR**: fix the implementation to comply with `docs/architecture/[adr-file].md`. If the design has legitimately changed, run `/create-architecture` to formally *revise* the existing ADR — do not create a competing one.
-- If **no ADR exists** for the pattern that was violated: run `/create-architecture` to document the correct approach before fixing the code.
-
+Do not ask the user to run removed story/sprint completion commands.

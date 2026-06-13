@@ -538,7 +538,7 @@ automatically.]
 
 | Question | Owner | Deadline | Resolution |
 |----------|-------|----------|-----------|
-| [e.g., Should item comparison be automatic (always showing equipped stats) or player-triggered (press Compare)?] | [ui-designer] | [Sprint 4, Day 3] | [Pending] |
-| [e.g., Do we support controller cursor (free aim) in the item grid, or d-pad-only grid navigation?] | [lead-programmer + ui-designer] | [Sprint 4, Day 3] | [Pending — depends on ADR-0015 input model decision] |
-| [e.g., What is the game's item drop policy — permanent loss or drop-to-world?] | [systems-designer] | [Requires GDD update] | [Blocked on inventory GDD Edge Cases section] |
-| [e.g., Maximum inventory size — does the grid have a hard cap or is it infinite-scroll?] | [economy-designer] | [Sprint 3, Day 5] | [Pending] |
+| [e.g., Should item comparison be automatic (always showing equipped stats) or player-triggered (press Compare)?] | [UX lens] | [Target work order/date] | [Pending] |
+| [e.g., Do we support controller cursor (free aim) in the item grid, or d-pad-only grid navigation?] | [B-dev + UX lens] | [Target work order/date] | [Pending — depends on ADR-0015 input model decision] |
+| [e.g., What is the game's item drop policy — permanent loss or drop-to-world?] | [systems-balance lens] | [Requires GDD update] | [Blocked on inventory GDD Edge Cases section] |
+| [e.g., Maximum inventory size — does the grid have a hard cap or is it infinite-scroll?] | [economy lens] | [Target work order/date] | [Pending] |

@@ -1,521 +1,206 @@
 ---
 name: create-architecture
-description: "Godot architecture entrypoint for architecture blueprints, ADRs, architecture coverage review, TR registry, and implementation control manifests."
-argument-hint: "[natural-language goal: blueprint | ADR | review | control manifest]"
+description: "Godot 架构主入口。用于在架构边界、ADR、实现约束、Godot API 风险、代码/设计分歧或 work order 需要技术约束时，编写或审查有消费者的架构产物；不得生成无人维护的 architecture、traceability 或 control manifest 文件。"
+argument-hint: "[自然语言目标：blueprint / ADR / review / control manifest / retrofit]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Bash, AskUserQuestion, Task
+allowed-tools: Read, Glob, Grep, Write, Bash, AskUserQuestion
 model: sonnet
-agent: technical-director
 ---
 
 # Create Architecture
 
-This skill produces `docs/architecture/architecture.md` — the master architecture
-document that translates all approved GDDs into a concrete technical blueprint.
-It sits between design and implementation, and must exist before sprint planning begins.
+`/create-architecture` 是 CFG 的 Godot 架构入口。它把已批准的设计、技术偏好和当前生产目标翻译成可执行的架构约束。
 
-**Absorbed responsibilities:** this Skill now also covers the former
-`architecture-decision`, `architecture-review`, and `create-control-manifest`
-routes. Use it to create ADRs, audit architecture coverage, and generate the
-flat implementation control manifest when the blueprint is ready.
+它不再服务 Epic/Story/Sprint 动线。架构产物只有在被 work order、lane handoff、code review、gate check 或项目维护规则实际消费时才应该生成或更新。
 
-Preserved CCGS value:
+Capability areas:
 
-- Architecture output: `docs/architecture/architecture.md`.
-- ADR outputs: `docs/architecture/adr-NNNN-[slug].md`.
-- Traceability outputs: `docs/architecture/tr-registry.yaml` and
-  `docs/architecture/architecture-traceability.md`.
-- Control manifest output: `docs/architecture/control-manifest.md`.
-- ADR status values: `Proposed`, `Accepted`, `Superseded`, `Rejected`.
-- Every implementation-facing story should trace to a GDD requirement ID and an
-  Accepted ADR or an explicit architecture concern.
-- Architecture review must detect missing TR coverage, conflicting ADRs,
-  dependency ordering problems, stale ADRs after GDD changes, and Godot version
-  compatibility risks.
-- Godot-only architecture concerns: node ownership, scene boundaries, autoload
-  usage, signal/event flow, Resource/data layout, save data format, import
-  pipeline, GDScript/C# boundary if any, and headless test/export constraints.
-- Do not reintroduce Unity/Unreal engine-selection logic. If a template mentions
-  other engines, treat it as historical reference and translate the decision
-  into Godot terms.
+- architecture blueprint
+- ADR authoring
+- architecture review
+- control manifest
+- traceability review
+- Godot API risk review
+
+## CFG Specialist Policy
+
+继承的 49 个 CCGS agent 不属于当前项目架构。不要读取 `.codex/agents/`，不要模拟旧专家团。架构、Godot 可行性、测试可达性和控制清单是本 Skill 在当前上下文内应用的专业视角。
+
+跨线玩家体验、视觉质量、canon 冲突交给 `D-director`。实现可行性和 runtime evidence 由 `B-dev` 提供；必要时由 D 或 A 写入新的 work order。
 
 ## Reference Loading Rules
 
-Do not read `.agents/skills-archive/` during normal use. Old architecture Skill
-content has been extracted into `references/adr-review-control.md`.
+Do not read `.agents/skills-archive/` during normal use.
 
-Read that reference for ADR authoring, architecture coverage review,
-traceability review, control-manifest generation, stale ADR checks, or
-Godot-specific risk review. Full architecture blueprint authoring can run from
-this `SKILL.md` alone once GDDs and technical preferences exist.
+Read `references/adr-review-control.md` only when the request involves ADR authoring/review, control manifest, stale ADR checks, traceability review, or Godot-specific risk review.
 
-Do not parse review mode arguments and do not read or create
-`production/review-mode.txt`. Use the fixed review standard: internal
-architecture checks here, architecture review through this Skill when requested,
-and phase-gate director review only in `/gate-check`.
+Full blueprint authoring can run from this `SKILL.md` after loading project context.
 
-## Phase -1: Classify Architecture Task
+## Artifact Governance
 
-Do not require the user to remember old command names or mode parameters.
-Classify the request from natural language:
+Read `.codex/docs/generated-artifact-governance.md` before writing any durable
+architecture artifact.
 
-- **Architecture blueprint**: create or update `docs/architecture/architecture.md`.
-- **ADR authoring**: create or retrofit `docs/architecture/adr-NNNN-[slug].md`.
-- **Architecture review**: check TR coverage, ADR conflicts, stale decisions,
-  Godot compatibility, and traceability.
-- **Control manifest**: generate or update
-  `docs/architecture/control-manifest.md`.
-- **Godot risk review**: inspect a specific Godot API/domain risk against the
-  pinned engine reference.
+Before creating or updating any architecture-generated file, state its lifecycle:
 
-If the user used an absorbed legacy name (`architecture-decision`,
-`architecture-review`, or `create-control-manifest`), run the matching internal
-path here and report the current command as `/create-architecture`.
-
-For ADR, review, traceability, stale ADR, or control-manifest work, load
-`references/adr-review-control.md` before drafting. For full blueprint authoring,
-this `SKILL.md` is sufficient after loading project context.
-
----
-
-## Phase 0: Load All Context
-
-Before anything else, load the full project context in this order:
-
-### 0a. Engine Context (Critical)
-
-Read the engine reference library completely:
-
-1. `docs/engine-reference/[engine]/VERSION.md`
-   → Extract: engine name, version, LLM cutoff, post-cutoff risk levels
-2. `docs/engine-reference/[engine]/breaking-changes.md`
-   → Extract: all HIGH and MEDIUM risk changes
-3. `docs/engine-reference/[engine]/deprecated-apis.md`
-   → Extract: APIs to avoid
-4. `docs/engine-reference/[engine]/current-best-practices.md`
-   → Extract: post-cutoff best practices that differ from training data
-5. All files in `docs/engine-reference/[engine]/modules/`
-   → Extract: current API patterns per domain
-
-If no engine is configured, stop and prompt:
-> "No engine is configured. Run `/setup-engine` first. Architecture cannot be
-> written without knowing which engine and version you are targeting."
-
-### 0b. Design Context + Technical Requirements Extraction
-
-Read all approved design documents and extract technical requirements from each:
-
-1. `design/gdd/game-concept.md` — game pillars, genre, core loop
-2. `design/gdd/systems-index.md` — all systems, dependencies, priority tiers
-3. `.codex/docs/technical-preferences.md` — naming conventions, performance budgets,
-   allowed libraries, forbidden patterns
-4. **Every GDD in `design/gdd/`** — for each, extract technical requirements:
-   - Data structures implied by the game rules
-   - Performance constraints stated or implied
-   - Engine capabilities the system requires
-   - Cross-system communication patterns (what talks to what, how)
-   - State that must persist (save/load implications)
-   - Threading or timing requirements
-
-Build a **Technical Requirements Baseline** — a flat list of all extracted
-requirements across all GDDs, numbered `TR-[gdd-slug]-[NNN]`. This is the
-complete set of what the architecture must cover. Present it as:
-
-```
-## Technical Requirements Baseline
-Extracted from [N] GDDs | [X] total requirements
-
-| Req ID | GDD | System | Requirement | Domain |
-|--------|-----|--------|-------------|--------|
-| TR-combat-001 | combat.md | Combat | Hitbox detection per-frame | Physics |
-| TR-combat-002 | combat.md | Combat | Combo state machine | Core |
-| TR-inventory-001 | inventory.md | Inventory | Item persistence | Save/Load |
+```text
+Artifact:
+Owner:
+Consumer:
+Lifetime: one-shot / rolling / source-of-truth / recovery-state / evidence
+Update trigger:
+Stale condition:
+Directory:
+Enforcer:
+Conflict risk:
+Verdict: SAFE / REWRITE REQUIRED / DELETE / BLOCKED
 ```
 
-This baseline feeds into every subsequent phase. No GDD requirement should be
-left without an architectural decision to support it by the end of this session.
+Rules:
+
+- `docs/architecture/architecture.md` is rolling architecture context. Owner: architecture lane or A-appointed technical owner. Consumers: B-dev, code-review, gate-check.
+- ADRs are source-of-truth decisions. Owner: architecture lane/A-appointed owner. Consumers: B-dev, code-review, gate-check.
+- `docs/architecture/control-manifest.md` is an implementation constraint index. Generate it only if B-dev or work orders will actually consume it. It must list update triggers.
+- Traceability files are rolling indexes. Do not create them as decorative completeness artifacts. If generated, they must name the source GDDs/ADRs and the next maintenance trigger.
+- Do not require a fixed minimum ADR count. ADRs exist only for real architecture decisions.
+- Do not create architecture review reports, RTM, TR registry, or traceability
+  indexes unless the requester needs a durable report or a downstream consumer
+  is named.
 
-### 0c. Existing Architecture Decisions
+If a generated file would not be maintained or consumed, do not generate it.
+Report the gap instead and return `CONCERNS` or `BLOCKED`.
+
+## Phase 1: Classify The Request
 
-Read all files in `docs/architecture/` to understand what has already been decided.
-List any ADRs found and their domains.
+Classify natural language into one path:
 
-### 0d. Generate Knowledge Gap Inventory
+- **Blueprint**: create/update `docs/architecture/architecture.md`.
+- **ADR**: create/update `docs/architecture/adr-NNNN-[slug].md`.
+- **Review**: audit existing architecture/ADRs for coverage, conflicts, staleness, or Godot risk.
+- **Control manifest**: create/update `docs/architecture/control-manifest.md` from accepted decisions.
+- **Retrofit**: align existing code/docs with current architecture expectations.
+- **Risk review**: inspect one Godot API/domain risk against engine references.
 
-Before proceeding, display a structured summary:
+If the task arrives through a route-index alias, run the corresponding path here
+and report the current command as `/create-architecture`.
+
+## Phase 2: Load Context
+
+Read only what exists and is relevant:
 
-```
-## Engine Knowledge Gap Inventory
-Engine: [name + version]
-LLM Training Covers: up to approximately [version]
-Post-Cutoff Versions: [list]
+- `AGENTS.md`
+- `.codex/docs/generated-artifact-governance.md`
+- `.codex/docs/technical-preferences.md`
+- `docs/engine-reference/godot/VERSION.md`
+- `project.godot`
+- `design/gdd/game-concept.md`
+- `design/gdd/systems-index.md`
+- relevant `design/gdd/*.md`
+- `design/art/art-bible.md` when art/UI/asset constraints affect architecture
+- existing `docs/architecture/*.md`
+- relevant `production/work-orders/*.md`
+- `production/project-canon.md` only when canon/player-facing constraints affect the decision
+
+If Godot version is unknown and the task needs engine-specific architecture, stop and route to `/setup-engine`.
+
+## Phase 3: Draft The Architecture Package
+
+For blueprint/control-manifest/traceability work, present one package before writes:
+
+- scope of architecture being decided
+- input documents read
+- outputs to write/update
+- artifact lifecycle contract for each output
+- named consumer for each durable output
+- key module ownership decisions
+- Godot-specific risks and verification source
+- open questions and deferred decisions
+- impact on B-dev/C-art/D/A lanes
+
+Ask once for approval of the package. After approval, write all low-risk files named in that package without repeated per-file confirmations.
+
+For ADRs, show the ADR draft first, then ask once to write.
+
+For reviews, stay read-only unless the user explicitly asks to write a report or
+a downstream lane needs durable evidence.
+
+## Blueprint Minimum Content
+
+`docs/architecture/architecture.md` should contain only architecture that will guide work:
+
+- document status and owner
+- engine/version assumptions
+- systems covered
+- module ownership
+- scene/node/resource boundaries
+- data/event/signal flow
+- save/load and persistence boundaries if relevant
+- public interfaces or invariants B-dev must honor
+- accepted ADR links
+- open questions with owner and resolution path
+- maintenance triggers
+
+Do not fill template sections that are not relevant to the current project.
+
+## ADR Minimum Content
+
+Each ADR must include:
+
+- status: Proposed / Accepted / Superseded / Rejected
+- context
+- decision
+- consequences
+- alternatives considered
+- Godot/version compatibility
+- GDD/work-order requirements addressed
+- maintenance trigger
+
+Accepted ADRs can block implementation. Proposed ADRs are planning evidence, not final law.
+
+## Control Manifest Minimum Content
 
-### HIGH RISK Domains (must verify against engine reference before deciding)
-- [Domain]: [Key changes]
+Only create/update `docs/architecture/control-manifest.md` when it will be consumed by B-dev, code-review, gate-check, or a named work order.
 
-### MEDIUM RISK Domains (verify key APIs)
-- [Domain]: [Key changes]
+Minimum sections:
 
-### LOW RISK Domains (in training data, likely reliable)
-- [Domain]: [no significant post-cutoff changes]
+- source ADRs and architecture docs
+- implementation rules B-dev must follow
+- forbidden patterns
+- owner lane for each rule
+- update trigger
+- consuming work orders or review paths
 
-### Systems from GDD that touch HIGH/MEDIUM risk domains:
-- [GDD system name] → [domain] → [risk level]
-```
+## Review Checklist
 
-Use `AskUserQuestion`:
-- Prompt: "One or more engine domains are HIGH RISK — the LLM's knowledge may be unreliable for these areas. Architectural recommendations in these domains should be cross-referenced with the engine docs before being acted on. How would you like to proceed?"
-- Options:
-  - `[A] Proceed — flag HIGH RISK domains throughout the output`
-  - `[B] Let me check the engine reference first — pause here`
-  - `[C] Show me which domains are HIGH RISK and why`
+When reviewing architecture, check:
 
----
+- Godot version/tooling is consistent.
+- module ownership is clear enough for implementation.
+- ADRs do not conflict.
+- accepted decisions still match GDD/canon/work-order scope.
+- generated indexes are being maintained by a named owner.
+- generated artifacts match `.codex/docs/generated-artifact-governance.md`.
+- no old Epic/Story/Sprint artifact is treated as active state.
+- B-dev can implement without inventing architecture mid-task.
+- D-director verdict is required when architecture changes player-facing feel, visual language, or canon.
 
-## Phase 1: System Layer Mapping
+## Handoff
 
-Map every system from `systems-index.md` into an architecture layer. The standard
-game architecture layers are:
+Close with:
 
-```
-┌─────────────────────────────────────────────┐
-│  PRESENTATION LAYER                         │  ← UI, HUD, menus, VFX, audio
-├─────────────────────────────────────────────┤
-│  FEATURE LAYER                              │  ← gameplay systems, AI, quests
-├─────────────────────────────────────────────┤
-│  CORE LAYER                                 │  ← physics, input, combat, movement
-├─────────────────────────────────────────────┤
-│  FOUNDATION LAYER                           │  ← engine integration, save/load,
-│                                             │    scene management, event bus
-├─────────────────────────────────────────────┤
-│  PLATFORM LAYER                             │  ← OS, hardware, engine API surface
-└─────────────────────────────────────────────┘
-```
+```text
+Architecture result:
+- Written/updated: [paths]
+- Owner: [lane]
+- Consumers: [lanes/skills]
+- Maintenance trigger: [trigger]
+- B-dev impact: [summary]
+- C-art impact: [summary]
+- D/A decision needed: [yes/no + why]
+- Next: [one command or lane handoff]
 
-For each GDD system, ask:
-- Which layer does it belong to?
-- What are its module boundaries?
-- What does it own exclusively? (data, state, behaviour)
-
-Present the proposed layer assignment and ask for approval before proceeding to
-the next section. Write the approved layer map immediately to the skeleton file.
-
-**Engine awareness check**: For each system assigned to the Core and Foundation
-layers, flag if it touches a HIGH or MEDIUM risk engine domain. Show the relevant
-engine reference excerpt inline.
-
----
-
-## Phase 2: Module Ownership Map
-
-For each module defined in Phase 1, define ownership:
-
-- **Owns**: what data and state this module is solely responsible for
-- **Exposes**: what other modules may read or call
-- **Consumes**: what it reads from other modules
-- **Engine APIs used**: which specific engine classes/nodes/signals this module
-  calls directly (with version and risk level noted)
-
-Format as a table per layer, then as an ASCII dependency diagram.
-
-**Engine awareness check**: For every engine API listed, verify against the
-relevant module reference doc. If an API is post-cutoff, flag it:
-
-```
-⚠️  [ClassName.method()] — Godot 4.6 (post-cutoff, HIGH risk)
-    Verified against: docs/engine-reference/godot/modules/[domain].md
-    Behaviour confirmed: [yes / NEEDS VERIFICATION]
-```
-
-Get user approval on the ownership map before writing.
-
----
-
-## Phase 3: Data Flow
-
-Define how data moves between modules during key game scenarios. Cover at minimum:
-
-1. **Frame update path**: Input → Core systems → State → Rendering
-2. **Event/signal path**: How systems communicate without tight coupling
-3. **Save/load path**: What state is serialised, which module owns serialisation
-4. **Initialisation order**: Which modules must boot before others
-
-Use ASCII sequence diagrams where helpful. For each data flow:
-- Name the data being transferred
-- Identify the producer and consumer
-- State whether this is synchronous call, signal/event, or shared state
-- Flag any data flows that cross thread boundaries
-
-Get user approval per scenario before writing.
-
----
-
-## Phase 4: API Boundaries
-
-Define the public contracts between modules. For each boundary:
-
-- What is the interface a module exposes to the rest of the system?
-- What are the entry points (functions/signals/properties)?
-- What invariants must callers respect?
-- What must the module guarantee to callers?
-
-Write in pseudocode or the project's actual language (from technical preferences).
-These become the contracts programmers implement against.
-
-**Engine awareness check**: If any interface uses engine-specific types (e.g.
-`Node`, `Resource`, `Signal` in Godot), flag the version and verify the type
-exists and has not changed signature in the target engine version.
-
----
-
-## Phase 5: ADR Audit + Traceability Check
-
-Review all existing ADRs from Phase 0c against both the architecture built in
-Phases 1-4 AND the Technical Requirements Baseline from Phase 0b.
-
-### ADR Quality Check
-
-For each ADR:
-- [ ] Does it have an Engine Compatibility section?
-- [ ] Is the engine version recorded?
-- [ ] Are post-cutoff APIs flagged?
-- [ ] Does it have a "GDD Requirements Addressed" section?
-- [ ] Does it conflict with the layer/ownership decisions made in this session?
-- [ ] Is it still valid for the pinned engine version?
-
-| ADR | Engine Compat | Version | GDD Linkage | Conflicts | Valid |
-|-----|--------------|---------|-------------|-----------|-------|
-| ADR-0001: [title] | ✅/❌ | ✅/❌ | ✅/❌ | None/[conflict] | ✅/⚠️ |
-
-### Traceability Coverage Check
-
-Map every requirement from the Technical Requirements Baseline to existing ADRs.
-For each requirement, check if any ADR's "GDD Requirements Addressed" section
-or decision text covers it:
-
-| Req ID | Requirement | ADR Coverage | Status |
-|--------|-------------|--------------|--------|
-| TR-combat-001 | Hitbox detection per-frame | ADR-0003 | ✅ |
-| TR-combat-002 | Combo state machine | — | ❌ GAP |
-
-Count: X covered, Y gaps. For each gap, it becomes a **Required New ADR**.
-
-### Required New ADRs
-
-List all decisions made during this architecture session (Phases 1-4) that do
-not yet have a corresponding ADR, PLUS all uncovered Technical Requirements.
-Group by layer — Foundation first:
-
-**Foundation Layer (must create before any coding):**
-- `/create-architecture [title]` → covers: TR-[id], TR-[id]
-
-**Core Layer:**
-- `/create-architecture [title]` → covers: TR-[id]
-
----
-
-## Phase 6: Missing ADR List
-
-Based on the full architecture, produce a complete list of ADRs that should exist
-but don't yet. Group by priority:
-
-**Must have before coding starts (Foundation & Core decisions):**
-- [e.g. "Scene management and scene loading strategy"]
-- [e.g. "Event bus vs direct signal architecture"]
-
-**Should have before the relevant system is built:**
-- [e.g. "Inventory serialisation format"]
-
-**Can defer to implementation:**
-- [e.g. "Specific shader technique for water"]
-
----
-
-## Phase 7: Write the Master Architecture Document
-
-Once all sections are approved, write the complete document to
-`docs/architecture/architecture.md`.
-
-Display a one-paragraph summary of what the document will contain (layers, modules, data flows, ADR gaps). Then use `AskUserQuestion`:
-- "All sections approved. May I write the master architecture document?"
-  - [A] Yes — write to `docs/architecture/architecture.md` now
-  - [B] Show me the full draft inline first, then ask again
-  - [C] Not yet — I have more changes to discuss
-
-The document structure:
-
-```markdown
-# [Game Name] — Master Architecture
-
-## Document Status
-- Version: [N]
-- Last Updated: [date]
-- Engine: [name + version]
-- GDDs Covered: [list]
-- ADRs Referenced: [list]
-
-## Engine Knowledge Gap Summary
-[Condensed from Phase 0d inventory — HIGH/MEDIUM risk domains and their implications]
-
-## System Layer Map
-[From Phase 1]
-
-## Module Ownership
-[From Phase 2]
-
-## Data Flow
-[From Phase 3]
-
-## API Boundaries
-[From Phase 4]
-
-## ADR Audit
-[From Phase 5]
-
-## Required ADRs
-[From Phase 6]
-
-## Architecture Principles
-[3-5 key principles that govern all technical decisions for this project,
-derived from the game concept, GDDs, and technical preferences]
-
-## Open Questions
-[Decisions deferred — must be resolved before the relevant layer is built]
+Verdict: COMPLETE / CONCERNS / BLOCKED
 ```
 
----
-
-## Phase 7b: Technical Director Sign-Off + Lead Programmer Feasibility Review
-
-After writing the master architecture document, perform an explicit sign-off before handoff.
-
-**Step 1 — Technical Director self-review** (this skill runs as technical-director):
-
-Apply **TD-ARCHITECTURE** as an internal self-review. Check the criteria from
-`.codex/docs/director-gates.md` against the completed document without spawning
-another gate.
-
-`LP-FEASIBILITY` is not invoked as a separate gate. Do not spawn the lead
-programmer here; use the internal feasibility checklist below before Phase 8
-handoff.
-
-**Step 2 — Internal feasibility checklist:**
-
-- Each high-risk GDD requirement has either an Accepted ADR, a Proposed ADR, or
-  an explicit architecture concern.
-- Godot node/resource/autoload decisions are implementable with the pinned
-  version.
-- Control manifest ownership is clear enough for `/dev-story`.
-- Known gaps are listed as ADR follow-ups rather than hidden.
-
-**Step 3 — Present the assessments to the user:**
-
-Show the Technical Director self-review and feasibility checklist side by side.
-
-Use `AskUserQuestion` — "Architecture self-review is complete. How would you like to proceed?"
-Options: `Accept — proceed to handoff` / `Revise flagged items first` / `Discuss specific concerns`
-
-**Step 4 — Record sign-off in the architecture document:**
-
-Update the Document Status section:
-```
-- Technical Director Sign-Off: [date] — APPROVED / APPROVED WITH CONDITIONS
-- Lead Programmer Feasibility: FEASIBLE / CONCERNS ACCEPTED / REVISED
-```
-
-Show the proposed Document Status block inline, then use `AskUserQuestion`:
-- "May I update the Document Status section with the sign-off results?"
-  - [A] Yes — apply to `docs/architecture/architecture.md`
-  - [B] Not yet — I want to revisit the concerns first
-
----
-
-## Phase 8: Handoff
-
-**Step 1 — Update session state**: Write a summary to `production/session-state/active.md` covering: artifact written, TD/LP sign-off verdicts, any blockers, required ADRs remaining, and next step.
-
-**Step 2 — Output the handoff** using exactly this template (no freeform prose, no rephrasing of section titles):
-
----
-
-## Architecture Complete
-
-`docs/architecture/architecture.md` v1.0 — [TD verdict: APPROVED / APPROVED WITH CONCERNS / CONCERNS]. [One sentence on what the architecture covers.]
-
----
-
-## Run These ADRs Next
-
-**1. `/create-architecture "[Title]"` → ADR-[XXXX]**
-[One sentence: what it defines and what it unblocks.]
-
-**2. `/create-architecture "[Title]"` → ADR-[XXXX]**
-[One sentence.]
-
-**3. `/create-architecture "[Title]"` → ADR-[XXXX]**
-[One sentence.]
-
-List top 3 from Phase 6 in priority order. If fewer than 3 remain, list only what's outstanding.
-
----
-
-## Gate-Check Readiness
-
-> **Required before `/gate-check [stage]`:**
-> - [ ] Accept ADRs: [list Proposed ADR IDs that must be Accepted]
-> - [ ] Write ADRs: [list ADR IDs that must still be written]
-> - [ ] Run `/setup-engine` — verifies or scaffolds the minimal Godot test foundation
-> - [ ] Run `/art-bible` — creates `design/ux/interaction-patterns.md` and `design/accessibility-requirements.md`
->
-> Run `/gate-check [stage]` when all boxes are checked.
-
-If nothing is blocking, write instead:
-> No blockers — run `/gate-check [stage]` now.
-
----
-
-## Open Questions to Watch
-
-| ID | Summary | Priority | Resolution Path |
-|----|---------|----------|-----------------|
-| QQ-XX | [short description] | High / Medium / Low | [ADR or system that resolves it] |
-
-Omit this section entirely if there are no open QQs.
-
----
-
-(End of handoff. Do not add trailing commentary after the closing rule.)
-
----
-
-## Collaborative Protocol
-
-This skill follows the collaborative design principle at every phase:
-
-1. **Load context silently** — do not narrate file reads
-2. **Present findings** — show the knowledge gap inventory and layer proposals
-3. **Ask before deciding** — present options for each architectural choice
-4. **Draft before approval** — show the content inline before asking to write it.
-   Never ask approval for a section the user has not yet seen.
-5. **Use `AskUserQuestion` for write approvals** — plain text "May I?" is not
-   sufficient. Use the structured tool with labeled options [A]/[B]/[C] (write now /
-   show full draft first / not yet). For multi-file changesets, list every file
-   and what changes, then ask once grouped — not separate plain-text asks per file.
-6. **Incremental writing** — write each approved section immediately; do not
-   accumulate everything and write at the end. This survives session crashes.
-
-Never make a binding architectural decision without user input. If the user is
-unsure, present 2-4 options with pros/cons before asking them to decide.
-
----
-
-## Recommended Next Steps
-
-- Run `/create-architecture [title]` for each required ADR listed in Phase 6 — Foundation layer ADRs first
-- Run `/create-architecture` — bootstraps the Requirements Traceability Matrix and TR registry from the ADRs just written. Required before the Pre-Production gate.
-- Run `/setup-engine` to verify or scaffold the minimal Godot test foundation (required for gate-check)
-- Run `/art-bible` to initialize `design/ux/interaction-patterns.md` and `design/accessibility-requirements.md` (required for gate-check)
-- Run `/create-architecture` once the required ADRs are written to produce the layer rules manifest
-- Run `/gate-check pre-production` when required ADRs, `/setup-engine`, `/art-bible`, architecture traceability, and the control manifest are complete
-
+Recommended next steps must use active CFG routes: `/window-cfg`, `/code-review`, `/gate-check`, `/design-system`, `/art-bible`, or another existing Skill. Do not recommend removed sprint/story/smoke commands.
 

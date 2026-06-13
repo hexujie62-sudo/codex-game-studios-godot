@@ -34,7 +34,7 @@ representative quality?"]
 ## Build Velocity Log
 
 [Day-by-day record of what was completed. This is your real production rate data —
-use it in sprint planning.]
+use it in production queue/scope planning.]
 
 | Day | Completed |
 |-----|-----------|
@@ -107,7 +107,7 @@ Can the team build at this quality on the projected schedule?]
 **Architecture adjustments needed:**
 - [ADR to update or create]
 
-**Sprint velocity estimate based on slice data:**
+**Production velocity estimate based on slice data:**
 - [e.g., "1 day per enemy type, 2 days per level section, 0.5 days per UI screen"]
 
 **Scope adjustments from original design:**
@@ -115,14 +115,14 @@ Can the team build at this quality on the projected schedule?]
 
 **Performance targets:** [Confirmed / Revised — list changes if revised]
 
-**Playtest note:** Run `/smoke-check` to structure additional session data
-before running `/gate-check pre-production`.
+**Playtest note:** Capture B-dev runtime evidence and C-art/player-facing
+evidence before running `/gate-check pre-production`; request D-director verdict
+when the result affects canon, visual identity, or core player experience.
 
 **Next steps:**
 1. `/gate-check pre-production` — formally advance to Production
-2. `/sprint-plan layer:foundation` — plan Foundation layer epics
-3. `/sprint-plan layer:core` — plan Core layer epics
-4. `/sprint-plan` — use velocity data from this report in the estimate
+2. `/window-cfg A` — create or update bounded production work orders
+3. `/window-cfg B` / `/window-cfg C` — execute lane-owned evidence as scoped
 
 ---
 
@@ -137,7 +137,7 @@ before running `/gate-check pre-production`.
 **Next steps:**
 1. `/design-system [mechanic]` — revise affected GDDs
 2. `/create-architecture [decision]` — address architecture issues
-3. `/sprint-plan` — re-validate after revisions
+3. `/window-cfg A` — scope the next validation work order after revisions
 
 ---
 

@@ -33,7 +33,7 @@ REMINDERS="production/session-state/hook-reminders.md"
       for LANE_FILE in "$WINDOW_DIR"/*.md; do
         [ -f "$LANE_FILE" ] || continue
         LANE_ID=$(basename "$LANE_FILE" .md)
-        echo "  - $LANE_ID: state=$LANE_FILE. Restore: /window-ccgs $LANE_ID"
+        echo "  - $LANE_ID: state=$LANE_FILE. Restore: /window-cfg $LANE_ID"
         SHOWN=$((SHOWN + 1))
         [ "$SHOWN" -ge 8 ] && break
       done
@@ -41,7 +41,7 @@ REMINDERS="production/session-state/hook-reminders.md"
         echo "  - $((LANE_COUNT - SHOWN)) more lane(s). Run /help for the full list."
       fi
     else
-      echo "- No window lane files found. For parallel work or recovery, run /window-ccgs <lane-id>."
+      echo "- No window lane files found. For parallel work or recovery, run /window-cfg <lane-id>."
     fi
   fi
 

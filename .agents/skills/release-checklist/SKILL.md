@@ -1,6 +1,6 @@
 ---
 name: release-checklist
-description: "Generate a comprehensive pre-release validation checklist covering build validation, certification requirements, store metadata, and release readiness."
+description: "生成全面的前发布验证清单，涵盖构建验证、认证要求、商店元数据和发布就绪性。"
 argument-hint: "[platform: pc|console|mobile|all]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write
@@ -36,7 +36,7 @@ Preserved CCGS value:
 - Localization checks are only required for locales/platforms actually planned
   for this project; do not add localization work to a scope that has not chosen
   it.
-- Release checks must read current stage, latest gate report, smoke/regression
+- Release checks must read current stage, latest gate report, B-dev/C-art
   evidence, open P1/P2 bugs, security concerns, store/platform requirements, and
   rollback readiness.
 
@@ -189,10 +189,10 @@ resolved before launch. If NOT READY, list the specific items that need
 resolution and estimated time to address them.]
 
 **Sign-offs Required:**
-- [ ] QA Lead
-- [ ] Technical Director
-- [ ] Producer
-- [ ] Creative Director
+- [ ] A-producer
+- [ ] B-dev
+- [ ] C-art
+- [ ] D-director when player-facing/canon readiness is in scope
 ```
 
 ---

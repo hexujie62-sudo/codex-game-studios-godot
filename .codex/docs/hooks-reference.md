@@ -15,8 +15,8 @@ Git checkpoint and research branch policy lives in
 | `session-start.sh` | SessionStart | New Codex thread/session | Emits JSON `additionalContext` with branch, stage, active state file, registered lane restore commands, hook reminders, dirty worktree count, and low-frequency checkpoint hints |
 | `detect-gaps-lite.sh` | SessionStart | New Codex thread/session | Emits JSON `additionalContext` for obvious missing route artifacts only |
 | `dangerous-command-policy.sh` | PreToolUse | `Bash` or `apply_patch` | Blocks force push, hard reset, checkout discard, and high-risk recursive deletion of core folders |
-| `skill-change-reminder.sh` | PostToolUse | `Write`, `Edit`, or `apply_patch` | Detects `.agents/skills/*/SKILL.md` changes and reminds `/skill-create-ccgs`; also writes `production/session-state/hook-reminders.md` |
-| `post-compact-restore.sh` | PostCompact | After context compaction | Emits JSON `systemMessage` reminding Codex to read `production/session-state/active.md` and restore the correct lane with `/window-ccgs <lane-id>` |
+| `skill-change-reminder.sh` | PostToolUse | `Write`, `Edit`, or `apply_patch` | Detects `.agents/skills/*/SKILL.md` changes and reminds `/skill-create-cfg`; also writes `production/session-state/hook-reminders.md` |
+| `post-compact-restore.sh` | PostCompact | After context compaction | Emits JSON `systemMessage` reminding Codex to read `production/session-state/active.md` and restore the correct lane with `/window-cfg <lane-id>` |
 
 ## Git Hooks
 
@@ -33,7 +33,7 @@ git config core.hooksPath .githooks
 
 ## Legacy Scripts
 
-Previous CCGS hook scripts are archived in `.codex/hooks/legacy/`. They are not
+Previous CCGS hook scripts are legacy compatibility material. If present, they are not
 wired in `.codex/hooks.json` and should not be treated as active Codex safety
 checks. See `docs/ccgs-codex-hook-adaptation-plan.md` for the migration
 rationale.

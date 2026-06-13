@@ -27,7 +27,7 @@ This file is gitignored and will not be committed.
 
 ## Personal Shortcuts
 - When I say "review", run /code-review on the last changed files
-- When I say "status", show git status + sprint progress
+- When I say "status", show git status + active work-order/lane progress
 ```
 
 ## Setup

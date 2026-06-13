@@ -1,90 +1,56 @@
-# Test Evidence: [Story Title]
+# Work Order Evidence: [Work Order ID]
 
-> **Story**: `[path to story file]`
-> **Story Type**: [Visual/Feel | UI]
+> **Work order**: `production/work-orders/[id].md`
+> **Owner lane**: [B-dev / C-art / other]
 > **Date**: [date]
-> **Tester**: [who performed the test]
+> **Tester / author**: [name or lane]
 > **Build / Commit**: [version or git hash]
 
 ---
 
 ## What Was Tested
 
-[One paragraph describing the feature or behaviour that was validated. Include
-the acceptance criteria numbers from the story that this evidence covers.]
+[Describe the requirement or claim validated. Reference the work order delivery
+spec and acceptance/evidence requirement.]
 
-**Acceptance criteria covered**: [AC-1, AC-2, AC-3]
+## Results
 
----
+| Requirement | Result | Evidence | Notes |
+|---|---|---|---|
+| [requirement] | PASS / FAIL / PARTIAL / INVALID | [path] | [notes] |
 
-## Acceptance Criteria Results
+## Captures / Logs / Reports
 
-| # | Criterion (from story) | Result | Notes |
-|---|----------------------|--------|-------|
-| AC-1 | [exact criterion text] | PASS / FAIL | [any observations] |
-| AC-2 | [exact criterion text] | PASS / FAIL | |
-| AC-3 | [exact criterion text] | PASS / FAIL | |
+| # | Path | What It Shows | Requirement |
+|---|---|---|---|
+| 1 | `[path]` | [description] | [requirement] |
 
----
-
-## Screenshots / Video
-
-List all captured evidence below. Store files in the same directory as this
-document or in `production/qa/evidence/[story-slug]/`.
-
-| # | Filename | What It Shows | Acceptance Criterion |
-|---|----------|--------------|----------------------|
-| 1 | `[filename.png]` | [brief description of what is visible] | AC-1 |
-| 2 | `[filename.png]` | | AC-2 |
-
-*If video: note the timestamp and what it demonstrates.*
-
----
+For video, include timestamp ranges. For synthesized or composite evidence,
+state that it is not raw runtime capture.
 
 ## Test Conditions
 
-- **Game state at start**: [e.g., "fresh save, player at level 1, no items"]
-- **Platform / hardware**: [e.g., "Windows 11, GTX 1080, 1080p"]
-- **Framerate during test**: [e.g., "stable 60fps" or "~45fps — within budget"]
-- **Any special setup required**: [e.g., "dev menu used to trigger specific state"]
-
----
+- **Game state at start**: [state]
+- **Platform / hardware**: [platform]
+- **Runtime mode**: [normal / validation / debug]
+- **Special setup**: [setup]
 
 ## Observations
 
-[Anything noteworthy that didn't cause a FAIL but should be recorded. Examples:
-minor visual jitter, frame dip under load, behaviour that technically passes
-but felt slightly off. These become candidates for polish work.]
-
-- [Observation 1]
-- [Observation 2]
+- [observation]
 
 If nothing notable: *No significant observations.*
 
----
+## Sign-Off / Return Path
 
-## Sign-Off
+| Role/Lane | Status | Notes |
+|---|---|---|
+| B-dev | Approved / Deferred / N/A | |
+| C-art | Approved / Deferred / N/A | |
+| D-director | Requested / PASS / PARTIAL PASS / FAIL / N/A | |
+| A-producer | Queue updated / N/A | |
 
-All roles must sign off before the story can be marked COMPLETE via `/story-done`.
-Visual/Feel stories require the designer or art-lead sign-off. UI stories require
-the UX lead or designer sign-off.
-
-**Solo developers**: all sign-offs may be by the same person in each role. The
-intent is that someone deliberately reviews the evidence before marking complete —
-not that three separate people must participate.
-
-| Role | Name | Date | Signature |
-|------|------|------|-----------|
-| Developer (implemented) | | | [ ] Approved |
-| Designer / Art Lead / UX Lead | | | [ ] Approved |
-| QA Lead | | | [ ] Approved |
-
-**Any sign-off can be marked "Deferred — [reason]"** if the person is
-unavailable. Deferred sign-offs must be resolved before the story advances
-past the sprint review.
-
----
+Deferred sign-offs must name the reason and owner.
 
 *Template: `.codex/docs/templates/test-evidence.md`*
-*Used for: Visual/Feel and UI story type evidence records*
-*Location: `production/qa/evidence/[story-slug]-evidence.md`*
+*Location: owner lane report or `production/work-orders/` evidence bundle*

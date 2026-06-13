@@ -3,7 +3,7 @@ name: start
 description: "First-session onboarding: confirm Codex production coverage and project state, then route into the full package workflow."
 argument-hint: "[no arguments]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash, AskUserQuestion
+allowed-tools: Read, Glob, Grep, Write, AskUserQuestion
 model: sonnet
 ---
 
@@ -55,89 +55,8 @@ messages should be rendered in the active response language:
 5. If the user later asks to switch language, update the profile and continue in
    the requested language.
 
-This is a hard runtime rule, not an optional style preference:
-
-- If the active response language is `zh-CN`, do not copy the English prompt
-  and option text below into the user-facing answer.
-- Translate every user-visible sentence, option label, and option description.
-- Keep file paths, command names, lane ids, and status keywords unchanged.
-- If `AskUserQuestion` renders options, pass localized labels and descriptions
-  to that tool.
-
-## User-Reviewed Artifact Language Contract
-
-During `/start`, also write the active response-language rule into the project's
-root `AGENTS.md`. This makes later Skills inherit the rule from normal project
-instructions instead of requiring local patches in every authoring Skill.
-
-If `AGENTS.md` exists, preserve the file and insert or update this short block
-under `## Collaboration Protocol`. If that heading is missing, append the block
-near the top-level project instructions. Use `Edit` for existing files; use
-`Write` only when `AGENTS.md` is missing.
-
-```markdown
-### User-Reviewed Artifact Language
-
-- Use the project's active user language for conversation and for any document
-  content the user is expected to read, review, approve, or continue editing.
-  The active language is recorded as `response_language` in
-  `.codex/docs/collaboration-profile.md`.
-- This applies to GDDs, art bible sections, architecture documents, sprint and
-  story plans, QA/review reports, adoption plans, and other user-reviewed
-  production docs.
-- Keep machine-readable tokens unchanged: file paths, slash commands, code
-  identifiers, YAML/frontmatter keys, schema fields, status enum values, test
-  names, API names, and externally defined terminology.
-```
-
-For `zh-CN`, write the block in Chinese while preserving the machine tokens:
-
-```markdown
-### 用户审阅工件语言
-
-- 对话，以及任何需要用户阅读、审阅、批准或继续维护的文档正文，都使用项目的当前用户语言。当前语言记录在 `.codex/docs/collaboration-profile.md` 的 `response_language`。
-- 这适用于 GDD、Art Bible 章节、架构文档、冲刺与 Story 计划、QA/审查报告、接手整理计划，以及其他需要用户审阅的生产文档。
-- 机器可读内容保持原样：文件路径、斜杠命令、代码标识符、YAML/frontmatter key、schema 字段、状态枚举值、测试名、API 名称和外部定义术语。
-```
-
-This AGENTS.md update is part of the `/start` onboarding state package. Do not
-ask a separate micro-approval for it after the user has completed the startup
-choices. Do not rewrite unrelated AGENTS.md sections.
-
-After the response language is confirmed or inferred, run the frontmatter
-localizer so the visible Skill list matches the active language, but only when
-both files exist in the current repository:
-
-- `scripts/localize-skill-frontmatter.ps1`
-- `.codex/docs/skill-frontmatter-locales.json`
-
-```powershell
-pwsh -File scripts/localize-skill-frontmatter.ps1 -Language [en|zh-CN]
-```
-
-If the script or catalog is missing, do not block `/start`, do not try a sibling
-repository path, and do not open Explorer. Record `response_language` and say in
-the active response language that Skill-list localization is unavailable in this
-older/incomplete framework copy.
-
-Only skip an available script if shell execution is unavailable. In that case,
-record `response_language` and tell the user the exact command to run.
-
-Localized starter copy for `zh-CN`:
-
-- Lane bootstrap sentence: `已建立最小 A-producer lane，用来保存恢复点和后续窗口分流。`
-- Coverage prompt: `欢迎使用 Codex Game Studios。先确认一下：这个项目里，Codex 应该覆盖哪些制作职能？`
-- Coverage options:
-  - `工程与设置` -- Godot、代码、工具、测试、构建和技术文档。
-  - `工程 + 设计落地` -- 在工程之外，也参与系统设计、数值、关卡、文案草案和实施方案。
-  - `全链路协助` -- 程序、美术方向、音乐/音频方向、文案、数值、关卡、工具、QA 和运营文档都可以介入。
-  - `我来定义边界` -- 用户说明 Codex 应该覆盖和不应该覆盖的范围。
-- Project-state prompt: `现在选择项目当前的起点。`
-- Project-state options:
-  - `A) 还没有想法` -- 还没有游戏概念，想先探索做什么。
-  - `B) 想法还模糊` -- 有题材、感觉、类型或大方向，但还不是清晰概念。
-  - `C) 概念比较清楚` -- 已知道核心想法、类型和基础机制，也许是一句话 pitch，但还没有正式文档。
-  - `D) 已有内容` -- 已经有设计文档、原型、代码或有意义的规划，想整理或继续。
+Translate the option labels and prompts below when showing them to the user, but
+keep the underlying meanings unchanged.
 
 ## Reference Loading Rules
 
@@ -160,7 +79,7 @@ Before asking onboarding questions, check multi-window state:
 
 If no lane files exist, the project has not entered the file-backed Codex Game
 Studios window system yet. Do not block `/start`, and do not require the user to
-run `/window-ccgs A` first. `/start` is the first entry point, so create the
+run `/window-cfg A` first. `/start` is the first entry point, so create the
 minimal lane state directly and then continue onboarding.
 
 This is low-risk, reversible framework bookkeeping. Do not ask a separate
@@ -169,7 +88,6 @@ active response language:
 
 ```text
 Created the minimal A-producer lane to preserve recovery points and later window routing.
-zh-CN: 已建立最小 A-producer lane，用来保存恢复点和后续窗口分流。
 ```
 
 Write:
@@ -180,13 +98,13 @@ Write:
 If the user input explicitly contains `single-window`, `no lane`, `no file
 state`, or equivalent wording, skip lane creation, continue to Phase 1, and warn
 that recovery and parallel coordination will not be written to a lane. Mention
-that `/window-ccgs A` can be run later.
+that `/window-cfg A` can be run later.
 
 If at least one lane file already exists, continue to Phase 1. Do not require
 the lane to be named `A-producer`; a custom lane also counts as lane-enabled
 state. If there is no `A-producer` or equivalent control lane, later
 recommendations should include a reminder that long-running projects should add
-a control lane such as `/window-ccgs A`.
+a control lane such as `/window-cfg A`.
 
 ---
 
@@ -208,8 +126,8 @@ Check:
   `*.h`, `*.rs`, `*.py`, `*.js`, `*.ts`.
 - **Prototypes exist?** Check whether `prototypes/` has subdirectories.
 - **Design docs exist?** Count markdown files in `design/gdd/`.
-- **Production artifacts?** Check `production/sprints/` and
-  `production/milestones/`.
+- **Production artifacts?** Check `production/work-orders/`,
+  `production/session-state/`, and `production/milestones/`.
 - **Collaboration profile?** Read `.codex/docs/collaboration-profile.md` for
   Codex's current production-function coverage.
 
@@ -257,26 +175,10 @@ prompt such as "tell me the two startup facts." Free-form description is allowed
 only as one option; it must not replace the structured options.
 
 After both answers, write Codex production-function coverage and
-`response_language` to `.codex/docs/collaboration-profile.md`, write the
-user-reviewed artifact language rule to `AGENTS.md`, write the initial stage to
-`production/stage.txt`, and update `production/session-state/active.md`. Treat
-these as one onboarding state package; do not ask separate confirmations for
-each file.
-
-Then run:
-
-```powershell
-pwsh -File scripts/localize-skill-frontmatter.ps1 -Language [response_language]
-```
-
-Use `en` for English and `zh-CN` for Simplified Chinese. This script rewrites
-only Skill frontmatter `description` and `argument-hint` fields so the visible
-Skill list matches the user's language. It must not rewrite Skill bodies,
-README, AGENTS.md, design docs, or project state.
-
-Before running, verify the script and locale catalog exist in the current
-repository. If either is missing, skip this localization step; never search a
-sibling project such as another `Claude-Code-Game-Studios-*` directory.
+`response_language` to `.codex/docs/collaboration-profile.md`, write the initial
+stage to `production/stage.txt`, and update
+`production/session-state/active.md`. Treat these as one onboarding state
+package; do not ask three separate confirmations.
 
 ---
 
@@ -349,7 +251,7 @@ The user needs creative exploration first.
    - If the engine is not configured, recommend `/setup-engine` first.
    - Then recommend `/help` for gap inventory.
 
-3. **Sub-case D2 -- Existing GDDs, ADRs, or stories:**
+3. **Sub-case D2 -- Existing GDDs, ADRs, work orders, or lane state:**
    - Explain that files existing on disk does not guarantee that the Skills can
      use them directly. GDDs may be missing required sections, and `/start`
      checks this problem.
@@ -363,7 +265,7 @@ The user needs creative exploration first.
    - `/setup-engine` -- if the engine is not configured.
    - `/design-system retrofit [path]` -- fill missing GDD sections.
    - `/create-architecture retrofit [path]` -- fill missing ADR sections.
-   - `/create-architecture` -- start the TR requirement registry.
+   - `/create-architecture` -- create or review architecture artifacts only when they have a named owner, consumer, and maintenance trigger.
    - `/gate-check` -- verify whether the project can move to the next phase.
 
 ---
@@ -388,7 +290,6 @@ writing, say in the active response language:
 
 ```text
 I set production/stage.txt to [stage]. This fixes the status line and stage detection source.
-zh-CN: 我已把 production/stage.txt 设为 [stage]，这样状态行和阶段检测来源就固定了。
 ```
 
 ---
@@ -402,7 +303,6 @@ Say this in one sentence in the active response language:
 
 ```text
 Current review standard: normal Skills run internal checks; phase advancement is reviewed through /gate-check.
-zh-CN: 当前审查标准：普通 Skill 运行内部检查；阶段推进通过 /gate-check 审查。
 ```
 
 ---
@@ -415,9 +315,6 @@ there?" question. Output one primary command and one reason:
 ```text
 Next step: `/[recommended command]`
 Goal: produce the full package first; after approval, move into execution.
-zh-CN:
-下一步：`/[recommended command]`
-目标：先产出完整方案包；确认后再进入执行。
 ```
 
 ---
@@ -429,7 +326,6 @@ active response language:
 
 ```text
 Enter [skill command] to start.
-zh-CN: 输入 [skill command] 开始。
 ```
 
 Do not re-explain the Skill or add extra encouragement. `/start` is complete.

@@ -71,10 +71,12 @@ echo "=== All gates passed ==="
 exit 0
 ```
 
-## Agent Integration
+## CFG Follow-Up Routing
 
 When this hook fails:
-1. Build failure: invoke `lead-programmer` to diagnose
-2. Unit test failure: invoke `qa-tester` to identify the failing test and
-   `gameplay-programmer` or relevant programmer to fix
-3. Performance regression: invoke `performance-analyst` to analyze
+1. Build failure: route to `B-dev` for diagnosis.
+2. Unit test failure: route to `B-dev` for failing-test analysis and fix scope.
+3. Visual/readability smoke failure: route to `C-art`.
+4. Cross-line or canon-level quality conflict: create a D-director work order.
+5. Performance regression: route to `B-dev` for profiling evidence and, if it
+   affects player experience or canon targets, request D-director verdict.

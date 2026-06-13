@@ -1,7 +1,7 @@
 # Player Journey Map: [Game Title]
 
 > **Status**: Draft | In Review | Approved
-> **Author**: [game-designer / creative-director]
+> **Author**: [game-design lens / D-director]
 > **Last Updated**: [Date]
 > **Links To**: `design/gdd/game-concept.md`, `design/gdd/game-pillars.md`
 
@@ -352,6 +352,6 @@ concretely look and feel like at the beginning, middle, and end of the journey?]
 
 | Question | Owner | Deadline | Resolution |
 |----------|-------|----------|-----------|
-| [Does the Phase 1 hook work for players without prior genre experience?] | [game-designer] | [Date] | [Unresolved] |
-| [Is Phase 4 depth discoverable without external guides?] | [game-designer, ux-designer] | [Date] | [Unresolved] |
+| [Does the Phase 1 hook work for players without prior genre experience?] | [game-design lens] | [Date] | [Unresolved] |
+| [Is Phase 4 depth discoverable without external guides?] | [game-design lens, UX lens] | [Date] | [Unresolved] |
 | [Add question] | [Owner] | [Date] | [Resolution] |

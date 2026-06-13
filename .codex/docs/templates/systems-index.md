@@ -93,8 +93,8 @@ next, though independent systems at the same layer can be designed in parallel.]
 
 | Order | System | Priority | Layer | Agent(s) | Est. Effort |
 |-------|--------|----------|-------|----------|-------------|
-| 1 | [First system to design] | MVP | Foundation | game-designer | [S/M/L] |
-| 2 | [Second system] | MVP | Foundation | game-designer | [S/M/L] |
+| 1 | [First system to design] | MVP | Foundation | game-design lens | [S/M/L] |
+| 2 | [Second system] | MVP | Foundation | game-design lens | [S/M/L] |
 
 [Effort estimates: S = 1 session, M = 2-3 sessions, L = 4+ sessions.
 A "session" is one focused design conversation producing a complete GDD.]
@@ -143,5 +143,5 @@ These should be prototyped early regardless of priority tier.]
 - [ ] Design MVP-tier systems first (use `/design-system [system-name]`)
 - [ ] Run `/design-system` on each completed GDD
 - [ ] Run `/gate-check pre-production` when MVP systems are designed
-- [ ] Validate the highest-risk systems with `/sprint-plan` before committing to Production
+- [ ] Validate the highest-risk systems through bounded work orders before committing to Production
 

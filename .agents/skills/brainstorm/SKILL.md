@@ -304,8 +304,8 @@ individual pillar as a file section, and do not repeat file-write confirmation
 after the complete package is approved.
 
 `CD-PILLARS` and `AD-CONCEPT-VISUAL` are not invoked as separate gates. Do not
-spawn director agents here; run the internal pillar/visual-anchor check below and
-proceed to Phase 5.
+invoke standalone director gates here; run the internal pillar/visual-anchor
+check below and proceed to Phase 5.
 
 Run an internal pillar/visual-anchor check:
 
@@ -356,9 +356,9 @@ Ground the concept in reality:
 - **Biggest risks**: Technical risks, design risks, market risks
 - **Scope tiers**: What's the full vision vs. what ships if time runs out?
 
-`TD-FEASIBILITY` is not invoked as a separate gate. Do not spawn a director agent
-here; run the internal Godot feasibility check below before scope tier
-definition.
+`TD-FEASIBILITY` is not invoked as a separate gate. Do not invoke a standalone
+director gate here; run the internal Godot feasibility check below before scope
+tier definition.
 
 Run an internal Godot feasibility check instead:
 
@@ -370,8 +370,9 @@ Run an internal Godot feasibility check instead:
 If risk is HIGH, offer to revisit scope or define a prototype question using
 `references/prototype-validation.md` before finalising.
 
-`PR-SCOPE` is not invoked as a separate gate. Do not spawn a producer agent here;
-run the internal scope check below before document generation.
+`PR-SCOPE` is not invoked as a separate gate. Do not invoke a standalone
+producer gate here; run the internal scope check below before document
+generation.
 
 Run an internal scope check: compare full vision, first complete scope,
 timeline, team size, and content count. If the plan is unrealistic, offer to
@@ -423,7 +424,7 @@ the package without asking again.
    - If the first playable scope is ready for technical planning:
      `/create-architecture`.
    - If a scoped Godot prototype plan is already approved and tooling is ready:
-     `/sprint-plan` or `/dev-story` depending on existing production artifacts.
+     route through `A-producer` with `/window-cfg A` to create a bounded work order, then execute in the owning B/C lane.
 
 7. **Output a summary** with the chosen concept's elevator pitch, pillars,
    primary player type, engine recommendation, biggest risk, and file path.
@@ -451,6 +452,5 @@ After the game concept is written, follow the pre-production pipeline in order:
 3. `/design-system` — decompose the concept into individual systems with dependencies
 4. `/design-system [first-system]` — author per-system GDDs in dependency order
 5. `/create-architecture` — produce the master architecture blueprint
-6. `/create-architecture` — bootstrap TR registry and Requirements Traceability Matrix
-7. `/gate-check pre-production` — validate readiness before committing to production
+6. `/gate-check pre-production` — validate readiness before committing to production
 

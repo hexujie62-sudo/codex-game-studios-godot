@@ -1,556 +1,256 @@
 ---
 name: gate-check
-description: "Verify readiness to advance between development phases. Produces PASS/CONCERNS/FAIL decisions with concrete blockers and required artifacts."
+description: "验证在开发阶段之间推进的就绪状态。生成带有具体阻碍和必需工件的通过/关注/失败的判定。当用户说'我们是否准备好进入 X'、'我们可以进入生产阶段吗'、'检查我们是否可以开始下一阶段'、'通过关卡'时使用。"
 argument-hint: "[target-phase: systems-design | technical-setup | pre-production | production | polish | release]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, Write, Task, AskUserQuestion
+allowed-tools: Read, Glob, Grep, Bash, Write, AskUserQuestion
 model: opus
 ---
 
 # Phase Gate Validation
 
-This skill validates whether the project is ready to advance to the next development
-phase. It checks for required artifacts, quality standards, and blockers.
-
-**Absorbed responsibilities:** this Skill now also covers milestone review and
-late-stage readiness checks. `/help` handles lightweight "where are we?";
-`/gate-check` handles "can we advance?" with a formal verdict.
-
-Preserved CCGS value:
-
-- Gate verdicts: `PASS`, `CONCERNS`, or `FAIL`.
-- Gate output should be saved under `production/gate-checks/` when the user
-  approves writing.
-- Milestone review output: `production/milestones/[milestone-name]-review.md`.
-- Vertical slice evidence should include playable build/report path,
-  playtest notes, critical loop coverage, production-quality risk, and explicit
-  proceed/adjust/stop recommendation.
-- A gate cannot advance the project for the user; it only gives the readiness
-  judgement and blockers.
-- Gate checks must use core commands in recommendations. Do not recommend
-  archived micro-skills.
-- Godot-specific gate concerns: pinned version, `project.godot`, architecture
-  control manifest, Godot test/smoke evidence, asset import readiness, scene/UI
-  implementation risks, and export/platform constraints.
-
-## Production Stages (7)
-
-The project progresses through these stages:
-
-1. **Concept** — Brainstorming, game concept document
-2. **Systems Design** — Mapping systems, writing GDDs
-3. **Technical Setup** — Engine config, architecture decisions
-4. **Pre-Production** — Prototyping, vertical slice validation
-5. **Production** — Feature development (Epic/Feature/Task tracking active)
-6. **Polish** — Performance, playtesting, bug fixing
-7. **Release** — Launch prep, certification
-
-**When a gate passes**, write the new stage name to `production/stage.txt`
-(single line, e.g. `Production`). This updates the status line immediately.
-
----
-
-## 1. Parse Arguments
-
-**Target phase:** `$ARGUMENTS[0]` (blank = auto-detect current stage, then validate next transition)
-
-Do not parse review mode arguments and do not read or create
-`production/review-mode.txt`. `/gate-check` is the one place where director
-review is mandatory by default: it runs all four phase-gate directors
-(CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE, AD-PHASE-GATE).
-
-- **With argument**: `/gate-check production` — validate readiness for that specific phase
-- **No argument**: Auto-detect current stage using the same heuristics as
-  `/help`, then **confirm with the user before running**:
-
-  Use `AskUserQuestion`:
-  - Prompt: "Detected stage: **[current stage]**. Running gate for [Current] → [Next] transition. Is this correct?"
-  - Options:
-    - `[A] Yes — run this gate`
-    - `[B] No — pick a different gate` (if selected, show a second widget listing all gate options: Concept → Systems Design, Systems Design → Technical Setup, Technical Setup → Pre-Production, Pre-Production → Production, Production → Polish, Polish → Release)
-  
-  Do not skip this confirmation step when no argument is provided.
-
----
-
-## 2. Phase Gate Definitions
-
-### Gate: Concept → Systems Design
-
-**Required Artifacts:**
-- [ ] `design/gdd/game-concept.md` exists and has content
-- [ ] Game pillars defined (in concept doc or `design/gdd/game-pillars.md`)
-- [ ] Visual Identity Anchor section exists in `design/gdd/game-concept.md` (from brainstorm Phase 4 art-director output)
-
-**Recommended (not blocking):**
-- [ ] Concept prototype exists in `prototypes/` with a REPORT.md showing PROCEED verdict
-      (`/brainstorm [core-mechanic]`) — skipping this means GDDs may be written for an
-      idea that hasn't been played. Acceptable if the concept is proven by other means.
-
-**Quality Checks:**
-- [ ] Game concept has been reviewed (`/design-system` verdict not MAJOR REVISION NEEDED)
-- [ ] Core loop is described and understood
-- [ ] Target audience is identified
-- [ ] Visual Identity Anchor contains a one-line visual rule and at least 2 supporting visual principles
-
----
-
-### Gate: Systems Design → Technical Setup
-
-**Required Artifacts:**
-- [ ] Systems index exists at `design/gdd/systems-index.md` with at least MVP systems enumerated
-- [ ] All MVP-tier GDDs exist in `design/gdd/` and individually pass `/design-system`
-- [ ] A cross-GDD review report exists in `design/gdd/` (from `/design-system`)
-
-**Quality Checks:**
-- [ ] All MVP GDDs pass individual design review (8 required sections, no MAJOR REVISION NEEDED verdict)
-- [ ] `/design-system` verdict is not FAIL (cross-GDD consistency and design theory checks pass)
-- [ ] All cross-GDD consistency issues flagged by `/design-system` are resolved or explicitly accepted
-- [ ] System dependencies are mapped in the systems index and are bidirectionally consistent
-- [ ] MVP priority tier is defined
-- [ ] No stale GDD references flagged (older GDDs updated to reflect decisions made in later GDDs)
-
----
-
-### Gate: Technical Setup → Pre-Production
-
-**Required Artifacts:**
-- [ ] Engine chosen (AGENTS.md Technology Stack is not `[CHOOSE]`)
-- [ ] Technical preferences configured (`.codex/docs/technical-preferences.md` populated)
-- [ ] Art bible exists at `design/art/art-bible.md` with at least Sections 1–4 (Visual Identity Foundation)
-- [ ] At least 3 Architecture Decision Records in `docs/architecture/` covering
-      Foundation-layer systems (scene management, event architecture, save/load)
-- [ ] Engine reference docs exist in `docs/engine-reference/[engine]/`
-- [ ] Test framework initialized: `tests/unit/` and `tests/integration/` directories exist
-- [ ] CI/CD test workflow exists at `.github/workflows/tests.yml` (or equivalent)
-- [ ] At least one example test file exists to confirm the framework is functional
-- [ ] Master architecture document exists at `docs/architecture/architecture.md`
-- [ ] Architecture traceability index exists at `docs/architecture/requirements-traceability.md`
-- [ ] `/create-architecture` has been run (a review report file exists in `docs/architecture/`)
-- [ ] `design/accessibility-requirements.md` exists with accessibility tier committed
-- [ ] `design/ux/interaction-patterns.md` exists (pattern library initialized, even if minimal)
-
-**Quality Checks:**
-- [ ] Architecture decisions cover core systems (rendering, input, state management)
-- [ ] Technical preferences have naming conventions and performance budgets set
-- [ ] Accessibility tier is defined and documented (even "Basic" is acceptable — undefined is not)
-- [ ] At least one screen's UX spec started (often the main menu or core HUD is designed during Technical Setup)
-- [ ] All ADRs have an **Engine Compatibility section** with engine version stamped
-- [ ] All ADRs have a **GDD Requirements Addressed section** with explicit GDD linkage
-- [ ] No ADR references APIs listed in `docs/engine-reference/[engine]/deprecated-apis.md`
-- [ ] All HIGH RISK engine domains (per VERSION.md) have been explicitly addressed
-      in the architecture document or flagged as open questions
-- [ ] Architecture traceability matrix has **zero Foundation layer gaps**
-      (all Foundation requirements must have ADR coverage before Pre-Production)
-
-**ADR Circular Dependency Check**: For all ADRs in `docs/architecture/`, read each ADR's
-"ADR Dependencies" / "Depends On" section. Build a dependency graph (ADR-A → ADR-B means
-A depends on B). If any cycle is detected (e.g. A→B→A, or A→B→C→A):
-- Flag as **FAIL**: "Circular ADR dependency: [ADR-X] → [ADR-Y] → [ADR-X].
-  Neither can reach Accepted while the cycle exists. Remove one 'Depends On' edge to
-  break the cycle."
-
-**Engine Validation** (read `docs/engine-reference/[engine]/VERSION.md` first):
-- [ ] ADRs that touch post-cutoff engine APIs are flagged with Knowledge Risk: HIGH/MEDIUM
-- [ ] `/create-architecture` engine audit shows no deprecated API usage
-- [ ] All ADRs agree on the same engine version (no stale version references)
-
----
-
-### Gate: Pre-Production → Production
-
-**Required Artifacts:**
-- [ ] Vertical slice exists in `prototypes/` with a REPORT.md (run `/sprint-plan`) — **recommended, not blocking**; if absent, surface as CONCERNS
-- [ ] First sprint plan exists in `production/sprints/`
-- [ ] Art bible is complete (all 9 sections) and AD-ART-BIBLE sign-off verdict is recorded in `design/art/art-bible.md`
-- [ ] Entity inventory exists at `design/assets/entity-inventory.md` (recommended — run `/art-bible` with no arguments to generate collaboratively from GDDs + art bible)
-- [ ] All MVP-tier GDDs from systems index are complete
-- [ ] Master architecture document exists at `docs/architecture/architecture.md`
-- [ ] At least 3 ADRs covering Foundation-layer decisions exist in `docs/architecture/`
-- [ ] All Foundation and Core layer ADRs have status `Accepted` (not `Proposed`) — stories cannot be unblocked until their governing ADR is accepted
-- [ ] Control manifest exists at `docs/architecture/control-manifest.md`
-      (generated by `/create-architecture` from Accepted ADRs)
-- [ ] Epics defined in `production/epics/` with at least Foundation and Core
-      layer epics present (use `/sprint-plan layer: foundation` and
-      `/sprint-plan layer: core` to create them, then `/sprint-plan [epic-slug]`
-      for each epic)
-- [ ] Vertical Slice build exists and is playable (not just scope-defined) — **recommended, not blocking**; if absent, surface as CONCERNS
-- [ ] Vertical Slice has been playtested with at least 1 documented session — **recommended, not blocking**; if absent, surface as CONCERNS
-- [ ] Vertical Slice playtest report exists at `production/playtests/` or equivalent — **recommended, not blocking**; if absent, surface as CONCERNS
-- [ ] UX specs exist for key screens: main menu, core gameplay HUD (at `design/ux/`), pause menu
-- [ ] HUD design document exists at `design/ux/hud.md` (if game has in-game HUD)
-- [ ] All key screen UX specs have passed `/art-bible` (verdict APPROVED or NEEDS REVISION accepted)
-
-**Quality Checks:**
-- [ ] **Core loop fun is validated** — playtest data confirms the central mechanic is enjoyable, not just functional. Explicitly check the Vertical Slice playtest report.
-- [ ] UX specs cover all UI Requirements sections from MVP-tier GDDs
-- [ ] Interaction pattern library documents patterns used in key screens
-- [ ] Accessibility tier from `design/accessibility-requirements.md` is addressed in all key screen UX specs
-- [ ] Sprint plan references real story file paths from `production/epics/`
-      (not just GDDs — stories must embed GDD req ID + ADR reference)
-- [ ] **Vertical Slice is COMPLETE**, not just scoped — the build demonstrates the full core loop end-to-end. At least one complete [start → challenge → resolution] cycle works.
-- [ ] Architecture document has no unresolved open questions in Foundation or Core layers
-- [ ] All ADRs have Engine Compatibility sections stamped with the engine version
-- [ ] All ADRs have ADR Dependencies sections (even if all fields are "None")
-- [ ] Manual validation confirms GDDs + architecture + epics are coherent
-      (run `/design-system` and `/create-architecture` if not done recently)
-- [ ] **Core fantasy is delivered** — at least one playtester independently described an experience that matches the Player Fantasy section of the core system GDDs (without being prompted).
-
-**Vertical Slice Validation** (only run these checks if a Vertical Slice was built):
-- [ ] A human has played through the core loop without developer guidance
-- [ ] The game communicates what to do within the first 2 minutes of play
-- [ ] No critical "fun blocker" bugs exist in the Vertical Slice build
-- [ ] The core mechanic feels good to interact with (this is a subjective check — ask the user)
-
-> **Verdict rules for Vertical Slice:**
-> - **Slice was built AND any validation item is NO** → verdict is automatically FAIL. A broken
->   or unfun vertical slice should not advance to Production.
-> - **Slice was not built (skipped)** → downgrade to CONCERNS only, not FAIL. Surface the risk
->   clearly: "Advancing without a validated Vertical Slice increases the risk of late-stage design
->   pivots. Recommended before committing full production scope." The user decides.
-> - Skipping is a valid solo dev or time-constrained call. Shipping a broken one is not.
-
----
-
-### Gate: Production → Polish
-
-**Required Artifacts:**
-- [ ] `src/` has active code organized into subsystems
-- [ ] All core mechanics from GDD are implemented (cross-reference `design/gdd/` with `src/`)
-- [ ] Main gameplay path is playable end-to-end
-- [ ] Test files exist in `tests/unit/` and `tests/integration/` covering Logic and Integration stories
-- [ ] All Logic stories from this sprint have corresponding unit test files in `tests/unit/`
-- [ ] Smoke check has been run with a PASS or PASS WITH WARNINGS verdict — report exists in `production/qa/`
-- [ ] QA plan exists in `production/qa/` (generated by `/smoke-check`) covering this sprint or final production sprint
-- [ ] At least one QA plan exists in `production/qa/` covering this production phase — run `/smoke-check` if missing (CONCERNS — advisory, not blocking)
-- [ ] QA sign-off report exists in `production/qa/` (generated by `/smoke-check`) with verdict APPROVED or APPROVED WITH CONDITIONS
-- [ ] At least 3 distinct playtest sessions documented in `production/playtests/`
-- [ ] Playtest reports cover: new player experience, mid-game systems, and difficulty curve
-- [ ] Fun hypothesis from Game Concept has been explicitly validated or revised
-
-**Quality Checks:**
-- [ ] Tests are passing (run test suite via Bash)
-- [ ] No critical/blocker bugs in any bug tracker or known issues
-- [ ] Core loop plays as designed (compare to GDD acceptance criteria)
-- [ ] Performance is within budget (check technical-preferences.md targets)
-- [ ] Playtest findings have been reviewed and critical fun issues addressed (not just documented)
-- [ ] No "confusion loops" identified — no point in the game where >50% of playtesters got stuck without knowing why
-- [ ] Difficulty curve matches the Difficulty Curve design doc (if one exists at `design/difficulty-curve.md`)
-- [ ] All implemented screens have corresponding UX specs (no "designed in-code" screens)
-- [ ] Interaction pattern library is up-to-date with all patterns used in implementation
-- [ ] Accessibility compliance verified against committed tier in `design/accessibility-requirements.md`
-
----
-
-### Gate: Polish → Release
-
-**Required Artifacts:**
-- [ ] All features from milestone plan are implemented
-- [ ] Content is complete (all levels, assets, dialogue referenced in design docs exist)
-- [ ] Localization strings are externalized (no hardcoded player-facing text in `src/`)
-- [ ] QA test plan exists (`/smoke-check` output in `production/qa/`)
-- [ ] QA sign-off report exists (`/smoke-check` output — APPROVED or APPROVED WITH CONDITIONS)
-- [ ] All Must Have story test evidence is present (Logic/Integration: test files pass; Visual/Feel/UI: sign-off docs in `production/qa/evidence/`)
-- [ ] Smoke check passes cleanly (PASS verdict) on the release candidate build
-- [ ] No test regressions from previous sprint (test suite passes fully)
-- [ ] Balance data has been reviewed (`/design-system` run)
-- [ ] Release checklist completed (`/release-checklist` or `/release-checklist` run)
-- [ ] Store metadata prepared (if applicable)
-- [ ] Changelog / patch notes drafted
-
-**Quality Checks:**
-- [ ] Full QA pass signed off by `qa-lead`
-- [ ] All tests passing
-- [ ] Performance targets met across all target platforms
-- [ ] No known critical, high, or medium-severity bugs
-- [ ] Accessibility basics covered (remapping, text scaling if applicable)
-- [ ] Localization verified for all target languages
-- [ ] Legal requirements met (EULA, privacy policy, age ratings if applicable)
-- [ ] Build compiles and packages cleanly
-
----
-
-## 3. Run the Gate Check
-
-**Before running artifact checks**, read `docs/consistency-failures.md` if it exists.
-Extract entries whose Domain matches the target phase (e.g., if checking
-Systems Design → Technical Setup, pull entries in Economy, Combat, or any GDD domain;
-if checking Technical Setup → Pre-Production, pull entries in Architecture, Engine).
-Carry these as context — recurring conflict patterns in the target domain warrant
-increased scrutiny on those specific checks.
-
-For each item in the target gate:
-
-### Artifact Checks
-- Use `Glob` and `Read` to verify files exist and have meaningful content
-- Don't just check existence — verify the file has real content (not just a template header)
-- For code checks, verify directory structure and file counts
-
-**Systems Design → Technical Setup gate — cross-GDD review check**:
-Use `Glob('design/gdd/gdd-cross-review-*.md')` to find the `/design-system` report.
-If no file matches, mark the "cross-GDD review report exists" artifact as **FAIL** and
-surface it prominently: "No `/design-system` report found in `design/gdd/`. Run
-`/design-system` before advancing to Technical Setup."
-If a file is found, read it and check the verdict line: a FAIL verdict means the
-cross-GDD consistency check failed and must be resolved before advancing.
-
-### Quality Checks
-- For test checks: Run the test suite via `Bash` if a test runner is configured
-- For design review checks: `Read` the GDD and check for the 8 required sections
-- For performance checks: `Read` technical-preferences.md and compare against any
-  profiling data in `tests/performance/` or recent `/code-review` output
-- For localization checks: `Grep` for hardcoded strings in `src/`
-
-### Cross-Reference Checks
-- Compare `design/gdd/` documents against `src/` implementations
-- Check that every system referenced in architecture docs has corresponding code
-- Verify sprint plans reference real work items
-
----
-
-## 4. Collaborative Assessment
-
-For items that can't be automatically verified, **ask the user**:
-
-- "I can't automatically verify that the core loop plays well. Has it been playtested?"
-- "No playtest report found. Has informal testing been done?"
-- "Performance profiling data isn't available. Would you like to run `/code-review`?"
-
-**Never assume PASS for unverifiable items.** Mark them as MANUAL CHECK NEEDED.
-
----
-
-## 4b. Director Panel Assessment
-
-Spawn all four directors. Phase gates always run here because this is the formal
-stage-transition review.
-
-Before generating the final verdict, spawn all four directors as **parallel subagents** via Task using the parallel gate protocol from `.codex/docs/director-gates.md`. Issue all four Task calls simultaneously — do not wait for one before starting the next.
-
-**Spawn in parallel:**
-
-1. **`creative-director`** — gate **CD-PHASE-GATE** (`.codex/docs/director-gates.md`)
-2. **`technical-director`** — gate **TD-PHASE-GATE** (`.codex/docs/director-gates.md`)
-3. **`producer`** — gate **PR-PHASE-GATE** (`.codex/docs/director-gates.md`)
-4. **`art-director`** — gate **AD-PHASE-GATE** (`.codex/docs/director-gates.md`)
-
-Pass to each: target phase name, list of artifacts present, and the context fields listed in that gate's definition.
-
-**Collect all four responses, then present the Director Panel summary:**
-
-```
-## Director Panel Assessment
-
-Creative Director:  [READY / CONCERNS / NOT READY]
-  [feedback]
-
-Technical Director: [READY / CONCERNS / NOT READY]
-  [feedback]
-
-Producer:           [READY / CONCERNS / NOT READY]
-  [feedback]
-
-Art Director:       [READY / CONCERNS / NOT READY]
-  [feedback]
+`/gate-check` 是 CFG 的正式阶段门检查。它只给 readiness verdict，不替用户推进阶段，不制造缺失文件来让 gate 通过。
+
+Verdicts:
+
+- `PASS` — 关键工件与质量条件满足。
+- `CONCERNS` — 可以前进，但风险必须被记录并由用户接受。
+- `FAIL` — 有阻塞项，建议先处理。
+
+Gate report 可以在用户批准后写入 `production/gate-checks/`。当 gate 涉及玩家体验、视觉质量、动作可读性、canon 一致性或跨线质量冲突时，必须读取或要求 `D-director` verdict。
+
+## CFG State Policy
+
+生产阶段不使用 Epic/Story/Sprint 状态机。不要要求、读取或推荐：
+
+- `production/epics/`
+- `production/sprints/`
+- `production/sprint-status.yaml`
+- `/sprint-plan`
+- `/dev-story`
+- `/story-done`
+- `/smoke-check`
+
+生产阶段只认：
+
+- `production/work-orders/*.md`
+- `production/session-state/active.md`
+- `production/session-state/windows/*.md`
+- B-dev / C-art / A-producer delivery or evidence files
+- D-director verdict files
+- `production/project-canon.md` when canon/player-facing quality is relevant
+
+## Parse Arguments
+
+Target phase is the first argument. If no argument is provided, detect current stage from `production/stage.txt` or visible artifacts, then ask the user to confirm the transition before running.
+
+Stage order:
+
+1. Concept
+2. Systems Design
+3. Technical Setup
+4. Pre-Production
+5. Production
+6. Polish
+7. Release
+
+When a `PASS` gate is complete and the user explicitly confirms advancement, update `production/stage.txt` to the new stage.
+
+## Gate Definitions
+
+### Concept -> Systems Design
+
+Required:
+
+- `design/gdd/game-concept.md`
+- core fantasy, player promise, pillars/anti-pillars
+- Visual Identity Anchor or equivalent visual direction seed
+
+Quality:
+
+- core loop described clearly enough to decompose into systems
+- first complete playable/validation scope is named
+- major unanswered concept risks are listed
+
+Recommended:
+
+- concept prototype/report if the core loop is unproven
+
+### Systems Design -> Technical Setup
+
+Required:
+
+- `design/gdd/systems-index.md`
+- MVP/core system GDDs needed for first playable scope
+- cross-GDD consistency review or explicit accepted gaps
+- `design/art/art-bible.md` at least visual identity foundation if art direction affects architecture
+
+Quality:
+
+- system dependencies are mapped
+- acceptance criteria are testable
+- design docs do not contradict canon or art direction
+
+### Technical Setup -> Pre-Production
+
+Required:
+
+- Godot version/tooling pinned in `AGENTS.md` or `.codex/docs/technical-preferences.md`
+- `project.godot` or explicit Godot project creation plan
+- `docs/engine-reference/godot/VERSION.md`
+- `docs/architecture/architecture.md` or accepted architecture plan sufficient for the next prototype/work order
+- ADRs for foundation/core decisions that block implementation
+- minimal test/runtime check path recorded
+
+Quality:
+
+- Godot API risks are noted for the pinned version
+- architecture has clear module ownership and handoff boundaries
+- B-dev can execute without inventing architecture mid-task
+
+### Pre-Production -> Production
+
+Required:
+
+- first production queue exists in `production/session-state/active.md` or a named A-producer handoff
+- work-order template/protocol is present at `production/work-orders/README.md`
+- at least one ready production work order exists in `production/work-orders/`
+- D-director method is available when the work touches player-facing quality
+- required B/C evidence format is clear for the first work order
+
+Quality:
+
+- work orders include Scope, Non-scope, Delivery Spec, Stop Conditions, owner lane, and evidence requirements
+- first playable/prototype risks are either validated or explicitly accepted
+- A-producer owns priority/queue decisions
+- D-director owns canon/player-facing verdicts
+
+### Production -> Polish
+
+Required:
+
+- core gameplay path is playable end-to-end or the remaining gap is explicitly scoped
+- active production work orders for core loop are closed or have accepted D/A verdicts
+- B-dev evidence covers runtime/config/test claims
+- C-art evidence covers visual/readability/capture claims
+- critical blockers are recorded with owner lane and next action
+
+Quality:
+
+- tests/runtime checks pass or failures are documented as accepted risks
+- player-facing quality has D-director verdict when relevant
+- no unresolved cross-lane ownership conflict blocks polish
+
+### Polish -> Release
+
+Required:
+
+- release candidate build path or export plan
+- critical/high bugs triaged
+- release checklist or equivalent launch readiness document
+- store/platform/legal/localization needs identified when applicable
+- final D/A decision for player-facing readiness
+
+Quality:
+
+- performance and stability evidence exists for target platform
+- known risks are acceptable for release
+- rollback/patch path is recorded
+
+## Run The Gate
+
+For each required item:
+
+- use `Glob`, `Read`, and `Grep` to verify existence and meaningful content
+- mark unverified subjective items as `MANUAL CHECK NEEDED`
+- ask the user only for checks that cannot be verified from files
+- never infer PASS from absence of evidence
+
+For production gates, read relevant work orders and lane state before judging readiness. If the gate closes a specific directed effort, read the D verdict and B/C evidence for that effort.
+
+## D-director Assessment
+
+If the gate depends on player experience, visual quality, motion readability, cross-line presentation, or canon consistency, read:
+
+- `production/project-canon.md`
+- `production/session-state/windows/D-director.md`
+- relevant `production/work-orders/*.md`
+- delivered evidence from B-dev/C-art/A-producer
+
+Output:
+
+```text
+D-director Assessment:
+- Verdict: PASS / PARTIAL PASS / FAIL / INVALID / MISSING
+- Evidence: [paths]
+- Effect on gate: [eligible / minimum CONCERNS / minimum FAIL]
 ```
 
-**Apply to the verdict:**
-- Any director returns NOT READY → verdict is minimum FAIL (user may override with explicit acknowledgement)
-- Any director returns CONCERNS → verdict is minimum CONCERNS
-- All four READY → eligible for PASS (still subject to artifact and quality checks from Section 3)
+Rules:
 
----
+- D `PASS` -> eligible for PASS if other checks pass.
+- D `PARTIAL PASS` -> minimum `CONCERNS`.
+- D `FAIL` or `INVALID` -> minimum `FAIL`.
+- Missing required D verdict -> minimum `CONCERNS`, or `FAIL` if it blocks phase safety.
 
-## 5. Output the Verdict
+## Output
 
-```
-## Gate Check: [Current Phase] → [Target Phase]
+```text
+## Gate Check: [Current Phase] -> [Target Phase]
 
-**Date**: [date]
-**Checked by**: gate-check skill
+Date: [date]
+Checked by: gate-check skill
 
-### Required Artifacts: [X/Y present]
-- [x] design/gdd/game-concept.md — exists, 2.4KB
-- [ ] docs/architecture/ — MISSING (no ADRs found)
-- [x] production/sprints/ — exists, 1 sprint plan
+Required Artifacts: [X/Y present]
+- [x] [path] — [evidence]
+- [ ] [path] — MISSING / INCOMPLETE
+- [?] [item] — MANUAL CHECK NEEDED
 
-### Quality Checks: [X/Y passing]
-- [x] GDD has 8/8 required sections
-- [ ] Tests — FAILED (3 failures in tests/unit/)
-- [?] Core loop playtested — MANUAL CHECK NEEDED
+Quality Checks: [X/Y passing]
+- [x] [check]
+- [ ] [check]
+- [?] [check]
 
-### Blockers
-1. **No Architecture Decision Records** — Run `/create-architecture` to create one
-   covering core system architecture before entering production.
-2. **3 test failures** — Fix failing tests in tests/unit/ before advancing.
+D-director Assessment:
+- [include when relevant]
 
-### Recommendations
-- [Priority actions to resolve blockers]
-- [Optional improvements that aren't blocking]
+Blockers:
+1. [blocking item and owner lane]
 
-### Verdict: [PASS / CONCERNS / FAIL]
-- **PASS**: All required artifacts present, all quality checks passing
-- **CONCERNS**: Minor gaps exist but can be addressed during the next phase
-- **FAIL**: Critical blockers must be resolved before advancing
-```
+Recommendations:
+- [priority action]
+- [optional risk reduction]
 
----
+Chain-of-Verification:
+- [N] challenge questions checked; verdict [unchanged/revised]
 
-## 5a. Chain-of-Verification
-
-After drafting the verdict in Phase 5, challenge it before finalising.
-
-**Step 1 — Generate 5 challenge questions** designed to disprove the verdict:
-
-> **Tool-action requirement**: At least 2 of the 5 challenge questions below must be answered by re-reading a specific file (Read tool) or re-running a specific check (Grep tool) — not by reflection alone. Mark these with [TOOL ACTION] to indicate a tool was used.
-
-For a **PASS** draft:
-- "Which quality checks did I verify by actually reading a file, vs. inferring they passed?"
-- "Are there MANUAL CHECK NEEDED items I marked PASS without user confirmation? [TOOL ACTION] Re-scan the checklist for any [?] or MANUAL CHECK items."
-- "Did I confirm all listed artifacts have real content, not just empty headers? [TOOL ACTION] Re-read the file and check it has non-placeholder content."
-- "Could any blocker I dismissed as minor actually prevent the phase from succeeding?"
-- "Which single check am I least confident in, and why?"
-
-For a **CONCERNS** draft:
-- "Could any listed CONCERN be elevated to a blocker given the project's current state?"
-- "Is the concern resolvable within the next phase, or does it compound over time?"
-- "Did I soften any FAIL condition into a CONCERN to avoid a harder verdict?"
-- "Are there artifacts I didn't check that could reveal additional blockers?"
-- "Do all the CONCERNS together create a blocking problem even if each is minor alone?"
-
-For a **FAIL** draft:
-- "Have I accurately separated hard blockers from strong recommendations?"
-- "Are there any PASS items I was too lenient about?"
-- "Am I missing any additional blockers the user should know about?"
-- "Can I provide a minimal path to PASS — the specific 3 things that must change?"
-- "Is the fail condition resolvable, or does it indicate a deeper design problem?"
-
-**Step 2 — Answer each question** independently.
-Do NOT reference the draft verdict text — re-check specific files or ask the user.
-
-**Step 3 — Revise if needed:**
-- If any answer reveals a missed blocker → upgrade verdict (PASS→CONCERNS or CONCERNS→FAIL)
-- If any answer reveals an over-stated blocker → downgrade only if citing specific evidence
-- If answers are consistent → confirm verdict unchanged
-
-**Step 4 — Note the verification** in the final report output:
-`Chain-of-Verification: [N] questions checked — verdict [unchanged | revised from X to Y]`
-
----
-
-## 6. Update Stage on PASS
-
-When the verdict is **PASS** and the user confirms they want to advance:
-
-1. Write the new stage name to `production/stage.txt` (single line, no trailing newline)
-2. This immediately updates the status line for all future sessions
-
-Example: if passing the "Pre-Production → Production" gate:
-```bash
-echo -n "Production" > production/stage.txt
+Verdict: PASS / CONCERNS / FAIL
 ```
 
-**Always ask before writing**: "Gate passed. May I update `production/stage.txt` to 'Production'?"
+## Chain-of-Verification
 
----
+Before finalizing, ask five challenge questions designed to disprove the draft verdict. At least two must be answered by re-reading a specific file or re-running a specific grep/check. Revise the verdict if the challenge reveals missed blockers or overstated failures.
 
-## 7. Closing Next-Step Widget
+## Update Stage On PASS
 
-After the verdict is presented and any stage.txt update is complete, close with a structured next-step prompt using `AskUserQuestion`.
+If verdict is `PASS`, ask:
 
-**Tailor the options to the gate that just ran:**
-
-For **systems-design PASS**:
-```
-Gate passed. What would you like to do next?
-[A] Run /create-architecture — produce your master architecture blueprint and ADR work plan (recommended next step)
-[B] Design more GDDs first — return here when all MVP systems are complete
-[C] Stop here for this session
+```text
+Gate passed. May I update `production/stage.txt` to `[Target Stage]`?
 ```
 
-> **Note for systems-design PASS**: `/create-architecture` is the required next step before writing any ADRs. It produces the master architecture document and a prioritized list of ADRs to write. Running `/create-architecture` without this step means writing ADRs without a blueprint — skip it at your own risk.
+Only write after the user confirms.
 
-For **technical-setup PASS**:
-```
-Gate passed. What would you like to do next?
-[A] Run /create-architecture — generate the layer rules manifest from your Accepted ADRs (do this first)
-[B] Run /sprint-plan — build the Vertical Slice (do this before writing epics — validate fun first)
-[C] Write more ADRs first — run /create-architecture [next-system]
-[D] Stop here for this session
-```
+## Closing Next Step
 
-> **Note for technical-setup PASS**: The Pre-Production sequence is deliberately ordered
-> to validate fun before committing to detailed planning:
->
-> 1. `/create-architecture` — extract technical rules from Accepted ADRs (required before epics)
-> 2. `/sprint-plan` — build the Vertical Slice **FIRST**, before writing epics or stories
-> 3. Playtest → `/smoke-check` — at least 1 session required to pass the Pre-Production gate; 3+ recommended before committing the full team
-> 4. `/art-bible [screen]` — UX specs for main menu, core HUD, pause menu (if not done)
-> 5. `/sprint-plan layer:foundation` then `/sprint-plan layer:core` — plan after fun is validated
-> 6. `/sprint-plan [epic-slug]` for each epic
-> 7. `/sprint-plan new`
->
-> **Why prototype before epics?** If the prototype reveals the core loop needs to change,
-> epics written before that discovery will be partially wrong. Validate fun cheaply first,
-> then plan in detail. This is the #1 lesson from GDC postmortem data.
+Close with 2-3 practical options tailored to the result:
 
-For all other gates, offer the two most logical next steps for that phase plus "Stop here".
+- missing design/art/architecture -> relevant Skill
+- production queue/scope issue -> `A-producer` via `/window-cfg A`
+- player-facing verdict issue -> `D-director` via `/window-cfg D`
+- code/runtime evidence issue -> `B-dev`
+- art/capture/readability evidence issue -> `C-art`
+- framework/routing issue -> `Z-platform`
 
----
-
-## 8. Follow-Up Actions
-
-Based on the verdict, suggest specific next steps:
-
-- **No art bible?** → `/art-bible` to create the visual identity specification
-- **Art bible exists but no asset specs?** → `/art-bible system:[name]` to generate per-asset visual specs and generation prompts from approved GDDs
-- **No game concept?** → `/brainstorm` to create one
-- **No systems index?** → `/design-system` to decompose the concept into systems
-- **Missing design docs?** → `/start` or delegate to `game-designer`
-- **Small design change needed?** → `/design-system` for changes under ~4 hours (bypasses full GDD pipeline)
-- **No UX specs?** → `/art-bible [screen name]` to author specs, or `/art-bible [feature]` for full pipeline
-- **UX specs not reviewed?** → `/art-bible [file]` or `/art-bible all` to validate
-- **No accessibility requirements doc?** → run `/art-bible` which creates both `design/accessibility-requirements.md` and `design/ux/interaction-patterns.md` in one step
-- **No interaction pattern library?** → `/art-bible patterns` to initialize it
-- **GDDs not cross-reviewed?** → `/design-system` (run after all MVP GDDs are individually approved)
-- **Cross-GDD consistency issues?** → fix flagged GDDs, then re-run `/design-system`
-- **No test framework?** → `/setup-engine` to scaffold or verify the minimal Godot test foundation
-- **No QA plan for current sprint?** → `/smoke-check sprint` to generate one before implementation begins
-- **Missing ADRs?** → `/create-architecture` for individual decisions
-- **No master architecture doc?** → `/create-architecture` for the full blueprint
-- **ADRs missing engine compatibility sections?** → Re-run `/create-architecture`
-  or manually add Engine Compatibility sections to existing ADRs
-- **Missing control manifest?** → `/create-architecture` (requires Accepted ADRs)
-- **Missing epics?** → `/sprint-plan layer: foundation` then `/sprint-plan layer: core` (requires control manifest)
-- **Missing stories for an epic?** → `/sprint-plan [epic-slug]` (run after each epic is created)
-- **Stories not implementation-ready?** → `/dev-story` to validate stories before developers pick them up
-- **Tests failing?** → delegate to `lead-programmer` or `qa-tester`
-- **No playtest data?** → `/smoke-check`
-- **No playtest sessions beyond the minimum?** → Additional sessions give more reliable signal. 3+ total is recommended before committing the full team. Use `/smoke-check` to structure findings.
-- **No Difficulty Curve doc?** → Create `design/difficulty-curve.md` from the template at `.codex/docs/templates/difficulty-curve.md` — or use `/design-system "difficulty curve"` for a guided session.
-- **No player journey map?** → Create `design/player-journey.md` from the template at `.codex/docs/templates/player-journey.md` — or author it collaboratively using `/art-bible` Phase 2b.
-- **Need a quick sprint check?** → `/sprint-plan` for current sprint progress snapshot
-- **Performance unknown?** → `/code-review`
-- **Not localized?** → `/release-checklist`
-- **Ready for release?** → `/release-checklist`
-
----
-
-## Collaborative Protocol
-
-This skill follows the collaborative design principle:
-
-1. **Scan first**: Check all artifacts and quality gates
-2. **Ask about unknowns**: Don't assume PASS for things you can't verify
-3. **Present findings**: Show the full checklist with status
-4. **User decides**: The verdict is a recommendation — the user makes the final call
-5. **Get approval**: "May I write this gate check report to production/gate-checks/?"
-6. **Never auto-fix**: If required artifacts are missing, report the FAIL verdict and
-   name the skill to run (e.g. "run `/smoke-check`"). Do NOT create missing files or
-   re-run the gate automatically. Creating files to manufacture a PASS defeats the
-   gate's purpose.
-
-**Never** block a user from advancing — the verdict is advisory. Document the risks
-and let the user decide whether to proceed despite concerns.
-
+Verdict is advisory. The user decides whether to proceed despite concerns.
 

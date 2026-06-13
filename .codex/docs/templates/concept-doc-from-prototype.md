@@ -187,7 +187,7 @@
 ### Immediate (If Moving Forward)
 1. **[Task 1]**: [e.g., "Create full design doc for this system"]
 2. **[Task 2]**: [e.g., "Write ADR for technical approach"]
-3. **[Task 3]**: [e.g., "Add to backlog for Sprint X"]
+3. **[Task 3]**: [e.g., "Add to A-producer queue as a bounded work order"]
 
 ### Before Production (If Needs More Work)
 1. **[Task 1]**: [e.g., "Build second prototype testing X variation"]

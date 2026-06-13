@@ -499,7 +499,7 @@ The following player-adjustable settings must be available from the Accessibilit
 
 | Question | Owner | Deadline | Resolution |
 |----------|-------|----------|-----------|
-| [e.g., Should the minimap show enemy positions by default, or only after a detection skill is unlocked?] | [systems-designer + ui-designer] | [Sprint 5, Day 2] | [Pending — depends on progression GDD decision] |
-| [e.g., Does the game have a boss health bar, or do bosses use the standard enemy health bar? Bosses need a visually distinct treatment if they are significantly more important than normal enemies.] | [game-designer] | [Sprint 5, Day 1] | [Pending] |
-| [e.g., Damage numbers: diegetic (floating in world space, occluded by geometry) or screen space (always readable, overlaid on HUD layer)?] | [ui-designer + lead-programmer] | [Sprint 4, Day 5] | [Pending — architecture decision affects rendering layer choice] |
-| [e.g., Mobile portrait vs. landscape: does the game support both orientations? If yes, each requires its own zone layout.] | [producer] | [Sprint 3, Day 3] | [Pending — platform scope decision required first] |
+| [e.g., Should the minimap show enemy positions by default, or only after a detection skill is unlocked?] | [systems-balance lens + UX lens] | [Target work order/date] | [Pending — depends on progression GDD decision] |
+| [e.g., Does the game have a boss health bar, or do bosses use the standard enemy health bar? Bosses need a visually distinct treatment if they are significantly more important than normal enemies.] | [game-design lens / D-director if canon-level] | [Target work order/date] | [Pending] |
+| [e.g., Damage numbers: diegetic (floating in world space, occluded by geometry) or screen space (always readable, overlaid on HUD layer)?] | [UX lens + B-dev] | [Target work order/date] | [Pending — architecture decision affects rendering layer choice] |
+| [e.g., Mobile portrait vs. landscape: does the game support both orientations? If yes, each requires its own zone layout.] | [A-producer] | [Target work order/date] | [Pending — platform scope decision required first] |

@@ -526,7 +526,7 @@ In team skills, subagents return their analysis as text. The **orchestrator**
 (main session) calls `AskUserQuestion` at each decision point between phases:
 
 ```
-[game-designer returns 3 combat approaches with analysis]
+[game-design lens returns 3 combat approaches with analysis]
 
 Orchestrator uses AskUserQuestion:
   question: "Which combat approach should we develop?"
@@ -642,45 +642,45 @@ Agents should be:
 
 ---
 
-## 🎯 Applying This to Multi-Agent Core Skills
+## 🎯 Applying This to CFG Core Skills
 
-The current Codex fork keeps a small core Skill set. Multi-agent work now enters
-through core commands such as `/dev-story`, `/art-bible`, `/smoke-check`, and
-`/release-checklist` rather than separate team slash commands. The orchestration
-can still involve several specialists, but the collaboration pattern is the
-same:
+The current CFG fork keeps a small core Skill set. Production work enters
+through work orders and lane recovery, not Epic/Story/Sprint commands. The
+orchestration can still involve multiple lanes, but the collaboration pattern is
+the same:
 
 ```
-User: "/dev-story production/epics/combat/story-grappling-hook.md"
+User: "/window-cfg B"
 
-Skill (Coordinator):
-"I'll load the story, GDD/TR reference, governing ADR, control manifest, and
-Godot preferences before implementation. Before I route this to the programmer
-agents, a few checks:
+Lane (B-dev):
+"I'll read the active work order, the relevant GDD/ADR/control manifest only if
+they are named as consumers, and the B-dev lane state. Before implementation, I
+will check:
 
- 1. Are all acceptance criteria testable?
- 2. Is the governing ADR Accepted?
- 3. Is the test evidence path present?
+ 1. Is this work order assigned to B-dev?
+ 2. Are the delivery specs testable?
+ 3. Are there architecture or visual constraints that require A/D/C input?
 
- [User answers]
+ [User confirms or the work order already authorizes the scope]
 
- Based on the story type, I'll route implementation to:
- - gameplay-programmer: core grapple behavior
- - godot-gdscript-specialist: Godot API and node lifecycle review
- - qa-tester: testability check for acceptance criteria
+ Based on the work order, I will execute only B-dev owner paths:
+ - scripts/scenes/tests: runtime implementation
+ - production/dev-tasks/: B-dev evidence report
+ - lane handoff: recovery state and next step
 
-User: "Yes"
+User: "继续"
 
-[Each agent follows the file write approval protocol before editing]
+[B-dev implements inside the approved scope]
 
-Skill (Coordinator):
+Lane (B-dev):
 "Implementation summary is ready. Next steps:
- A) Run /code-review on the changed files
- B) Run /story-done to verify and close after review
- C) Stop here and update the lane handoff"
+ A) Run /code-review if changed files or risk warrant it
+ B) Route evidence to D-director if player-facing verdict is needed
+ C) Update the B-dev lane handoff"
 ```
 
-The orchestration is automated, but **decision points stay with the user**.
+The orchestration is automated, but **decision points stay with the user, A/D
+lane authority, or the active work order**.
 
 ---
 

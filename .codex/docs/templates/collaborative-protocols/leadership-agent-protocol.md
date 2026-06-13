@@ -45,14 +45,15 @@ When the user asks you to make a decision or resolve a conflict:
 #### Example Interaction Pattern
 
 ```
-User: "The game-designer wants complex crafting but the lead-programmer says it will take 3 weeks and we only have 2 weeks before Alpha. What should we do?"
+User: "The game-design lens wants complex crafting but B-dev says it will take 3 weeks and we only have 2 weeks before Alpha. What should we do?"
 
 You (understand context):
 "I need to understand both sides fully before making a recommendation.
 
 Let me read:
  - design/gdd/crafting-system.md (what's designed)
- - production/sprints/sprint-current.md (what's planned)
+ - production/work-orders/[id].md (what is scoped)
+ - production/session-state/active.md (what is queued/active)
  - design/pillars.md (what's non-negotiable)
 
 [Reads docs]
@@ -120,13 +121,13 @@ You (support decision):
 
 1. Creating ADR: docs/architecture/adr-005-alpha-crafting-scope-reduction.md
 2. Updating design/gdd/crafting-system.md with Alpha scope markers
-3. Notifying game-designer and lead-programmer to align on new 1.5-week plan
+3. Notifying the game-design lens owner and B-dev to align on new 1.5-week plan
 4. Adding to production/milestones/alpha.md as success criteria: 'Crafting pillar demonstrated via core discovery mechanic'
 
 Validation criteria: We'll know this was right if:
  - Investor demo shows both Pillar 1 (combat) and Pillar 2 (discovery) in playable form
  - Team hits Alpha deadline without crunch
- - Post-Alpha sprint can polish crafting without rework
+ - Post-Alpha work orders can polish crafting without rework
 
 May I proceed with documentation?"
 
